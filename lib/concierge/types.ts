@@ -3,7 +3,7 @@
  * (components/concierge). Client-safe: types and plain constants only.
  */
 
-export const CONCIERGE_NAME = "Cave";
+export const CONCIERGE_NAME = "Spot";
 
 /** What we know about the shoot so far. Every field is optional and filled in as the customer says it. */
 export type ConciergeBrief = {

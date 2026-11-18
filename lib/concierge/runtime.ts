@@ -4,25 +4,13 @@ import { randomUUID } from "node:crypto";
 
 import { addDaysToDateKey, istDateKey } from "@/lib/booking/dayAvailability";
 
-import { briefPatchSchema, isBriefEmpty, mergeBrief } from "./brief";
-import {
-    CONCIERGE_HISTORY_CHARS,
-    CONCIERGE_MAX_TOKENS,
-    CONCIERGE_MODEL,
-    CONCIERGE_PROMPT_SUFFIX,
-    hasModelAccess,
-    MAX_TOOL_ROUNDS,
-    MAX_TURNS_PER_CONVERSATION,
-} from "./config";
-import { fallbackReply } from "./fallback";
+import { isBriefEmpty } from "./brief";
+import { CONCIERGE_HISTORY_CHARS, CONCIERGE_MAX_TOKENS, MAX_TOOL_ROUNDS, MAX_TURNS_PER_CONVERSATION } from "./config";
 import { checkReply, collectDates, collectNumbers, MaskedStream } from "./guardrails";
 import { searchHelp } from "./help";
 import { windowHistory } from "./history";
-import { MarkupFilter, stripMarkup } from "./markup";
-import { type ChatMessage, chatStream, type ChatUsage, ModelError } from "./model";
-import { extractBriefPatch, findStartTime } from "./parse";
+import { chatStream, type ChatUsage } from "./model";
 import { conciergeSystemPrompt } from "./prompts";
-import { routedReply, routeIntent } from "./router";
 import { type ConversationState, logToolCall, saveTurn, type TurnUsage } from "./store";
 import { runTool, TOOL_DEFINITIONS, TOOL_STATUS, type ToolContext } from "./tools";
 import type { ConciergeCard, ConciergeEvent, TranscriptMessage } from "./types";
@@ -39,11 +27,12 @@ export type TurnInput = {
 export type TurnResult = { handedOff: string | null; usedModel: boolean };
 
 const LINK_HOSTS = ["contcave.com"];
+const PARAGRAPH = "\n\n";
 
 /**
  * Everything that varies per request goes here, on the customer's message,
  * and is stored with it. The system prompt and tools stay byte-identical, so
- * the model server can reuse its work on that prefix for every conversation.
+ * Gemini's implicit cache can reuse that prefix for every conversation.
  */
 function contextBlock(input: TurnInput): string {
     const today = istDateKey(new Date());
@@ -52,7 +41,7 @@ function contextBlock(input: TurnInput): string {
         ? `signed in${input.user.firstName ? ` as ${input.user.firstName}` : ""}${input.user.isHost ? " (studio host)" : ""}`
         : "not signed in";
     const brief = isBriefEmpty(input.state.brief) ? "none yet" : JSON.stringify(input.state.brief);
-    // Weekday-to-date arithmetic is where small models slip, so the next week is spelled out.
+    // Dates are spelled out so the model never does weekday arithmetic.
     const week = Array.from({ length: 8 }, (_, offset) => {
         const key = addDaysToDateKey(today, offset);
         const name = new Date(`${key}T00:00:00.000Z`).toLocaleDateString("en-IN", { weekday: "short", timeZone: "UTC" });
@@ -64,12 +53,10 @@ function contextBlock(input: TurnInput): string {
         `coming days: ${week}`,
         `customer: ${who}`,
         `brief so far: ${brief}`,
-        // Policy questions get the policy text handed to the model up front. A small model will
-        // otherwise answer from memory, and its memory of ContCave's terms is invented.
+        // Policy text is handed over up front so answers come from ContCave's terms, not the model's memory.
         ...searchHelp(input.text, 1).map(
             (article) => `ContCave policy that applies (${article.title}), answer only from this: ${article.body}`
         ),
-        "reminder: if the brief has a city or a kind of shoot, call search_studios in this turn before asking anything. Reply in at most three short sentences; the cards show the details.",
         "</context>",
     ].join("\n");
 }
@@ -89,15 +76,6 @@ function suggestionsFor(cards: ConciergeCard[], state: ConversationState): strin
     return [];
 }
 
-/** The studios in the most recent results card, in the order the customer saw them. */
-function lastStudiosShown(state: ConversationState) {
-    for (let index = state.transcript.length - 1; index >= 0; index--) {
-        const card = state.transcript[index].cards.find((entry) => entry.type === "studios");
-        if (card && card.type === "studios") return card.items.map((item) => ({ id: item.id, title: item.title, bookable: item.bookable }));
-    }
-    return [];
-}
-
 const addUsage = (total: TurnUsage, usage: ChatUsage) => {
     total.input += usage.input;
     total.output += usage.output;
@@ -107,12 +85,11 @@ const addUsage = (total: TurnUsage, usage: ChatUsage) => {
 /**
  * One customer turn: append their message, let the model work through its
  * tools, stream the reply, check it, and save. Never throws to the caller; a
- * model failure falls through to the rule-based fallback so the customer
- * always gets an answer.
+ * model failure ends the turn with an apology the customer can retry from.
  */
 export async function runTurn(input: TurnInput): Promise<TurnResult> {
     const { state, emit } = input;
-    const usage: TurnUsage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
+    const usage: TurnUsage = { input: 0, output: 0, cacheRead: 0 };
     const cards: ConciergeCard[] = [];
     let handedOff: string | null = null;
     let streamedText = "";
@@ -134,145 +111,85 @@ export async function runTurn(input: TurnInput): Promise<TurnResult> {
         cards: [],
         at: new Date().toISOString(),
     };
-    // Facts stated outright are saved by rule first, so the brief (and the dates in it) never depend on the model.
-    const stated = briefPatchSchema.safeParse(extractBriefPatch(input.text));
-    const namedPlaceOrShoot = stated.success && Boolean(stated.data.city || stated.data.shoot_type);
-    // A keyword in a later message ("instagram", "video") must not rename a shoot the customer already described.
-    if (stated.success && state.brief.shootType) delete stated.data.shoot_type;
-    if (stated.success && Object.keys(stated.data).length > 0) {
-        state.brief = mergeBrief(state.brief, stated.data);
-        emit({ type: "brief", brief: state.brief });
-    }
-    state.history.push({ role: "user", content: `${contextBlock(input)}\n\n${input.text}` });
+    state.history.push({ role: "user", content: `${contextBlock(input)}${PARAGRAPH}${input.text}` });
 
     let reply = "";
     let usedModel = false;
 
-    // Tier 0: turns that need no judgement are routed in code (lib/concierge/router.ts). The tool
-    // runs here and the model writes its reply with the result already in hand.
-    const routed =
-        hasModelAccess() && state.turnCount < MAX_TURNS_PER_CONVERSATION
-            ? routeIntent({
-                  text: input.text,
-                  brief: state.brief,
-                  namedPlaceOrShoot,
-                  studiosShown: state.transcript.some((message) => message.cards.some((card) => card.type === "studios")),
-                  alreadyHandedOff: state.status === "HANDED_OFF",
-                  shown: lastStudiosShown(state),
-                  startTime: findStartTime(input.text),
-              })
-            : null;
-    let routedResult: Record<string, unknown> | null = null;
-    if (routed) {
-        emit({ type: "status", text: TOOL_STATUS[routed.tool] ?? "Working on it" });
-        const run = await runTool(routed.tool, routed.args, ctx);
-        routedResult = run.result;
-        if (run.handedOff) handedOff = run.handedOff;
-        void logToolCall({ conversationId: state.id, tool: routed.tool, input: routed.args, ok: run.ok, error: run.error, ms: run.ms });
-        const id = `routed_${state.turnCount}`;
-        state.history.push(
-            { role: "assistant", content: "", tool_calls: [{ id, type: "function", function: { name: routed.tool, arguments: JSON.stringify(routed.args) } }] },
-            { role: "tool", tool_call_id: id, content: JSON.stringify(run.result) }
-        );
-    }
-
     if (state.turnCount >= MAX_TURNS_PER_CONVERSATION) {
-        // A conversation this long is costing money and not getting anywhere: a person should take it.
         const run = await runTool("handoff_to_human", { reason: "Long conversation", summary: input.text.slice(0, 300) }, ctx);
         handedOff = run.handedOff ?? "Long conversation";
         reply = "We've covered a lot here, so I've asked the ContCave team to pick this up and get it sorted for you. You can continue with them on WhatsApp using the button below.";
         state.history.push({ role: "assistant", content: reply });
         streamedText = reply;
         emit({ type: "text", delta: reply });
-    } else if (hasModelAccess()) {
+    } else {
         try {
             const masked = new MaskedStream({ allowLinkHosts: LINK_HOSTS });
-            const suffix = CONCIERGE_PROMPT_SUFFIX();
-            const system = `${conciergeSystemPrompt("web", { host: input.user?.isHost })}${suffix ? `\n\n${suffix}` : ""}`;
+            const system = conciergeSystemPrompt("web", { host: input.user?.isHost });
             const show = (text: string) => {
                 const safe = masked.push(text);
                 if (safe) emit({ type: "text", delta: safe });
             };
 
             for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-                const markup = new MarkupFilter();
                 const result = await chatStream({
-                    model: CONCIERGE_MODEL(),
                     maxTokens: CONCIERGE_MAX_TOKENS,
-                    // The system prompt and tools are identical on every request; only the conversation grows.
                     messages: [{ role: "system", content: system }, ...windowHistory(state.history, CONCIERGE_HISTORY_CHARS)],
                     tools: TOOL_DEFINITIONS,
-                    onText: (delta) => show(markup.push(delta)),
+                    onText: show,
                 });
-                show(markup.flush());
                 usedModel = true;
                 addUsage(usage, result.usage);
 
-                const text = stripMarkup(result.text);
-                // A reply cut off by the token limit can carry a half-written tool call: never run it.
                 const calls = result.finishReason === "length" ? [] : result.toolCalls;
 
                 if (calls.length === 0) {
-                    state.history.push({ role: "assistant", content: text || "(no reply)" });
+                    state.history.push({ role: "assistant", content: result.text || "(no reply)" });
                     break;
                 }
 
                 state.history.push({
                     role: "assistant",
-                    content: text,
-                    tool_calls: calls.map((call) => ({ id: call.id, type: "function" as const, function: { name: call.name, arguments: call.arguments } })),
+                    content: result.text,
+                    tool_calls: calls.map((call) => ({
+                        id: call.id,
+                        type: "function" as const,
+                        function: { name: call.name, arguments: call.arguments },
+                        ...(call.signature ? { signature: call.signature } : {}),
+                    })),
                 });
 
                 for (const call of calls) {
                     emit({ type: "status", text: TOOL_STATUS[call.name] ?? "Working on it" });
-                    let args: unknown;
-                    let parseError: string | null = null;
-                    try {
-                        args = call.arguments.trim() ? JSON.parse(call.arguments) : {};
-                    } catch {
-                        parseError = "The arguments were not valid JSON. Call the tool again with a JSON object.";
-                    }
-                    const run = parseError
-                        ? { ok: false, error: parseError, result: { error: parseError }, ms: 0, handedOff: undefined }
-                        : await runTool(call.name, args, ctx);
+                    const args: unknown = JSON.parse(call.arguments);
+                    const run = await runTool(call.name, args, ctx);
                     if (run.handedOff) handedOff = run.handedOff;
-                    void logToolCall({ conversationId: state.id, tool: call.name, input: args ?? call.arguments, ok: run.ok, error: run.error, ms: run.ms });
+                    void logToolCall({ conversationId: state.id, tool: call.name, input: args, ok: run.ok, error: run.error, ms: run.ms });
                     state.history.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify(run.result) });
                 }
 
                 if (round === MAX_TOOL_ROUNDS - 1) {
-                    // Out of rounds with results still unanswered: close the turn ourselves so the history stays well-formed.
                     const closing = "I've pulled that together above. What would you like to do next?";
                     state.history.push({ role: "assistant", content: closing });
-                    show(`${masked.text ? "\n\n" : ""}${closing}`);
+                    show(`${masked.text ? PARAGRAPH : ""}${closing}`);
                 } else if (masked.text) {
-                    // Text before a tool call and text after it are separate thoughts.
-                    masked.push("\n\n");
+                    masked.push(PARAGRAPH);
                 }
             }
 
             const rest = masked.flush();
             if (rest) emit({ type: "text", delta: rest });
             streamedText = masked.text.trim();
-            reply ||= streamedText;
+            reply = streamedText;
         } catch (error) {
-            if (error instanceof ModelError) {
-                console.error(`[concierge] model server${error.status ? ` ${error.status}` : ""}: ${error.message}`);
-            } else {
-                console.error("[concierge] turn failed", error instanceof Error ? error.message : error);
-            }
-            reply = "";
+            console.error("[concierge] model call failed", error instanceof Error ? error.message : error);
         }
     }
 
     if (!reply) {
-        // No model server, or the call failed: answer from rules over the same tools.
-        // If the failure left tool results unanswered, the fallback's text closes that exchange.
-        const last = state.history[state.history.length - 1] as ChatMessage | undefined;
-        if (last?.role === "assistant") state.history.push({ role: "user", content: "(continue)" });
-        // A routed tool has already run and shown its card: say what it is; don't run it again.
-        reply = routed && routedResult ? routedReply(routed, routedResult, state.brief) : await fallbackReply(state, input.text, ctx);
-        state.history.push({ role: "assistant", content: reply });
+        reply = "Sorry, I couldn't finish that just now. Please send it again in a moment, or ask for the ContCave team and a person will help.";
+        if (state.history[state.history.length - 1]?.role !== "assistant") state.history.push({ role: "assistant", content: reply });
         emit(streamedText ? { type: "replace", text: reply } : { type: "text", delta: reply });
         streamedText = reply;
     }
@@ -292,7 +209,6 @@ export async function runTurn(input: TurnInput): Promise<TurnResult> {
     }
 
     // What the model remembers saying is the checked text, so a removed claim can't resurface on a later turn.
-    // This message has not been sent to the model server yet, so replacing it leaves the reused prefix intact.
     for (let index = state.history.length - 1; index >= 0; index--) {
         const message = state.history[index];
         if (message.role === "assistant" && !message.tool_calls?.length) {

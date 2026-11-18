@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { acquireAiSlot, fastestFirst, recordLatency, tripBreaker } from "@/lib/search/ai/breaker";
+import { acquireAiSlot, fastestFirst, recordLatency, tripBreaker } from "@/lib/ai/breaker";
 
 describe("AI model routing", () => {
     it("tries untested models first, then the fastest one", () => {

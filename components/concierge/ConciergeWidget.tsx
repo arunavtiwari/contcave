@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -74,7 +74,7 @@ function TypingDots() {
             {[0, 1, 2].map((dot) => (
                 <span
                     key={dot}
-                    className="h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-400 motion-reduce:animate-none"
+                    className="h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-400"
                     style={{ animationDelay: `${dot * 120}ms`, animationDuration: "900ms" }}
                 />
             ))}
@@ -103,7 +103,7 @@ function BriefStrip({ brief }: { brief: ConciergeBrief }) {
                 {facts.map(({ icon: Icon, label }) => (
                     <li
                         key={label}
-                        className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium capitalize text-foreground"
+                        className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium capitalize text-foreground"
                     >
                         <Icon size={11} className="text-muted-foreground" aria-hidden />
                         {label}
@@ -125,10 +125,10 @@ function AssistantReply({
     const waiting = streaming && !text && cards.length === 0;
     return (
         <div className="flex gap-2.5">
-            <Mark size={24} />
+            <Mark size={28} />
             <div className="min-w-0 flex-1 space-y-3 pt-0.5">
                 {text && (
-                    <div className="space-y-2 text-sm leading-6 text-neutral-800">
+                    <div className="space-y-3 text-base leading-7 text-foreground">
                         <RichText text={text} />
                     </div>
                 )}
@@ -136,7 +136,7 @@ function AssistantReply({
                     <ConciergeCardView key={`${card.type}-${index}`} card={card} onAsk={onAsk} disabled={disabled} />
                 ))}
                 {streaming && (status || waiting) && (
-                    <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <p className="flex items-center gap-2 text-sm text-muted-foreground">
                         <TypingDots />
                         {status ?? "Thinking"}
                     </p>
@@ -149,7 +149,6 @@ function AssistantReply({
 export default function ConciergeWidget() {
     const [open, setOpen] = useState(false);
     const [draft, setDraft] = useState("");
-    const reduceMotion = useReducedMotion();
     const chat = useConcierge();
     const { restore, send, restored } = chat;
 
@@ -227,7 +226,7 @@ export default function ConciergeWidget() {
     );
 
     const empty = chat.messages.length === 0 && !chat.pending;
-    const spring = reduceMotion ? { duration: 0 } : { type: "spring" as const, stiffness: 380, damping: 32 };
+    const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
 
     return (
         <>
@@ -244,10 +243,10 @@ export default function ConciergeWidget() {
                         transition={spring}
                         aria-haspopup="dialog"
                         aria-label={`Plan your shoot with ${CONCIERGE_NAME}, ContCave's AI assistant`}
-                        className="group flex h-13 items-center gap-2 rounded-full bg-foreground pl-4 pr-4 text-background shadow-lg shadow-black/20 transition-transform hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50 focus-visible:ring-offset-2 motion-reduce:transition-none sm:pr-5"
+                        className="group flex h-14 min-w-14 items-center justify-center gap-2.5 rounded-full border border-white/10 bg-foreground px-4 text-background transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50 focus-visible:ring-offset-2 sm:pl-4 sm:pr-5"
                     >
                         <LuSparkles size={18} aria-hidden />
-                        <span className="hidden text-sm font-medium sm:inline">Plan my shoot</span>
+                        <span className="hidden text-[15px] font-medium tracking-tight sm:inline">Plan my shoot</span>
                     </motion.button>
                 )}
             </AnimatePresence>
@@ -267,18 +266,18 @@ export default function ConciergeWidget() {
                         exit={{ opacity: 0, y: 16, scale: 0.98 }}
                         transition={spring}
                         style={{ transformOrigin: "bottom right" }}
-                        className="fixed inset-0 z-[1000] flex flex-col bg-background sm:inset-auto sm:bottom-5 sm:right-5 sm:h-[min(680px,calc(100dvh-2.5rem))] sm:w-[408px] sm:overflow-hidden sm:rounded-3xl sm:border sm:border-border sm:shadow-2xl sm:shadow-black/15"
+                        className="fixed inset-0 z-[1000] flex flex-col bg-background sm:inset-auto sm:bottom-5 sm:right-5 sm:h-[min(680px,calc(100dvh-2.5rem))] sm:w-[420px] sm:overflow-hidden sm:rounded-[28px] sm:border sm:border-border"
                     >
                         {/* Header */}
-                        <header className="flex items-center gap-3 border-b border-border px-4 py-3">
-                            <Mark size={36} />
+                        <header className="flex items-center gap-3 border-b border-border px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+                            <Mark size={40} />
                             <div className="min-w-0 flex-1">
-                                <h2 id={titleId} className="text-sm font-semibold leading-5 text-foreground">
+                                <h2 id={titleId} className="text-base font-semibold leading-6 tracking-tight text-foreground">
                                     {CONCIERGE_NAME}
                                 </h2>
-                                <p className="flex items-center gap-1.5 text-xs leading-4 text-muted-foreground">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden />
-                                    ContCave&apos;s AI booking assistant
+                                <p className="flex items-center gap-1.5 text-[13px] leading-5 text-muted-foreground">
+                                    <span className="h-2 w-2 rounded-full bg-success" aria-hidden />
+                                    Finds, prices and books studios
                                 </p>
                             </div>
                             {!empty && (
@@ -289,7 +288,7 @@ export default function ConciergeWidget() {
                                         setDraft("");
                                         inputRef.current?.focus();
                                     }}
-                                    className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
+                                    className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
                                     aria-label="Start a new chat"
                                     title="Start a new chat"
                                 >
@@ -299,7 +298,7 @@ export default function ConciergeWidget() {
                             <button
                                 type="button"
                                 onClick={() => setOpen(false)}
-                                className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
+                                className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
                                 aria-label="Close chat"
                             >
                                 <LuX size={18} aria-hidden />
@@ -319,12 +318,12 @@ export default function ConciergeWidget() {
                         >
                             {empty ? (
                                 <div className="flex min-h-full flex-col justify-end">
-                                    <h3 className="text-[26px] font-semibold leading-[1.15] tracking-tight text-foreground">
+                                    <h3 className="text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-foreground">
                                         Tell me about
                                         <br />
                                         your shoot.
                                     </h3>
-                                    <p className="mt-3 max-w-[30ch] text-sm leading-6 text-muted-foreground">
+                                    <p className="mt-3 max-w-[32ch] text-base leading-7 text-muted-foreground">
                                         I&apos;ll find studios that fit your budget, date and look, check live availability, and plan the day.
                                     </p>
                                     <ul className="mt-6 grid grid-cols-2 gap-2">
@@ -333,12 +332,14 @@ export default function ConciergeWidget() {
                                                 <button
                                                     type="button"
                                                     onClick={() => submit(prompt)}
-                                                    className="flex h-full w-full flex-col gap-3 rounded-2xl border border-border bg-background p-3 text-left transition-colors hover:border-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
+                                                    className="flex h-full min-h-[112px] w-full flex-col justify-between gap-3 rounded-[20px] border border-border bg-muted/40 p-3.5 text-left transition-colors hover:border-foreground hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
                                                 >
-                                                    <Icon size={17} className="text-foreground" aria-hidden />
+                                                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-background text-foreground ring-1 ring-border">
+                                                        <Icon size={16} aria-hidden />
+                                                    </span>
                                                     <span>
-                                                        <span className="block text-sm font-medium leading-5 text-foreground">{title}</span>
-                                                        <span className="mt-0.5 line-clamp-2 block text-xs leading-4 text-muted-foreground">{prompt}</span>
+                                                        <span className="block text-[15px] font-semibold leading-5 text-foreground">{title}</span>
+                                                        <span className="mt-1 line-clamp-2 block text-[13px] leading-[18px] text-muted-foreground">{prompt}</span>
                                                     </span>
                                                 </button>
                                             </li>
@@ -346,12 +347,12 @@ export default function ConciergeWidget() {
                                     </ul>
                                 </div>
                             ) : (
-                                <ol className="space-y-5">
+                                <ol className="space-y-6">
                                     {chat.messages.map((message) => (
                                         <li key={message.id}>
                                             {message.role === "user" ? (
                                                 <div className="flex justify-end">
-                                                    <p className="max-w-[85%] whitespace-pre-line break-words rounded-2xl rounded-br-md bg-foreground px-3.5 py-2 text-sm leading-6 text-background">
+                                                    <p className="max-w-[85%] whitespace-pre-line break-words rounded-[22px] rounded-br-md bg-foreground px-4 py-2.5 text-base leading-6 text-background">
                                                         {message.text}
                                                     </p>
                                                 </div>
@@ -390,7 +391,7 @@ export default function ConciergeWidget() {
                                             <button
                                                 type="button"
                                                 onClick={() => submit(suggestion)}
-                                                className="inline-flex h-8 items-center rounded-full border border-border bg-background px-3 text-xs font-medium text-foreground transition-colors hover:border-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
+                                                className="inline-flex h-11 items-center rounded-full border border-border bg-background px-4 text-sm font-medium text-foreground transition-colors hover:border-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
                                             >
                                                 {suggestion}
                                             </button>
@@ -403,7 +404,7 @@ export default function ConciergeWidget() {
                                     event.preventDefault();
                                     submit(draft);
                                 }}
-                                className="flex items-end gap-2 rounded-2xl border border-border bg-background py-1.5 pl-3.5 pr-1.5 transition-colors focus-within:border-foreground"
+                                className="flex items-end gap-2 rounded-[24px] border border-border bg-muted/40 py-1.5 pl-4 pr-1.5 transition-colors focus-within:border-foreground focus-within:bg-background"
                             >
                                 <label htmlFor={`${titleId}-input`} className="sr-only">
                                     Message {CONCIERGE_NAME}
@@ -422,22 +423,22 @@ export default function ConciergeWidget() {
                                         }
                                     }}
                                     placeholder={chat.handedOff ? "Add anything else for the team" : "City, what you're shooting, when…"}
-                                    className="max-h-[120px] min-h-[36px] flex-1 resize-none border-0 bg-transparent px-0 py-1.5 text-sm leading-6 text-foreground placeholder:text-neutral-400 focus:outline-none focus:ring-0"
+                                    className="max-h-[120px] min-h-[44px] flex-1 resize-none border-0 bg-transparent px-0 py-2.5 text-base leading-6 text-foreground placeholder:text-neutral-400 focus:outline-none focus:ring-0"
                                 />
                                 <button
                                     type="submit"
                                     disabled={!draft.trim() || chat.busy}
                                     aria-label="Send message"
                                     className={cn(
-                                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:ring-offset-2",
+                                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:ring-offset-2",
                                         draft.trim() && !chat.busy ? "bg-foreground text-background hover:opacity-85" : "bg-muted text-neutral-400"
                                     )}
                                 >
-                                    <LuArrowUp size={17} strokeWidth={2.5} aria-hidden />
+                                    <LuArrowUp size={19} strokeWidth={2.5} aria-hidden />
                                 </button>
                             </form>
-                            <p className="mt-2 text-center text-[11px] leading-4 text-muted-foreground">
-                                {CONCIERGE_NAME} is an AI assistant. Prices and availability are checked live.
+                            <p className="mt-2 text-center text-xs leading-4 text-muted-foreground">
+                                AI can make mistakes. Prices and availability are checked live.
                             </p>
                         </div>
                     </motion.div>

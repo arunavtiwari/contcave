@@ -5,7 +5,6 @@ import { describe, it } from "vitest";
 import { mergeBrief } from "@/lib/concierge/brief";
 import { HELP_ARTICLES, searchHelp } from "@/lib/concierge/help";
 import { windowHistory } from "@/lib/concierge/history";
-import { MarkupFilter, stripMarkup } from "@/lib/concierge/markup";
 import type { ChatMessage } from "@/lib/concierge/model";
 import { splitBudget } from "@/lib/concierge/planner";
 import { conciergeSystemPrompt } from "@/lib/concierge/prompts";
@@ -26,28 +25,6 @@ describe("help search", () => {
 
     it("has no contact numbers or prices in the articles", () => {
         for (const article of HELP_ARTICLES) assert.ok(!/₹|\b[6-9]\d{9}\b/.test(article.body), article.id);
-    });
-});
-
-describe("markup filter", () => {
-    const run = (chunks: string[]) => {
-        const filter = new MarkupFilter();
-        return chunks.map((chunk) => filter.push(chunk)).join("") + filter.flush();
-    };
-
-    it("hides reasoning and tool-call text split across chunks", () => {
-        assert.equal(run(["<thi", "nk>secret plan</th", "ink>Hello ", "there"]), "Hello there");
-        assert.equal(run(["Sure. <tool_call>{\"name\":\"x\"}</tool_call>", " Done."]), "Sure.  Done.");
-    });
-
-    it("keeps ordinary angle brackets and unfinished look-alikes", () => {
-        assert.equal(run(["2 < 3 and <b>bold</b>"]), "2 < 3 and <b>bold</b>");
-        assert.equal(run(["ends with <thi"]), "ends with <thi");
-    });
-
-    it("drops an unclosed hidden block rather than leaking it", () => {
-        assert.equal(run(["Hi <think>never closed"]), "Hi ");
-        assert.equal(stripMarkup("<think>a</think>Answer"), "Answer");
     });
 });
 

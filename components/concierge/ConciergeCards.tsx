@@ -36,10 +36,10 @@ const inr = (amount: number) =>
 export const prettyDate = (dateKey: string) =>
     new Date(`${dateKey}T00:00:00.000Z`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
 
-const shell = "rounded-2xl border border-border bg-background";
-const eyebrow = "text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground";
+const shell = "overflow-hidden rounded-[20px] border border-border bg-background";
+const eyebrow = "text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground";
 const chipButton =
-    "inline-flex h-8 items-center rounded-full border border-border bg-background px-3 text-xs font-medium text-foreground transition-colors hover:border-foreground hover:bg-foreground hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 disabled:pointer-events-none disabled:opacity-50";
+    "inline-flex h-10 items-center rounded-full border border-border bg-background px-4 text-sm font-medium text-foreground transition-colors hover:border-foreground hover:bg-foreground hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 disabled:pointer-events-none disabled:opacity-50";
 const primaryButton =
     "inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-foreground px-4 text-sm font-medium text-background transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:ring-offset-2";
 
@@ -67,14 +67,14 @@ function StudioCard({ studio, onAsk, disabled }: { studio: StudioCardItem; onAsk
                         alt=""
                         fill
                         sizes="232px"
-                        className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04] motion-reduce:transition-none"
+                        className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
                     />
                 ) : (
                     <div className="flex h-full items-center justify-center text-xs text-muted-foreground">No photo yet</div>
                 )}
                 <span
                     className={cn(
-                        "absolute left-2 top-2 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide backdrop-blur",
+                        "absolute left-2 top-2 inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold uppercase tracking-wide backdrop-blur",
                         studio.bookable ? "bg-background/90 text-foreground" : "bg-foreground/75 text-background"
                     )}
                 >
@@ -100,7 +100,7 @@ function StudioCard({ studio, onAsk, disabled }: { studio: StudioCardItem; onAsk
                     )}
                 </div>
 
-                <ul className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                <ul className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     {studio.people ? (
                         <li className="flex items-center gap-1"><LuUsers size={11} aria-hidden />Up to {studio.people}</li>
                     ) : null}
@@ -156,7 +156,7 @@ function AvailabilityCard({ card, onAsk, disabled }: Props & { card: Extract<Con
                 </div>
                 <span
                     className={cn(
-                        "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium",
+                        "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium",
                         free ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
                     )}
                 >
@@ -196,7 +196,7 @@ function AvailabilityCard({ card, onAsk, disabled }: Props & { card: Extract<Con
                             </li>
                         ))}
                     </ul>
-                    <p className="mt-3 text-[11px] text-muted-foreground">
+                    <p className="mt-3 text-xs text-muted-foreground">
                         Minimum booking {card.minimumHours} {card.minimumHours === 1 ? "hour" : "hours"}. Tap a window to price it.
                     </p>
                 </>
@@ -235,7 +235,7 @@ function QuoteCard({ card }: { card: Extract<ConciergeCard, { type: "quote" }> }
                         <dd className="text-lg font-semibold tabular-nums tracking-tight text-foreground">{inr(card.total)}</dd>
                     </div>
                 </dl>
-                {card.note && <p className="mt-3 text-[11px] leading-4 text-muted-foreground">{card.note}</p>}
+                {card.note && <p className="mt-3 text-xs leading-4 text-muted-foreground">{card.note}</p>}
             </div>
             <div className="border-t border-border bg-muted/50 p-3">
                 <Link href={card.studio.url} target="_blank" rel="noopener" className={primaryButton}>
@@ -258,7 +258,7 @@ function BookCard({ card }: { card: Extract<ConciergeCard, { type: "book" }> }) 
             <Link href={card.studio.url} target="_blank" rel="noopener" className={cn(primaryButton, "mt-3")}>
                 Choose your slot and pay <LuArrowUpRight size={15} aria-hidden />
             </Link>
-            <p className="mt-2 text-center text-[11px] text-muted-foreground">Nothing is booked until you pay on the studio page.</p>
+            <p className="mt-2 text-center text-xs text-muted-foreground">Nothing is booked until you pay on the studio page.</p>
         </section>
     );
 }
@@ -272,7 +272,7 @@ function PlanSection({ title, count, children, defaultOpen = false }: { title: s
                 <span>
                     {title} <span className="font-normal text-muted-foreground">· {count}</span>
                 </span>
-                <LuChevronDown size={15} className="text-muted-foreground transition-transform group-open:rotate-180 motion-reduce:transition-none" aria-hidden />
+                <LuChevronDown size={15} className="text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
             </summary>
             <div className="px-4 pb-4">{children}</div>
         </details>
@@ -302,7 +302,7 @@ function PlanCard({ card }: { card: Extract<ConciergeCard, { type: "plan" }> }) 
                     {card.schedule.map((block) => (
                         <li key={`${block.time}-${block.what}`} className="relative pl-5">
                             <span className="absolute left-0 top-1.5 h-[11px] w-[11px] rounded-full border-2 border-foreground bg-background" aria-hidden />
-                            <p className="text-[11px] font-medium tabular-nums text-muted-foreground">{block.time}</p>
+                            <p className="text-xs font-medium tabular-nums text-muted-foreground">{block.time}</p>
                             <p className="text-sm leading-5 text-foreground">{block.what}</p>
                         </li>
                     ))}
@@ -369,7 +369,7 @@ function PlanCard({ card }: { card: Extract<ConciergeCard, { type: "plan" }> }) 
                         <span className="font-medium text-foreground">Total budget</span>
                         <span className="font-semibold tabular-nums text-foreground">{inr(card.budgetTotal)}</span>
                     </p>
-                    <p className="mt-2 text-[11px] leading-4 text-muted-foreground">A suggested split of your budget, not a quote. Studio prices come from live quotes.</p>
+                    <p className="mt-2 text-xs leading-4 text-muted-foreground">A suggested split of your budget, not a quote. Studio prices come from live quotes.</p>
                 </PlanSection>
             ) : null}
         </section>

@@ -2,8 +2,9 @@ import "server-only";
 
 import { z } from "zod";
 
-import { CONCIERGE_PLANNER_MODEL, hasModelAccess, PLANNER_MAX_TOKENS } from "./config";
-import { chatJson } from "./model";
+import { generateGeminiJson, toGeminiSchema } from "@/lib/ai/gemini";
+
+import { CONCIERGE_GEMINI, CONCIERGE_TIMEOUT_MS, PLANNER_MAX_TOKENS } from "./config";
 import { PLANNER_SYSTEM } from "./prompts";
 import type { ConciergeBrief, ConciergeCard } from "./types";
 
@@ -19,6 +20,8 @@ const planSchema = z.object({
     budget_split: z.array(z.object({ label: z.string().trim().min(1).max(40), percent: z.number().min(0).max(100) })).max(8),
 });
 
+
+const PLAN_SCHEMA = toGeminiSchema(planSchema);
 /**
  * Rupee amounts for a percentage split, worked out here rather than by the
  * model: whole rupees, rounded to the nearest ₹100, with the remainder put on
@@ -39,7 +42,7 @@ export function splitBudget(total: number, split: { label: string; percent: numb
 
 const hhmm = (minutes: number) => `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, "0")}`;
 
-/** A sensible generic plan, used when there is no model to ask. */
+/** A sensible generic plan, used when the model call fails. */
 function templatePlan(brief: ConciergeBrief): z.infer<typeof planSchema> {
     // Blocks land on quarter hours so the day reads like a call sheet.
     const quarter = (minutes: number) => Math.max(15, Math.round(minutes / 15) * 15);
@@ -94,34 +97,31 @@ function templatePlan(brief: ConciergeBrief): z.infer<typeof planSchema> {
 
 /**
  * The one tier-2 call. The planner gets the brief and nothing else: no chat
- * history, no tools, no studio data. Falls back to a template when there is
- * no model server, the call fails, or the reply is not a valid plan, so the
- * customer always gets a plan.
+ * history, no tools, no studio data. Falls back to a template when the call
+ * fails or the reply is not a valid plan, so the customer always gets a plan.
  */
 export async function draftPlan(brief: ConciergeBrief): Promise<{ card: PlanCard; source: "model" | "template" }> {
     let plan: z.infer<typeof planSchema> | null = null;
     let source: "model" | "template" = "template";
 
-    if (hasModelAccess()) {
-        try {
-            const { value } = await chatJson({
-                model: CONCIERGE_PLANNER_MODEL(),
-                maxTokens: PLANNER_MAX_TOKENS,
-                temperature: 0.4,
-                messages: [
-                    { role: "system", content: PLANNER_SYSTEM },
-                    { role: "user", content: JSON.stringify(brief) },
-                ],
-            });
-            // The model's JSON is checked against the same schema either way; anything off falls back to the template.
-            const parsed = planSchema.safeParse(value);
-            if (parsed.success) {
-                plan = parsed.data;
-                source = "model";
-            }
-        } catch (error) {
-            console.error("[concierge] planner failed, using template", error instanceof Error ? error.message : error);
+    try {
+        const value = await generateGeminiJson({
+            label: "concierge plan",
+            policy: CONCIERGE_GEMINI,
+            system: PLANNER_SYSTEM,
+            input: JSON.stringify(brief),
+            schema: PLAN_SCHEMA,
+            timeoutMs: CONCIERGE_TIMEOUT_MS,
+            maxOutputTokens: PLANNER_MAX_TOKENS,
+            thinkingLevel: "low",
+        });
+        const parsed = planSchema.safeParse(value);
+        if (parsed.success) {
+            plan = parsed.data;
+            source = "model";
         }
+    } catch (error) {
+        console.error("[concierge] planner failed, using template", error instanceof Error ? error.message : error);
     }
     plan ??= templatePlan(brief);
 

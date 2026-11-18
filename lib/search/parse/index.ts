@@ -2,7 +2,7 @@ import "server-only";
 
 import { unstable_cache } from "next/cache";
 
-import { AiUnavailableError, geminiConfigured, generateGeminiJson, toGeminiSchema } from "@/lib/search/ai/gemini";
+import { AiUnavailableError, geminiConfigured, generateGeminiJson, toGeminiSchema } from "@/lib/ai/gemini";
 import { SEARCH_CONFIG } from "@/lib/search/config";
 import { formatDateKey } from "@/lib/search/explain";
 import { parseQueryRules, unparsedWords } from "@/lib/search/parse/rules";
@@ -29,7 +29,9 @@ const PARSE_INSTRUCTIONS = [
 const parseInput = (text: string, today: string) => `Today: ${formatDateKey(today)} (${today}), IST.\nSearch: ${text}`;
 
 export async function parseQueryWithAi(text: string, today: string): Promise<ParsedQuery> {
-    const raw = await generateGeminiJson("parse", {
+    const raw = await generateGeminiJson({
+        label: "search parse",
+        policy: SEARCH_CONFIG.ai.gemini,
         system: PARSE_INSTRUCTIONS,
         input: parseInput(text, today),
         schema: PARSE_SCHEMA,
@@ -108,7 +110,9 @@ export function refineWithRules(current: ParsedQuery, text: string, today: strin
 export async function refineQuery(current: ParsedQuery, followUp: string, context: ParseContext): Promise<ParsedQuery> {
     const text = prepareQueryText(followUp);
     const rules = refineWithRules(current, text, context.today);
-    const refined = await withAiFallback(rules, context, async () => sanitizeQuery(await generateGeminiJson("parse", {
+    const refined = await withAiFallback(rules, context, async () => sanitizeQuery(await generateGeminiJson({
+        label: "search parse",
+        policy: SEARCH_CONFIG.ai.gemini,
         system: REFINE_INSTRUCTIONS,
         input: `${parseInput(text, context.today)}\nCurrent search: ${JSON.stringify(current)}`,
         schema: PARSE_SCHEMA,

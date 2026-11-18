@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { geminiConfigured } from "@/lib/search/ai/gemini";
+import { geminiConfigured } from "@/lib/ai/gemini";
 import { parseQueryWithAi, prepareQueryText } from "@/lib/search/parse";
 import { parseQueryRules, unparsedWords } from "@/lib/search/parse/rules";
 import type { ParsedQuery } from "@/schemas/search";

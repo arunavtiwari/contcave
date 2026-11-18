@@ -3,7 +3,7 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import { z } from "zod";
 
-import { AiUnavailableError, geminiConfigured, generateGeminiJson, toGeminiSchema } from "@/lib/search/ai/gemini";
+import { AiUnavailableError, geminiConfigured, generateGeminiJson, toGeminiSchema } from "@/lib/ai/gemini";
 import { SEARCH_CONFIG } from "@/lib/search/config";
 import { isGroundedReason } from "@/lib/search/explain";
 import type { ExplainableResult } from "@/lib/search/service";
@@ -46,7 +46,9 @@ function factsFor(parsed: ParsedQuery, { candidate, facts }: ExplainableResult):
 }
 
 async function writeWithAi(payload: string): Promise<Record<string, string[]>> {
-    const raw = await generateGeminiJson("reasons", {
+    const raw = await generateGeminiJson({
+        label: "search reasons",
+        policy: SEARCH_CONFIG.ai.gemini,
         system: REASONS_INSTRUCTIONS,
         input: payload,
         schema: REASONS_SCHEMA,

@@ -138,7 +138,7 @@ export function collectDates(value: unknown, into: Set<string> = new Set()): Set
 }
 
 /** Dates written in a reply ("14 Dec") that nothing in the conversation supplied. */
-export function ungroundedDates(text: string, known: Set<string>): string[] {
+function ungroundedDates(text: string, known: Set<string>): string[] {
     return mentionedDates(text).filter((entry) => !known.has(entry.key)).map((entry) => entry.text);
 }
 
@@ -183,8 +183,8 @@ export function checkReply(
 
     const kept: string[] = [];
     for (let sentence of splitSentences(masked)) {
-        // A small model will sometimes "work out" a date and get it wrong. An aside in brackets is
-        // cut on its own; anywhere else the sentence goes.
+        // A date the model worked out itself can be wrong. An aside in brackets is cut on its own;
+        // anywhere else the sentence goes.
         if (options.knownDates && ungroundedDates(sentence, options.knownDates).length > 0) {
             reasons.push("ungrounded_date");
             sentence = sentence.replace(/\s*\([^()]*\)/g, (aside) => (ungroundedDates(aside, options.knownDates!).length > 0 ? "" : aside));

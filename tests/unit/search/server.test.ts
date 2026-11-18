@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { toGeminiSchema } from "@/lib/search/ai/gemini";
+import { toGeminiSchema } from "@/lib/ai/gemini";
 import { mergeQueries, prepareQueryText, refineWithRules } from "@/lib/search/parse";
 import { parseQueryRules } from "@/lib/search/parse/rules";
 import { diffOverrides, EMPTY_QUERY, overridesToParams, type ParsedQuery, parsedQuerySchema } from "@/schemas/search";

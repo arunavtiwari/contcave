@@ -29,8 +29,8 @@ const date = { type: "string", description: "Date as YYYY-MM-DD, in India time."
 
 /**
  * Tool definitions sent to the model. Order and wording are part of the
- * fixed prefix every request starts with; model servers reuse their work on
- * an unchanged prefix, so edit deliberately and keep the order fixed.
+ * fixed prefix every request starts with; Gemini's implicit cache reuses an
+ * unchanged prefix, so edit deliberately and keep the order fixed.
  */
 export const TOOL_DEFINITIONS: ToolSpec[] = [
     {
@@ -104,7 +104,7 @@ export const TOOL_DEFINITIONS: ToolSpec[] = [
     {
         name: "draft_plan",
         description:
-            "Draft a plan for the shoot day from the saved brief: a schedule that fits the booked hours, a shot list, a checklist and, if there is a total budget, how to split it. Shown to the customer as a card. Call update_brief first so the plan uses the latest details. Takes no arguments.",
+            "Draft a plan for the shoot day from the saved brief: a schedule that fits the booked hours, a shot list, a checklist and, if there is a total budget, how to split it. Shown to the customer as a card. For requests for a plan, schedule, shot list or budget split. Call update_brief before it in the same turn with any new details. Takes no arguments.",
         parameters: { type: "object", properties: {} },
     },
     {
@@ -124,7 +124,7 @@ export const TOOL_DEFINITIONS: ToolSpec[] = [
     {
         name: "start_booking",
         description:
-            "Show the customer the button to book a studio: it opens the studio's page, where they choose the slot and pay. Use it once they have picked a studio. It does not book anything or take payment.",
+            "Show the customer the button to book a studio: it opens the studio's page, where they choose the slot and pay. No time is needed: the customer picks the slot on the studio page. It does not book anything or take payment.",
         parameters: {
             type: "object",
             properties: {

@@ -20,7 +20,7 @@ import type { ConciergeBrief, ConciergeCard } from "./types";
 const baseUrl = () => process.env.CRM_BASE_URL?.replace(/\/+$/, "") ?? "";
 const token = () => process.env.CRM_SERVICE_TOKEN ?? "";
 
-export const crmEnabled = () => Boolean(baseUrl() && token());
+const crmEnabled = () => Boolean(baseUrl() && token());
 
 async function crm<T>(method: "GET" | "POST" | "PATCH", path: string, body?: unknown): Promise<T | null> {
     try {

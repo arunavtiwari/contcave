@@ -74,8 +74,7 @@ export async function createConversation(params: { visitorId: string; userId?: s
     return toState(row);
 }
 
-/** cacheRead and cacheWrite stay zero on servers that don't report prompt-cache use. */
-export type TurnUsage = { input: number; output: number; cacheRead: number; cacheWrite: number };
+export type TurnUsage = { input: number; output: number; cacheRead: number };
 
 /**
  * Save a finished turn. The write only lands if no other turn was saved in the
@@ -99,7 +98,6 @@ export async function saveTurn(state: ConversationState, usage: TurnUsage, hando
             inputTokens: { increment: usage.input },
             outputTokens: { increment: usage.output },
             cacheReadTokens: { increment: usage.cacheRead },
-            cacheWriteTokens: { increment: usage.cacheWrite },
             ...(handoffReason ? { handoffReason } : {}),
         },
     });
