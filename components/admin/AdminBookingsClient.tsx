@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { FiDownload, FiExternalLink, FiEye, FiFileText, FiPlus, FiRefreshCw } from "react-icons/fi";
+import { FiDownload, FiPlus } from "react-icons/fi";
 import { toast } from "sonner";
 
 import {
@@ -20,28 +20,19 @@ import {
   retryAdminVoucherEmailAction,
 } from "@/app/actions/adminBookingActions";
 import AdminTabs from "@/components/admin/AdminTabs";
-import PayoutBreakdownTable from "@/components/admin/PayoutBreakdownTable";
+import AuditTable from "@/components/admin/bookings/AuditTable";
+import BookingDetailModal from "@/components/admin/bookings/BookingDetailModal";
+import BookingsTable from "@/components/admin/bookings/BookingsTable";
+import InvoicesTable from "@/components/admin/bookings/InvoicesTable";
+import PayoutsTable from "@/components/admin/bookings/PayoutsTable";
+import VouchersTable from "@/components/admin/bookings/VouchersTable";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
-import Pill from "@/components/ui/Pill";
-import Skeleton from "@/components/ui/Skeleton";
 import StatCard from "@/components/ui/StatCard";
-import {
-  EmptyTable,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TablePagination,
-  TableRow,
-  TableSkeletonRows,
-} from "@/components/ui/Table";
-import Tooltip from "@/components/ui/Tooltip";
+import { TablePagination } from "@/components/ui/Table";
 import { type AdminBookingTab, bookingTabsFor } from "@/lib/admin/bookingTabs";
 import { downloadCsv } from "@/lib/csv";
-import type { PayoutBreakdown } from "@/lib/payout/breakdown";
-import { cn, formatINR, formatISTDate, formatISTDateTime } from "@/lib/utils";
+import { formatINR } from "@/lib/utils";
 import type { UserRole } from "@/types/user";
 
 // Form-heavy and only reachable behind a button, so its bundle stays out of the initial
@@ -72,545 +63,6 @@ type Props = {
 };
 
 type Tab = AdminBookingTab;
-
-function DownloadPdfButton({ href, label, size }: { href: string; label: string; size?: "sm" }) {
-  return (
-    <Button
-      href={`${href}?download=1`}
-      icon={FiDownload}
-      isIconOnly
-      outline
-      size={size}
-      aria-label={`Download ${label} PDF`}
-      tooltip={`Download ${label} PDF`}
-    />
-  );
-}
-
-function statusVariant(status: string) {
-  if (["SUCCESS", "EMAIL_SENT", "STORED", "GENERATED"].includes(status)) return "success";
-  if (["FAILED", "EMAIL_FAILED", "DELIVERY_BLOCKED"].includes(status)) return "destructive";
-  return "warning";
-}
-
-function bookingStatus(booking: AdminBookingRow) {
-  // 1. Check reservation lifecycle status
-  if (booking.lifecycleStatus === "CONFIRMED") {
-    return { label: "Confirmed", variant: "success" as const };
-  }
-  if (booking.lifecycleStatus === "CHECKED_IN") {
-    return { label: "Checked In", variant: "success" as const };
-  }
-  if (booking.lifecycleStatus === "COMPLETED") {
-    return { label: "Completed", variant: "success" as const };
-  }
-  if (booking.lifecycleStatus === "CANCELLED") {
-    return { label: "Cancelled", variant: "destructive" as const };
-  }
-  if (booking.lifecycleStatus === "REFUNDED") {
-    return { label: "Refunded", variant: "destructive" as const };
-  }
-  if (booking.lifecycleStatus === "PARTIALLY_REFUNDED") {
-    return { label: "Partially Refunded", variant: "warning" as const };
-  }
-  if (booking.lifecycleStatus === "NO_SHOW") {
-    return { label: "No Show", variant: "destructive" as const };
-  }
-
-  // 2. Pending approval states
-  if (booking.lifecycleStatus === "PENDING_APPROVAL") {
-    if (booking.paymentStatus === "SUCCESS") {
-      return { label: "Paid Pending Approval", variant: "warning" as const };
-    }
-    if (booking.paymentStatus === "FAILED") {
-      return { label: "Payment Failed", variant: "destructive" as const };
-    }
-    if (booking.paymentStatus === "NO_PAYMENT") {
-      return { label: "Payment Missing", variant: "secondary" as const };
-    }
-    return { label: "Payment Pending", variant: "warning" as const };
-  }
-
-  // 3. Fallback based on payment status
-  if (booking.paymentStatus === "FAILED") return { label: "Payment Failed", variant: "destructive" as const };
-  if (booking.paymentStatus === "SUCCESS") return { label: "Paid", variant: "success" as const };
-  if (booking.paymentStatus === "NO_PAYMENT") return { label: "Payment Missing", variant: "secondary" as const };
-  return { label: "Payment Pending", variant: "warning" as const };
-}
-
-function documentDelivery(document: { emailSentAt?: string | null; status: string }) {
-  if (document.emailSentAt) return { label: "Sent", variant: "success" as const };
-  if (document.status === "EMAIL_FAILED" || document.status === "DELIVERY_BLOCKED") return { label: "Failed", variant: "destructive" as const };
-  if (document.status === "RETRYING") return { label: "Retrying", variant: "warning" as const };
-  return { label: "Queued", variant: "warning" as const };
-}
-
-function gstModelLabel(value: AdminBookingDetail["gstModel"]) {
-  if (value === "GST_STUDIO_AGENT") return "GST Studio";
-  if (value === "NON_GST_PRINCIPAL") return "Non-GST";
-  return "Unknown";
-}
-
-function gstModelVariant(value: AdminBookingDetail["gstModel"]) {
-  if (value === "GST_STUDIO_AGENT") return "success";
-  if (value === "NON_GST_PRINCIPAL") return "warning";
-  return "secondary";
-}
-
-function invoiceTypeLabel(value: AdminInvoiceRow["documentType"]) {
-  return value
-    .replace("CUSTOMER_STUDIO_TAX_INVOICE", "Customer - Studio Tax")
-    .replace("CUSTOMER_ARKANET_TAX_INVOICE", "Customer - Arkanet Tax")
-    .replace("OWNER_MONTHLY_COMMISSION_INVOICE", "Owner - Commission")
-    .replace("OWNER_MONTHLY_BILL_OF_SUPPLY", "Owner - Bill of Supply")
-    .replace(/_/g, " ");
-}
-
-function voucherTypeLabel(value: AdminVoucherRow["voucherType"]) {
-  return value === "REFUND_VOUCHER" ? "Refund Voucher" : "Receipt Voucher";
-}
-
-function asRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
-}
-
-function asArray(value: unknown): unknown[] {
-  if (Array.isArray(value)) return value;
-  if (typeof value === "string") {
-    try {
-      const parsed = JSON.parse(value);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  }
-  return [];
-}
-
-function normalizeAddons(value: unknown) {
-  return asArray(value)
-    .map((item) => {
-      const record = asRecord(item);
-      const name = typeof record.name === "string" ? record.name : "";
-      if (!name) return null;
-      return {
-        name,
-        qty: Number(record.qty || 1),
-        price: Number(record.price || 0),
-      };
-    })
-    .filter((item): item is { name: string; qty: number; price: number } => Boolean(item));
-}
-
-function formatDateTimeRange(booking: AdminBookingRow) {
-  return `${formatISTDate(booking.startDate)} | ${booking.startTime} - ${booking.endTime}`;
-}
-
-function MutedDash({ title = "Unavailable" }: { title?: string }) {
-  return (
-    <Tooltip content={title}>
-      <span className="cursor-default text-muted-foreground">
-        -
-      </span>
-    </Tooltip>
-  );
-}
-
-function CompactPill({
-  label,
-  variant,
-  title,
-}: {
-  label: React.ReactNode;
-  variant: React.ComponentProps<typeof Pill>["variant"];
-  title?: string;
-}) {
-  const pill = (
-    <Pill
-      label={<span className="whitespace-nowrap">{label}</span>}
-      variant={variant}
-      size="xs"
-      className="tracking-normal"
-    />
-  );
-  if (title) {
-    return <Tooltip content={title}>{pill}</Tooltip>;
-  }
-  return pill;
-}
-
-
-function DetailItem({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="min-w-0">
-      <div className="text-xs font-semibold uppercase text-muted-foreground">{label}</div>
-      <div className="mt-1 min-h-5 wrap-break-word text-sm text-foreground">{value || <MutedDash />}</div>
-    </div>
-  );
-}
-
-function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="rounded-lg border border-border bg-background p-4">
-      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-      <div className="mt-3">{children}</div>
-    </section>
-  );
-}
-
-/**
- * Lays out the same sections as the loaded drawer — and keeps the header real, since the
- * table row already has those values — so the dialog doesn't reflow when the rest lands.
- */
-function BookingDetailSkeleton({ booking }: { booking: AdminBookingRow }) {
-  const status = bookingStatus(booking);
-
-  return (
-    <div className="space-y-4" aria-label="Loading booking details">
-      <div className="flex flex-col gap-3 rounded-lg border border-border bg-muted/20 p-4 md:flex-row md:items-start md:justify-between">
-        <div className="min-w-0">
-          <div className="font-mono text-xs text-muted-foreground">{booking.bookingId}</div>
-          <div className="mt-1 truncate text-lg font-semibold text-foreground">{booking.studioName}</div>
-          <div className="mt-1 text-sm text-muted-foreground">{formatDateTimeRange(booking)}</div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <CompactPill label={status.label} variant={status.variant} />
-          <Skeleton className="h-5 w-20 rounded-full" />
-        </div>
-      </div>
-
-      {/* Parties & studio location / Payment & invoicing */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        {Array.from({ length: 2 }).map((_, section) => (
-          <SkeletonDetailSection key={section} fields={4} columns="sm:grid-cols-2" />
-        ))}
-      </div>
-
-      {/* Tax & GST information */}
-      <SkeletonDetailSection fields={3} columns="sm:grid-cols-3" />
-
-      {/* Receipts & refund vouchers */}
-      <SkeletonDetailSection>
-        <Skeleton className="h-24 w-full rounded-lg" />
-      </SkeletonDetailSection>
-
-      {/* Booking composition: package / sets / add-ons */}
-      <SkeletonDetailSection>
-        <div className="grid gap-4 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="space-y-2">
-              <Skeleton className="h-2.5 w-16 rounded" />
-              <Skeleton className="h-20 w-full rounded-lg" />
-            </div>
-          ))}
-        </div>
-      </SkeletonDetailSection>
-
-      {/* Operational notes & pricing snapshot */}
-      <SkeletonDetailSection>
-        <Skeleton className="h-28 w-full rounded-lg" />
-      </SkeletonDetailSection>
-    </div>
-  );
-}
-
-function SkeletonDetailSection({
-  fields,
-  columns,
-  children,
-}: {
-  fields?: number;
-  columns?: string;
-  children?: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-lg border border-border bg-background p-4">
-      <Skeleton className="h-4 w-40 rounded-md" />
-      <div className="mt-3">
-        {children ?? (
-          <div className={cn("grid gap-3", columns)}>
-            {Array.from({ length: fields ?? 4 }).map((_, i) => (
-              <div key={i} className="space-y-1.5">
-                <Skeleton className="h-2.5 w-24 rounded" />
-                <Skeleton className="h-4 w-full rounded" />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function BookingDetailModal({
-  booking,
-  detail,
-  onClose,
-}: {
-  booking: AdminBookingRow | null;
-  detail: AdminBookingDetail | null;
-  onClose: () => void;
-}) {
-  if (!booking) return null;
-
-  // The drawer payload is fetched when the row is opened, so the shell renders first and
-  // fills in once it lands.
-  if (!detail) {
-    return (
-      <Modal
-        isOpen
-        onCloseAction={onClose}
-        title="Booking Details"
-        customWidth="w-full max-w-5xl"
-        customHeight="h-auto max-h-[92vh]"
-        body={<BookingDetailSkeleton booking={booking} />}
-      />
-    );
-  }
-
-  const addons = normalizeAddons(detail.selectedAddons);
-  const pricingSnapshot = asRecord(detail.pricingSnapshot);
-  const hasPricingSnapshot = Object.keys(pricingSnapshot).length > 0;
-  // Stored on offline bookings at creation; it is the payout and tax record for those bookings.
-  const storedBreakdown = asRecord(pricingSnapshot.payoutBreakdown);
-  const payoutBreakdown = typeof storedBreakdown.model === "string" && typeof storedBreakdown.payout === "number"
-    ? (storedBreakdown as unknown as PayoutBreakdown)
-    : null;
-  const status = bookingStatus(booking);
-
-  return (
-    <Modal
-      isOpen={Boolean(booking)}
-      onCloseAction={onClose}
-      title="Booking Details"
-      customWidth="w-full max-w-5xl"
-      customHeight="h-auto max-h-[92vh]"
-      body={
-        <div className="space-y-4">
-          <div className="flex flex-col gap-3 rounded-lg border border-border bg-muted/20 p-4 md:flex-row md:items-start md:justify-between">
-            <div className="min-w-0">
-              <div className="font-mono text-xs text-muted-foreground">{booking.bookingId}</div>
-              <div className="mt-1 truncate text-lg font-semibold text-foreground">{booking.studioName}</div>
-              <div className="mt-1 text-sm text-muted-foreground">{formatDateTimeRange(booking)}</div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <CompactPill label={status.label} variant={status.variant} />
-              <CompactPill label={gstModelLabel(detail.gstModel)} variant={gstModelVariant(detail.gstModel)} />
-            </div>
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-2">
-            <DetailSection title="Parties & Studio Location">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <DetailItem label="Customer" value={booking.customerName} />
-                <DetailItem label="Studio Host / Owner" value={booking.ownerName} />
-                <DetailItem label="Studio Name" value={booking.studioName} />
-                <DetailItem
-                  label="Studio Location"
-                  value={`${detail.listing.locationValue}${detail.listing.propertyStateCode ? ` (${detail.listing.propertyStateCode})` : ""}`}
-                />
-              </div>
-            </DetailSection>
-
-            <DetailSection title="Payment & Invoicing">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <DetailItem label="Total Booking Value" value={<span className="font-semibold text-foreground">{formatINR(booking.amount)}</span>} />
-                <DetailItem label="Payment Method" value={detail.transaction?.paymentMethod || <MutedDash />} />
-                <DetailItem label="Transaction Reference" value={detail.transaction?.cfTxnRef || <MutedDash />} />
-                <DetailItem
-                  label="Customer Invoice"
-                  value={booking.customerInvoiceNumber ? (
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs">{booking.customerInvoiceNumber}</span>
-                      {booking.customerInvoiceStatus ? (
-                        <CompactPill label={booking.customerInvoiceStatus} variant={statusVariant(booking.customerInvoiceStatus)} />
-                      ) : null}
-                      {booking.customerInvoiceUrl ? (
-                        <Button
-                          href={booking.customerInvoiceUrl}
-                          target="_blank"
-                          icon={FiEye}
-                          isIconOnly
-                          outline
-                          size="sm"
-                          aria-label="View invoice PDF"
-                          tooltip="View invoice PDF"
-                        />
-                      ) : null}
-                      {booking.customerInvoiceUrl ? <DownloadPdfButton href={booking.customerInvoiceUrl} label="invoice" size="sm" /> : null}
-                    </div>
-                  ) : <CompactPill label="Pending" variant="warning" />}
-                />
-              </div>
-            </DetailSection>
-          </div>
-
-          {/* Tax & GST Section - details moved from table column */}
-          <DetailSection title="Tax & GST Information">
-            <div className="grid gap-3 sm:grid-cols-3">
-              <DetailItem
-                label="GST Model"
-                value={
-                  <div className="flex items-center gap-2">
-                    <CompactPill label={gstModelLabel(detail.gstModel)} variant={gstModelVariant(detail.gstModel)} />
-                    <span className="text-xs text-muted-foreground">
-                      {detail.gstModel === "GST_STUDIO_AGENT" ? "Agent (18% platform fee)" : "Principal (Non-GST)"}
-                    </span>
-                  </div>
-                }
-              />
-              <DetailItem label="Registered Tax Entity" value={detail.gstOwner || "ContCave Marketplace / Standard"} />
-              <DetailItem label="Billing Company" value={detail.billingCompany || <MutedDash title="No company provided" />} />
-              <DetailItem label="Billing GSTIN" value={detail.billingGstin || <MutedDash title="No GSTIN provided" />} />
-              <div className="sm:col-span-2">
-                <DetailItem label="Billing Address" value={detail.billingAddress || <MutedDash title="No billing address provided" />} />
-              </div>
-            </div>
-          </DetailSection>
-
-          {/* Receipts & Refunds - details moved from table column */}
-          <DetailSection title="Receipts & Refund Vouchers">
-            {detail.vouchers.length > 0 ? (
-              <div className="overflow-hidden rounded-lg border border-border">
-                <table className="w-full text-left text-xs">
-                  <thead className="border-b border-border bg-muted/40 font-medium text-muted-foreground">
-                    <tr>
-                      <th className="px-3 py-2">Voucher #</th>
-                      <th className="px-3 py-2">Document Type</th>
-                      <th className="px-3 py-2 text-right">Amount</th>
-                      <th className="px-3 py-2 text-center">Status</th>
-                      <th className="px-3 py-2">Issued</th>
-                      <th className="px-3 py-2 text-right">PDF</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {detail.vouchers.map((voucher) => (
-                      <tr key={voucher.id} className="hover:bg-muted/20">
-                        <td className="px-3 py-2 font-mono text-foreground">{voucher.voucherNumber}</td>
-                        <td className="px-3 py-2">{voucherTypeLabel(voucher.voucherType)}</td>
-                        <td className="px-3 py-2 text-right font-medium text-foreground">{formatINR(voucher.amount)}</td>
-                        <td className="px-3 py-2 text-center">
-                          <CompactPill label={voucher.status} variant={statusVariant(voucher.status)} />
-                        </td>
-                        <td className="px-3 py-2 text-muted-foreground">
-                          {voucher.issuedAt ? formatISTDateTime(voucher.issuedAt) : "—"}
-                        </td>
-                        <td className="px-3 py-2 text-right">
-                          {voucher.voucherUrl ? (
-                            <Button
-                              href={voucher.voucherUrl}
-                              target="_blank"
-                              icon={FiEye}
-                              isIconOnly
-                              outline
-                              size="sm"
-                              aria-label="View voucher PDF"
-                              tooltip="View PDF"
-                            />
-                          ) : (
-                            <MutedDash />
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="py-2 text-sm text-muted-foreground">No payment vouchers or refunds issued for this booking.</div>
-            )}
-          </DetailSection>
-
-          {payoutBreakdown ? (
-            <DetailSection title="Payout Breakdown">
-              <PayoutBreakdownTable breakdown={payoutBreakdown} />
-            </DetailSection>
-          ) : null}
-
-          <DetailSection title="Booking Composition">
-            <div className="grid gap-4 lg:grid-cols-3">
-              <div>
-                <div className="text-xs font-semibold uppercase text-muted-foreground">Package</div>
-                {detail.selectedPackage ? (
-                  <div className="mt-2 rounded-lg border border-border p-3">
-                    <div className="font-medium text-foreground">{detail.selectedPackage.title}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      {detail.selectedPackage.durationHours}h | {formatINR(detail.selectedPackage.offeredPrice)}
-                    </div>
-                    {detail.selectedPackage.description ? (
-                      <p className="mt-2 text-sm text-muted-foreground">{detail.selectedPackage.description}</p>
-                    ) : null}
-                    {detail.selectedPackage.features.length > 0 ? (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {detail.selectedPackage.features.map((feature) => (
-                          <CompactPill key={feature} label={feature} variant="secondary" />
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                ) : (
-                  <div className="mt-2 text-sm text-muted-foreground">No package selected</div>
-                )}
-              </div>
-
-              <div>
-                <div className="text-xs font-semibold uppercase text-muted-foreground">Sets</div>
-                {detail.selectedSets.length > 0 ? (
-                  <div className="mt-2 space-y-2">
-                    {detail.selectedSets.map((set) => (
-                      <div key={set.id} className="rounded-lg border border-border p-3">
-                        <div className="font-medium text-foreground">{set.name}</div>
-                        <div className="mt-1 text-xs text-muted-foreground">{formatINR(set.price)}</div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="mt-2 text-sm text-muted-foreground">
-                    {detail.listing.hasSets ? "No set information stored" : "Full studio booking"}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <div className="text-xs font-semibold uppercase text-muted-foreground">Add-ons</div>
-                {addons.length > 0 ? (
-                  <div className="mt-2 space-y-2">
-                    {addons.map((addon) => (
-                      <div key={`${addon.name}-${addon.qty}`} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
-                        <span className="min-w-0 truncate text-sm font-medium" title={addon.name}>{addon.name}</span>
-                        <span className="shrink-0 text-sm text-muted-foreground">{addon.qty} x {formatINR(addon.price)}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="mt-2 text-sm text-muted-foreground">No add-ons selected</div>
-                )}
-              </div>
-            </div>
-          </DetailSection>
-
-          <div className="grid gap-4">
-            <DetailSection title="Operational Notes & Pricing Snapshot">
-              <div className="grid gap-3">
-                {detail.rejectReason ? <DetailItem label="Reject Reason" value={detail.rejectReason} /> : null}
-                {hasPricingSnapshot ? (
-                  <div>
-                    <div className="text-xs font-semibold uppercase text-muted-foreground">Pricing Snapshot</div>
-                    <pre className="mt-2 max-h-48 overflow-auto rounded-lg bg-muted p-3 text-xs text-foreground">
-                      {JSON.stringify(pricingSnapshot, null, 2)}
-                    </pre>
-                  </div>
-                ) : (
-                  <div className="text-sm text-muted-foreground">No additional operational notes.</div>
-                )}
-              </div>
-            </DetailSection>
-          </div>
-        </div>
-      }
-    />
-  );
-}
 
 export default function AdminBookingsClient({
   bookings,
@@ -898,309 +350,50 @@ export default function AdminBookingsClient({
       />
 
       {optimisticTab === "bookings" && (
-        data.bookings.length > 0 || isNavigating ? (
-          <Table footer={paginationFooter}>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Booking</TableHead>
-                <TableHead>Studio</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Host</TableHead>
-                <TableHead>Schedule</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isNavigating ? (
-                <TableSkeletonRows rows={Math.min(data.operationPageSize, 10)} columns={8} />
-              ) : (
-                data.bookings.map((booking) => {
-                  const status = bookingStatus(booking);
-
-                  return (
-                    <TableRow key={booking.id}>
-                      <TableCell className="whitespace-nowrap font-mono text-xs font-semibold text-foreground">
-                        {booking.bookingId}
-                      </TableCell>
-                      <TableCell className="max-w-50">
-                        <Tooltip content={booking.studioName}>
-                          <div className="truncate font-medium text-foreground">{booking.studioName}</div>
-                        </Tooltip>
-                        <div className="truncate text-xs text-muted-foreground">{booking.studioLocation}</div>
-                      </TableCell>
-                      <TableCell className="max-w-40">
-                        <Tooltip content={booking.customerName}>
-                          <div className="truncate font-medium text-foreground">{booking.customerName}</div>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell className="max-w-40">
-                        <Tooltip content={booking.ownerName}>
-                          <div className="truncate text-muted-foreground">{booking.ownerName}</div>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        <div className="text-xs font-medium text-foreground">{formatISTDate(booking.startDate)}</div>
-                        <div className="text-xs text-muted-foreground">{booking.startTime} - {booking.endTime}</div>
-                      </TableCell>
-                      <TableCell className="text-right whitespace-nowrap font-medium text-foreground">
-                        {formatINR(booking.amount)}
-                      </TableCell>
-                      <TableCell className="text-center whitespace-nowrap">
-                        <CompactPill label={status.label} variant={status.variant} />
-                      </TableCell>
-                      <TableCell className="text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {booking.customerInvoiceUrl ? (
-                            <Button
-                              href={booking.customerInvoiceUrl}
-                              target="_blank"
-                              icon={FiFileText}
-                              isIconOnly
-                              outline
-                              aria-label="View customer invoice"
-                              tooltip={
-                                booking.customerInvoiceNumber
-                                  ? `Invoice: ${booking.customerInvoiceNumber}`
-                                  : "View invoice PDF"
-                              }
-                            />
-                          ) : null}
-                          {booking.customerInvoiceUrl ? <DownloadPdfButton href={booking.customerInvoiceUrl} label="customer invoice" /> : null}
-                          <Button
-                            icon={FiExternalLink}
-                            isIconOnly
-                            outline
-                            aria-label="View booking details"
-                            tooltip="View details"
-                            onClick={() => openBookingDetail(booking)}
-                          />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        ) : <EmptyTable label="No bookings found." />
+        <BookingsTable
+          rows={data.bookings}
+          footer={paginationFooter}
+          isLoading={isNavigating}
+          pageSize={data.operationPageSize}
+          onOpenDetail={openBookingDetail}
+        />
       )}
 
       {(optimisticTab === "ownerInvoices" || optimisticTab === "failures") && (
-        activeRows.length > 0 || isNavigating ? (
-          <Table footer={paginationFooter}>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Invoice</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Recipient</TableHead>
-                <TableHead>Issued</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead className="text-center">Delivery</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isNavigating ? (
-                <TableSkeletonRows rows={Math.min(data.operationPageSize, 10)} columns={7} />
-              ) : (
-                (activeRows as AdminInvoiceRow[]).map((invoice) => {
-                  const delivery = documentDelivery(invoice);
-                  const retryDisabled = Boolean(invoice.emailSentAt) || (isPending && pendingInvoiceId !== invoice.id);
-
-                  return (
-                    <TableRow key={invoice.id} className="align-top">
-                      <TableCell>
-                        <div className="truncate font-mono text-xs" title={invoice.invoiceNumber}>{invoice.invoiceNumber}</div>
-                        {invoice.bookingId ? <div className="mt-1 truncate text-xs text-muted-foreground">{invoice.bookingId}</div> : null}
-                      </TableCell>
-                      <TableCell>{invoiceTypeLabel(invoice.documentType)}</TableCell>
-                      <TableCell>
-                        <Tooltip content={invoice.recipientName}>
-                          <div className="truncate">{invoice.recipientName}</div>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell>{invoice.issuedAt ? formatISTDateTime(invoice.issuedAt) : <MutedDash title="Invoice issue date unavailable" />}</TableCell>
-                      <TableCell className="text-right">{formatINR(invoice.totalAmount)}</TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex flex-col items-center gap-1 text-center">
-                          <CompactPill label={delivery.label} variant={delivery.variant} />
-                          {invoice.emailError ? (
-                            <Tooltip content={invoice.emailError}>
-                              <span className="truncate max-w-30 text-xs text-destructive">{invoice.emailError}</span>
-                            </Tooltip>
-                          ) : null}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          {invoice.invoiceUrl ? (
-                            <Button
-                              href={invoice.invoiceUrl}
-                              target="_blank"
-                              icon={FiEye}
-                              isIconOnly
-                              outline
-                              aria-label="View invoice PDF"
-                              tooltip="View PDF"
-                            />
-                          ) : null}
-                          {invoice.invoiceUrl ? <DownloadPdfButton href={invoice.invoiceUrl} label="invoice" /> : null}
-                          {canManage && <Button
-                            icon={FiRefreshCw}
-                            isIconOnly
-                            outline
-                            aria-label={invoice.emailSentAt ? "Invoice email already sent" : "Retry invoice email"}
-                            tooltip={invoice.emailSentAt ? "Already sent" : "Retry email"}
-                            loading={isPending && pendingInvoiceId === invoice.id}
-                            disabled={retryDisabled}
-                            onClick={() => retryInvoice(invoice.id)}
-                          />}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        ) : <EmptyTable label="No invoices found for this view." />
+        <InvoicesTable
+          rows={activeRows as AdminInvoiceRow[]}
+          footer={paginationFooter}
+          isLoading={isNavigating}
+          pageSize={data.operationPageSize}
+          canManage={canManage}
+          isPending={isPending}
+          pendingId={pendingInvoiceId}
+          onRetry={retryInvoice}
+        />
       )}
 
       {optimisticTab === "vouchers" && (
-        data.vouchers.length > 0 || isNavigating ? (
-          <Table footer={paginationFooter}>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Document</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Recipient</TableHead>
-                <TableHead>Issued</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead className="text-center">Delivery</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isNavigating ? (
-                <TableSkeletonRows rows={Math.min(data.operationPageSize, 10)} columns={7} />
-              ) : (
-                data.vouchers.map((voucher) => {
-                  const delivery = documentDelivery(voucher);
-                  const retryDisabled = Boolean(voucher.emailSentAt) || (isPending && pendingVoucherId !== voucher.id);
-
-                  return (
-                    <TableRow key={voucher.id} className="align-top">
-                      <TableCell>
-                        <div className="truncate font-mono text-xs" title={voucher.voucherNumber}>{voucher.voucherNumber}</div>
-                        {voucher.bookingId ? <div className="mt-1 truncate text-xs text-muted-foreground">{voucher.bookingId}</div> : null}
-                      </TableCell>
-                      <TableCell>{voucherTypeLabel(voucher.voucherType)}</TableCell>
-                      <TableCell>
-                        <Tooltip content={voucher.recipientName}>
-                          <div className="truncate">{voucher.recipientName}</div>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell>{voucher.issuedAt ? formatISTDateTime(voucher.issuedAt) : <MutedDash title="Document issue date unavailable" />}</TableCell>
-                      <TableCell className="text-right">{formatINR(voucher.amount)}</TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex flex-col items-center gap-1 text-center">
-                          <CompactPill label={delivery.label} variant={delivery.variant} />
-                          {voucher.emailError ? (
-                            <Tooltip content={voucher.emailError}>
-                              <span className="truncate max-w-30 text-xs text-destructive">{voucher.emailError}</span>
-                            </Tooltip>
-                          ) : null}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          {voucher.voucherUrl ? (
-                            <Button
-                              href={voucher.voucherUrl}
-                              target="_blank"
-                              icon={FiEye}
-                              isIconOnly
-                              outline
-                              aria-label="View receipt/refund PDF"
-                              tooltip="View PDF"
-                            />
-                          ) : null}
-                          {voucher.voucherUrl ? <DownloadPdfButton href={voucher.voucherUrl} label="receipt/refund" /> : null}
-                          {canManage && <Button
-                            icon={FiRefreshCw}
-                            isIconOnly
-                            outline
-                            aria-label={voucher.emailSentAt ? "Receipt/refund email already sent" : "Retry receipt/refund email"}
-                            tooltip={voucher.emailSentAt ? "Already sent" : "Retry email"}
-                            loading={isPending && pendingVoucherId === voucher.id}
-                            disabled={retryDisabled}
-                            onClick={() => retryVoucher(voucher.id)}
-                          />}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        ) : <EmptyTable label="No receipts or refunds found." />
+        <VouchersTable
+          rows={data.vouchers}
+          footer={paginationFooter}
+          isLoading={isNavigating}
+          pageSize={data.operationPageSize}
+          canManage={canManage}
+          isPending={isPending}
+          pendingId={pendingVoucherId}
+          onRetry={retryVoucher}
+        />
       )}
 
       {optimisticTab === "payouts" && (
-        data.payouts.length > 0 || isNavigating ? (
-          <Table footer={paginationFooter}>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Booking</TableHead>
-                <TableHead>Owner</TableHead>
-                <TableHead>Studio</TableHead>
-                <TableHead>Vendor</TableHead>
-                <TableHead className="text-right">Payout</TableHead>
-                <TableHead className="text-center">Split</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isNavigating ? (
-                <TableSkeletonRows rows={Math.min(data.operationPageSize, 10)} columns={6} />
-              ) : (
-                data.payouts.map((payout) => (
-                  <TableRow key={payout.id} className="align-top">
-                    <TableCell className="font-mono text-xs">{payout.bookingId || payout.id}</TableCell>
-                    <TableCell>
-                      <Tooltip content={payout.ownerName}>
-                        <div className="truncate">{payout.ownerName}</div>
-                      </Tooltip>
-                    </TableCell>
-                    <TableCell>
-                      <Tooltip content={payout.studioName}>
-                        <div className="truncate">{payout.studioName}</div>
-                      </Tooltip>
-                    </TableCell>
-                    <TableCell className="text-xs">{payout.vendorConfigured ? "Configured" : <MutedDash title="Vendor is not configured" />}</TableCell>
-                    <TableCell className="text-right">{formatINR(payout.payoutAmount || 0)}</TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex flex-col items-center gap-1.5">
-                        <CompactPill label={payout.payoutDoneAt ? "Done" : payout.payoutSplitAt ? "Split" : "Pending"} variant={payout.payoutDoneAt ? "success" : "warning"} />
-                        {canManage && !payout.payoutDoneAt && !payout.payoutSplitAt && payout.status === "SUCCESS" && (
-                          <button
-                            type="button"
-                            onClick={() => { setManualPayout(payout); setManualPayoutReference(""); }}
-                            className="text-xs font-medium underline underline-offset-4 hover:text-foreground"
-                          >
-                            Mark paid
-                          </button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        ) : <EmptyTable label="No payouts found." />
+        <PayoutsTable
+          rows={data.payouts}
+          footer={paginationFooter}
+          isLoading={isNavigating}
+          pageSize={data.operationPageSize}
+          canManage={canManage}
+          onMarkPaid={(payout) => { setManualPayout(payout); setManualPayoutReference(""); }}
+        />
       )}
 
       <Modal
@@ -1235,39 +428,12 @@ export default function AdminBookingsClient({
       />
 
       {optimisticTab === "audit" && (
-        data.audits.length > 0 || isNavigating ? (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              {isNavigating ? (
-                Array.from({ length: Math.min(data.operationPageSize, 6) }).map((_, i) => (
-                  <div key={i} className="flex items-start gap-3 rounded-lg border border-border bg-background p-4 animate-pulse">
-                    <div className="h-9 w-9 rounded-lg bg-muted shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 w-48 rounded bg-muted" />
-                      <div className="h-3 w-64 rounded bg-muted" />
-                    </div>
-                  </div>
-                ))
-              ) : (
-                data.audits.map((audit) => (
-                  <div key={audit.id} className="flex items-start gap-3 rounded-lg border border-border bg-background p-4">
-                    <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-neutral-50">
-                      <FiFileText size={16} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium text-foreground">{audit.action}</div>
-                      <div className="mt-1 text-xs text-muted-foreground">{formatISTDateTime(audit.createdAt)} | {audit.resourceId || "No resource"}</div>
-                      {audit.metadata ? <pre className="mt-2 max-h-32 overflow-auto rounded-lg bg-muted p-2 text-xs">{JSON.stringify(audit.metadata, null, 2)}</pre> : null}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-            <div className="overflow-hidden rounded-xl border border-border bg-card">
-              {paginationFooter}
-            </div>
-          </div>
-        ) : <EmptyTable label="No document audit events found." />
+        <AuditTable
+          rows={data.audits}
+          footer={paginationFooter}
+          isLoading={isNavigating}
+          pageSize={data.operationPageSize}
+        />
       )}
 
       <BookingDetailModal

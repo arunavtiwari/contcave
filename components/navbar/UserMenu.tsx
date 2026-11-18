@@ -1,6 +1,5 @@
 "use client";
 
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { signOut } from "next-auth/react";
 import { memo } from "react";
 import { AiOutlineMenu } from "react-icons/ai";
@@ -16,13 +15,17 @@ import {
 } from "react-icons/fi";
 import { MdApartment } from "react-icons/md";
 
-import MenuItem from "@/components/navbar/MenuItem";
-import { MENU_OFFSET, MENU_SURFACE } from "@/components/navbar/menuSurface";
 import Avatar from "@/components/ui/Avatar";
 import Button from "@/components/ui/Button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/DropdownMenu";
 import useUIStore from "@/hooks/useUIStore";
 import { isOwner } from "@/lib/user/permissions";
-import { cn } from "@/lib/utils";
 import { SafeUser } from "@/types/user";
 
 type Props = {
@@ -33,8 +36,8 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
   const uiStore = useUIStore();
 
   return (
-    <DropdownMenu.Root modal={false}>
-      <DropdownMenu.Trigger asChild>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
         <Button
           aria-label="Open user menu"
           variant="ghost"
@@ -48,36 +51,34 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
             <Avatar src={currentUser?.image} />
           </div>
         </Button>
-      </DropdownMenu.Trigger>
+      </DropdownMenuTrigger>
 
-      <DropdownMenu.Portal>
-        <DropdownMenu.Content align="end" sideOffset={MENU_OFFSET} className={cn(MENU_SURFACE, "min-w-72 p-2")}>
+      <DropdownMenuContent className="min-w-72 p-2">
           <div className="flex flex-col gap-1">
             {currentUser ? (
               <>
-                <MenuItem href="/dashboard/bookings" label="My Bookings" icon={FiCalendar} />
-                <MenuItem href="/dashboard/favorites" label="My Favorites" icon={FiHeart} />
+                <DropdownMenuItem href="/dashboard/bookings" label="My Bookings" icon={FiCalendar} />
+                <DropdownMenuItem href="/dashboard/favorites" label="My Favorites" icon={FiHeart} />
                 {isOwner(currentUser.role) && (
                   <>
-                    <MenuItem href="/dashboard/reservations" label="Guest Reservations" icon={FiUserCheck} />
-                    <MenuItem href="/dashboard/properties" label="My Properties" icon={MdApartment} />
-                    <MenuItem onSelect={() => uiStore.onOpen("rent")} label="List your space" icon={FiPlusCircle} />
+                    <DropdownMenuItem href="/dashboard/reservations" label="Guest Reservations" icon={FiUserCheck} />
+                    <DropdownMenuItem href="/dashboard/properties" label="My Properties" icon={MdApartment} />
+                    <DropdownMenuItem onSelect={() => uiStore.onOpen("rent")} label="List your space" icon={FiPlusCircle} />
                   </>
                 )}
-                <MenuItem href="/dashboard/profile" label="My Profile" icon={FiUser} />
-                <DropdownMenu.Separator className="mx-2 my-2 border-t border-neutral-300" />
-                <MenuItem onSelect={() => signOut({ callbackUrl: "/" })} label="Logout" icon={FiLogOut} />
+                <DropdownMenuItem href="/dashboard/profile" label="My Profile" icon={FiUser} />
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => signOut({ callbackUrl: "/" })} label="Logout" icon={FiLogOut} />
               </>
             ) : (
               <>
-                <MenuItem onSelect={() => uiStore.onOpen("login")} label="Login" icon={FiLogIn} />
-                <MenuItem onSelect={() => uiStore.onOpen("register")} label="Sign up" icon={FiUserPlus} />
+                <DropdownMenuItem onSelect={() => uiStore.onOpen("login")} label="Login" icon={FiLogIn} />
+                <DropdownMenuItem onSelect={() => uiStore.onOpen("register")} label="Sign up" icon={FiUserPlus} />
               </>
             )}
           </div>
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
-    </DropdownMenu.Root>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 });
 

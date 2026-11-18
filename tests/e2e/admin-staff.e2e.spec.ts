@@ -30,7 +30,8 @@ function signInInPage(page: Page, email: string, password: string) {
   }, { email, password });
 }
 
-const bookingTab = (page: Page, name: string) => page.getByRole("link", { name: new RegExp(`^${name}`) });
+/** A tab on the Bookings page; the sidebar also has a "Bookings" link, so look inside the page content. */
+const bookingTab = (page: Page, name: string) => page.getByRole("main").getByRole("link", { name: new RegExp(`^${name}`) });
 
 test.describe("finance staff", () => {
   test("sees only the bookings area, read-only", async ({ page }, testInfo) => {
@@ -62,6 +63,21 @@ test.describe("finance staff", () => {
       await expect(page, path).toHaveURL(BOOKINGS);
     }
     await expect(bookingTab(page, "Document Audit")).toHaveCount(0);
+  });
+
+  test("role changes apply on the next page load, without signing in again", async ({ page }, testInfo) => {
+    const { account, user } = await createStaffUserFixture("FINANCE", `role-change-r${testInfo.retry}`);
+    await loginAdmin(page, account.email, account.password, BOOKINGS);
+    const usersPage = `${adminBaseUrl()}/admin/dashboard/users`;
+
+    await prisma.user.update({ where: { id: user.id }, data: { role: "ADMIN" } });
+    await gotoApp(page, usersPage);
+    await expect(page).toHaveURL(/\/admin\/dashboard\/users/);
+    await expect(page.getByRole("button", { name: "Add staff" })).toBeVisible();
+
+    await prisma.user.update({ where: { id: user.id }, data: { role: "CUSTOMER" } });
+    await page.goto(usersPage);
+    await expect(page).not.toHaveURL(/\/admin\/dashboard/);
   });
 
   test("can download booking documents that other users can't", async ({ page, browser }, testInfo) => {
@@ -97,6 +113,27 @@ test.describe("finance staff", () => {
     await page.getByRole("button", { name: /sign in/i }).click();
     await expect(page.getByRole("alert").filter({ hasText: /invalid email or password/i })).toBeVisible();
     await expect(page).not.toHaveURL(/\/admin\/dashboard/);
+  });
+});
+
+test.describe("admin bookings", () => {
+  test("renders every operations tab and opens a booking's details", async ({ page }, testInfo) => {
+    const { account } = await createStaffUserFixture("ADMIN", `bookings-r${testInfo.retry}`);
+    await loginAdmin(page, account.email, account.password);
+    await gotoApp(page, `${adminBaseUrl()}/admin/dashboard/bookings`);
+    await expect(page.getByRole("button", { name: "Create Booking" })).toBeVisible();
+
+    for (const tab of ["Owner Invoices", "Receipts & Refunds", "Payouts", "Failures", "Document Audit", "Bookings"]) {
+      await bookingTab(page, tab).click();
+      await expect(page.getByRole("table").or(page.getByText(/^No .+ (yet|found)/i)).first(), tab).toBeVisible();
+    }
+
+    const details = page.getByRole("button", { name: "View booking details" }).first();
+    // Wait past the loading placeholders: real rows, or the empty message.
+    await expect(details.or(page.getByText(/^No .+ (yet|found)/i)).first()).toBeVisible({ timeout: 30_000 });
+    test.skip((await details.count()) === 0, "Needs at least one booking in the test database");
+    await details.click();
+    await expect(page.getByRole("dialog")).toBeVisible();
   });
 });
 

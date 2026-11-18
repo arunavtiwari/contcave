@@ -33,6 +33,23 @@ for (const viewport of VIEWPORTS) {
       await expect(trigger).toBeFocused();
     });
 
+    test("the studio sort menu picks an order by keyboard or pointer", async ({ page }) => {
+      await seedCookieConsent(page);
+      await gotoApp(page, "/studios");
+      const trigger = page.getByRole("button", { name: /^Sort:|Recommended|↑|↓/ }).first();
+
+      await trigger.click();
+      const lowToHigh = page.getByRole("menuitemradio", { name: /price: low to high/i });
+      await expect(lowToHigh).toHaveAttribute("aria-checked", "false");
+      await lowToHigh.click();
+      await expect(page).toHaveURL(/[?&]sort=price_asc\b/);
+
+      await trigger.click();
+      await expect(page.getByRole("menuitemradio", { name: /price: low to high/i })).toHaveAttribute("aria-checked", "true");
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("menu")).toBeHidden();
+    });
+
     test("choosing Login opens the login form", async ({ page }) => {
       await seedCookieConsent(page);
       await gotoApp(page, "/");

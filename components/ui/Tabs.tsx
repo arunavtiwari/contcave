@@ -155,12 +155,22 @@ TabsTrigger.displayName = "TabsTrigger";
 export interface TabsContentProps extends HTMLMotionProps<"div"> {
   value: string;
   children: React.ReactNode;
+  /** Keep inactive panels in the HTML (hidden), e.g. so crawlers can follow every panel's links. */
+  keepMounted?: boolean;
 }
 
 export const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
-  ({ value, className, children, ...props }, ref) => {
+  ({ value, className, children, keepMounted = false, ...props }, ref) => {
     const { value: activeValue } = useTabsContext();
     const isSelected = activeValue === value;
+
+    if (keepMounted && !isSelected) {
+      return (
+        <div ref={ref} role="tabpanel" hidden className={className}>
+          {children}
+        </div>
+      );
+    }
 
     return (
       <AnimatePresence mode="wait">

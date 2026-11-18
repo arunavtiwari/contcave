@@ -2,26 +2,21 @@ import Image from "next/image";
 
 import Container from "@/components/layout/Container";
 import CookieSettingsLink from "@/components/layout/CookieSettingsLink";
+import ExploreStudios from "@/components/layout/ExploreStudios";
 import Logo from "@/components/navbar/Logo";
 import EmailShield from "@/components/ui/EmailShield";
 import TextLink from "@/components/ui/TextLink";
-import { placeIndex, popularSearches } from "@/lib/listing/cities";
-import { cityPath } from "@/lib/listing/cityPaths";
 
-const POPULAR_SEARCHES = 8;
-
-async function Footer() {
-  const { all: places, covered } = await placeIndex();
-  const searches = popularSearches(covered, POPULAR_SEARCHES);
-
+function Footer() {
   return (
     <footer className="bg-muted/30 text-foreground border-t border-border">
+      <ExploreStudios />
       <Container>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 py-12">
+        <div className="grid grid-cols-1 gap-10 py-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-16">
           {/* Left Side */}
-          <div className="grid place-items-center md:place-items-start gap-8">
+          <div className="flex flex-col items-center gap-6 md:items-start">
             {/* Logo & Description */}
-            <div className="flex flex-col items-center md:items-start w-full gap-2 max-w-md">
+            <div className="flex flex-col items-center md:items-start w-full gap-2 max-w-sm">
               <Logo />
               <p className="text-sm text-muted-foreground text-center md:text-left">
                 ContCave helps creators discover, compare, and book verified studios and production-ready spaces across India.
@@ -29,8 +24,8 @@ async function Footer() {
             </div>
 
             {/* Follow Us */}
-            <div className="flex items-center gap-4">
-              <p className="text-base font-semibold text-center md:text-left">Follow Us</p>
+            <div className="flex flex-wrap items-center justify-center gap-4 md:justify-start">
+              <p className="whitespace-nowrap text-base font-semibold">Follow Us</p>
               <div className="flex gap-4 items-center">
                 <a href="https://www.linkedin.com/company/contcave/" target="_blank" rel="noopener noreferrer">
                   <Image src="/images/icons/linkedin.png" width={32} height={32} alt="linkedin" className="object-cover hover:scale-105 transition-all contrast-180" />
@@ -57,7 +52,7 @@ async function Footer() {
           </div>
 
           {/* Right Side */}
-          <div className="grid grid-cols-2 xl:grid-cols-4 gap-6 text-sm font-medium text-center md:text-left">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-10 text-sm font-medium text-center sm:grid-cols-3 md:text-left">
             <div className="flex flex-col space-y-3">
               <p className="text-lg font-bold text-foreground">Company</p>
               <TextLink variant="muted" href="/about">About</TextLink>
@@ -84,23 +79,6 @@ async function Footer() {
               <TextLink variant="muted" href="/studios?purpose=podcast">Podcasts</TextLink>
               <TextLink variant="muted" href="/studios?purpose=event">Events & Workshops</TextLink>
               <TextLink variant="muted" href="/studios?type=Product+%26+E-commerce">Product Shoots</TextLink>
-            </div>
-
-            <div className="flex flex-col space-y-3">
-              <p className="text-lg font-bold text-foreground">Popular Searches</p>
-              {searches.map((search) => (
-                <TextLink key={search.href} variant="muted" href={search.href}>{search.label}</TextLink>
-              ))}
-            </div>
-
-            <div className="flex flex-col space-y-3">
-              <p className="text-lg font-bold text-foreground">Across India</p>
-              <div className="grid grid-cols-1 gap-2">
-                <TextLink variant="muted" href="/studios">All studios</TextLink>
-                {places.map((place) => (
-                  <TextLink key={place.slug} variant="muted" href={cityPath(place.city)}>{place.city}</TextLink>
-                ))}
-              </div>
             </div>
           </div>
         </div>

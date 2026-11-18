@@ -1,7 +1,7 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import React, { useCallback, useRef, useState } from "react";
+import React from "react";
+import type { IconType } from "react-icons";
 import {
     FiAlertTriangle,
     FiClock,
@@ -14,9 +14,8 @@ import {
 import { IoInformationCircleOutline } from "react-icons/io5";
 
 import Button from "@/components/ui/Button";
-import { useDismiss } from "@/hooks/useDismiss";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/DropdownMenu";
 import { canCheckInNow, canMarkNoShowNow, hasSessionEnded } from "@/lib/reservation/status";
-import { cn } from "@/lib/utils";
 import { SafeReservation } from "@/types/reservation";
 
 interface ListingCardActionsProps {
@@ -60,12 +59,6 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
     actionLabel,
     isHost,
 }) => {
-    const [isMenuOpen, setMenuOpen] = useState(false);
-    const menuRef = useRef<HTMLDivElement>(null);
-
-    const closeMenu = useCallback(() => setMenuOpen(false), []);
-    useDismiss(menuRef, isMenuOpen, closeMenu);
-
     const completedAt = reservation?.completedAt ? new Date(reservation.completedAt) : null;
     const canAddPostBookingCharge = Boolean(
         reservation?.status === "CHECKED_IN" ||
@@ -89,7 +82,7 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
     const canChat = Boolean(reservation && ["CONFIRMED", "CHECKED_IN", "COMPLETED"].includes(reservation.status));
     const hostHasSessionAction = Boolean(isHost && (reservation?.status === "CONFIRMED" || reservation?.status === "CHECKED_IN"));
 
-    const menuItems: { label: string; icon: React.ComponentType<{ size?: number; className?: string }>; onClick: () => void; isDestructive?: boolean }[] = [];
+    const menuItems: { label: string; icon: IconType; onClick: () => void; isDestructive?: boolean }[] = [];
 
     if (reservation && onShowInfo) {
         menuItems.push({
@@ -231,54 +224,32 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
             </div>
 
             {menuItems.length > 0 && (
-                <div ref={menuRef} className="relative shrink-0">
-                    <Button
-                        icon={FiMoreVertical}
-                        variant="outline"
-                        size="sm"
-                        aria-label="More options"
-                        onClick={(e) => {
-                            e?.stopPropagation();
-                            setMenuOpen((prev) => !prev);
-                        }}
-                        disabled={disabled}
-                        className="w-10 h-10 p-0 flex items-center justify-center shrink-0 cursor-pointer"
-                    />
-
-                    <AnimatePresence>
-                        {isMenuOpen && (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95, y: 4 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.95, y: 4 }}
-                                transition={{ duration: 0.12 }}
-                                onClick={(e) => e.stopPropagation()}
-                                className="absolute right-0 bottom-full mb-1.5 min-w-48 rounded-xl bg-background/95 backdrop-blur-xl border border-border p-1 shadow-lg z-50 flex flex-col gap-0.5"
-                            >
-                                {menuItems.map((item, idx) => (
-                                    <button
-                                        key={idx}
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setMenuOpen(false);
-                                            item.onClick();
-                                        }}
-                                        className={cn(
-                                            "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium transition-colors cursor-pointer",
-                                            item.isDestructive
-                                                ? "text-destructive hover:bg-destructive/10"
-                                                : "text-foreground hover:bg-muted"
-                                        )}
-                                    >
-                                        <item.icon size={14} className="shrink-0" />
-                                        <span>{item.label}</span>
-                                    </button>
-                                ))}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            icon={FiMoreVertical}
+                            variant="outline"
+                            size="sm"
+                            aria-label="More options"
+                            onClick={(e) => e?.stopPropagation()}
+                            disabled={disabled}
+                            className="w-10 h-10 p-0 flex items-center justify-center shrink-0 cursor-pointer"
+                        />
+                    </DropdownMenuTrigger>
+                    {/* React events bubble through portals to the card, which navigates on click. */}
+                    <DropdownMenuContent surface="card" side="top" sideOffset={6} className="min-w-48" onClick={(e) => e.stopPropagation()}>
+                        {menuItems.map((item) => (
+                            <DropdownMenuItem
+                                key={item.label}
+                                size="sm"
+                                tone={item.isDestructive ? "destructive" : "default"}
+                                label={item.label}
+                                icon={item.icon}
+                                onSelect={item.onClick}
+                            />
+                        ))}
+                    </DropdownMenuContent>
+                </DropdownMenu>
             )}
         </div>
     );
