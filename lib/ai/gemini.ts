@@ -7,6 +7,9 @@ import { acquireAiSlot, fastestFirst, recordLatency, tripBreaker } from "./break
 
 const DAILY_QUOTA_PAUSE_MS = 60 * 60_000;
 const RETRYABLE_STATUS = new Set([429, 500, 503, 504]);
+/** Provider overload: worth one quick retry on the same model before moving on. */
+const OVERLOADED_STATUS = new Set([500, 503]);
+const OVERLOAD_RETRY_BASE_MS = 400;
 const SUPPORTED_SCHEMA_KEYS = new Set([
     "type",
     "properties",
@@ -62,23 +65,35 @@ function statusOf(error: unknown): number | undefined {
     return typeof status === "number" ? status : undefined;
 }
 
+/** Exponential backoff with full jitter, so retries from many requests don't arrive together. */
+export const overloadRetryDelayMs = (attempt: number, random = Math.random) =>
+    Math.round(random() * OVERLOAD_RETRY_BASE_MS * 2 ** attempt);
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export async function withGeminiModels<T>(label: string, policy: GeminiModelPolicy, run: (model: string) => Promise<T>): Promise<T> {
     if (!geminiConfigured()) throw new AiUnavailableError(`Gemini ${label}: GEMINI_API_KEY is not set`);
     const models = policy.order === "fastest" ? fastestFirst(policy.models) : policy.models;
 
     for (const model of models) {
-        if (!acquireAiSlot(model, policy.perModelPerMinute)) continue;
-        const startedAt = Date.now();
-        try {
-            const result = await run(model);
-            recordLatency(model, Date.now() - startedAt);
-            return result;
-        } catch (error) {
-            recordLatency(model, Date.now() - startedAt);
-            const status = statusOf(error);
-            if (status === undefined || !RETRYABLE_STATUS.has(status)) throw error;
-            if (status === 429) tripBreaker(model, quotaPauseMs(error instanceof Error ? error.message : ""));
-            console.warn(`[gemini] ${label} on ${model} failed with ${status}; trying the next model`);
+        // One quick retry when the provider is overloaded; timeouts and quota errors move on.
+        for (let attempt = 0; attempt < 2; attempt++) {
+            if (!acquireAiSlot(model, policy.perModelPerMinute)) break;
+            const startedAt = Date.now();
+            try {
+                const result = await run(model);
+                recordLatency(model, Date.now() - startedAt);
+                return result;
+            } catch (error) {
+                recordLatency(model, Date.now() - startedAt);
+                const status = statusOf(error);
+                if (status === undefined || !RETRYABLE_STATUS.has(status)) throw error;
+                if (status === 429) tripBreaker(model, quotaPauseMs(error instanceof Error ? error.message : ""));
+                const retrySameModel = attempt === 0 && OVERLOADED_STATUS.has(status);
+                console.warn(`[gemini] ${label} on ${model} failed with ${status}; ${retrySameModel ? "retrying" : "trying the next model"}`);
+                if (!retrySameModel) break;
+                await sleep(overloadRetryDelayMs(attempt));
+            }
         }
     }
     throw new AiUnavailableError(`Gemini ${label}: no model available`);

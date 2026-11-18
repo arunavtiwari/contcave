@@ -190,6 +190,9 @@ export const publishedCategories = (entry: CityEntry) =>
 
 export const categoryLink = (place: CityEntry, category: StudioCategory) => ({
   label: `${category.name} in ${place.city}`,
+  category: category.name,
+  place: place.city,
+  count: place.categoryCounts[category.slug] ?? 0,
   href: cityCategoryPath(place.city, category),
 });
 

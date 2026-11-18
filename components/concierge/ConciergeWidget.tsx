@@ -19,6 +19,7 @@ import {
     LuWallet,
     LuX,
 } from "react-icons/lu";
+import ReactMarkdown from "react-markdown";
 
 import Button from "@/components/ui/Button";
 import Callout from "@/components/ui/Callout";
@@ -41,24 +42,21 @@ const STARTERS = [
 const COMPOSER_MAX_HEIGHT = 140;
 const SPRING = { type: "spring" as const, stiffness: 380, damping: 32 };
 
+const MARKDOWN_ELEMENTS = ["p", "strong", "em", "ul", "ol", "li", "a", "br"];
+
+/** The assistant's Markdown: paragraphs, emphasis, lists and links only; raw HTML is never rendered. */
 function RichText({ text }: { text: string }) {
-    const paragraphs = text.split(/\n{2,}/).filter((paragraph) => paragraph.trim().length > 0);
     return (
-        <>
-            {paragraphs.map((paragraph, index) => (
-                <p key={index} className="whitespace-pre-line">
-                    {paragraph.split(/(\*\*[^*\n]+\*\*)/g).map((part, partIndex) =>
-                        part.startsWith("**") && part.endsWith("**") && part.length > 4 ? (
-                            <strong key={partIndex} className="font-semibold">
-                                {part.slice(2, -2)}
-                            </strong>
-                        ) : (
-                            <span key={partIndex}>{part}</span>
-                        )
-                    )}
-                </p>
-            ))}
-        </>
+        <div className="prose prose-sm max-w-none text-foreground prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-strong:text-foreground prose-a:text-foreground prose-a:underline-offset-4">
+            <ReactMarkdown
+                allowedElements={MARKDOWN_ELEMENTS}
+                unwrapDisallowed
+                skipHtml
+                components={{ a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer">{children}</a> }}
+            >
+                {text}
+            </ReactMarkdown>
+        </div>
     );
 }
 
@@ -108,9 +106,7 @@ function AssistantReply({ text, cards, status, streaming, onAsk, disabled }: Pen
     return (
         <div className="space-y-3">
             {text && (
-                <div className="space-y-3 text-base leading-7 text-foreground">
-                    <RichText text={text} />
-                </div>
+                <RichText text={text} />
             )}
             {cards.map((card, index) => (
                 <ConciergeCardView key={`${card.type}-${index}`} card={card} onAsk={onAsk} disabled={disabled} />
@@ -129,17 +125,17 @@ function Starters({ onPick }: { onPick: (prompt: string) => void }) {
     return (
         <div className="flex min-h-full flex-col justify-end gap-6">
             <div className="space-y-2">
-                <Mark size={40} />
-                <h3 className="pt-3 text-2xl font-semibold tracking-tight text-foreground">What are you shooting?</h3>
-                <p className="text-base leading-7 text-muted-foreground">I&apos;ll find studios that fit your budget, date and look, check live availability and plan the day.</p>
+                <Mark size={32} />
+                <h3 className="pt-2 text-lg font-semibold tracking-tight text-foreground">What are you shooting?</h3>
+                <p className="text-sm leading-6 text-muted-foreground">I&apos;ll find studios that fit your budget, date and look, check live availability and plan the day.</p>
             </div>
             <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border">
                 {STARTERS.map(({ icon: Icon, title, prompt }) => (
                     <li key={title}>
-                        <Button variant="ghost" onClick={() => onPick(prompt)} className="h-auto min-h-14 justify-start gap-3 rounded-none px-4 py-3 text-left font-normal">
+                        <Button variant="ghost" onClick={() => onPick(prompt)} className="h-auto min-h-12 justify-start gap-3 rounded-none px-4 py-2.5 text-left font-normal">
                             <Icon size={18} className="shrink-0 text-muted-foreground" aria-hidden />
                             <span className="min-w-0 flex-1">
-                                <span className="block text-base font-medium text-foreground">{title}</span>
+                                <span className="block text-sm font-medium text-foreground">{title}</span>
                                 <span className="block truncate text-sm text-muted-foreground">{prompt}</span>
                             </span>
                             <LuChevronRight size={16} className="shrink-0 text-muted-foreground" aria-hidden />
@@ -241,12 +237,12 @@ export default function ConciergeWidget() {
                             ref={launcherRef as React.Ref<HTMLButtonElement>}
                             rounded
                             fit
-                            size="lg"
+                            size="md"
                             icon={LuSparkles}
                             onClick={() => setOpen(true)}
                             aria-haspopup="dialog"
                             aria-label={`Plan your shoot with ${CONCIERGE_NAME}, ContCave's AI assistant`}
-                            className="h-14 min-w-14 px-4 sm:px-5"
+                            className="h-12 min-w-12 px-3.5 text-sm sm:px-4"
                         >
                             <span className="hidden sm:inline">Plan my shoot</span>
                         </Button>
@@ -268,7 +264,7 @@ export default function ConciergeWidget() {
                                 exit={{ opacity: 0, y: 16, scale: 0.98 }}
                                 transition={SPRING}
                                 style={{ transformOrigin: "bottom right" }}
-                                className="fixed inset-0 z-[10000] flex flex-col bg-background sm:inset-auto sm:bottom-5 sm:right-5 sm:h-[min(700px,calc(100dvh-2.5rem))] sm:w-[400px] sm:overflow-hidden sm:rounded-3xl sm:border sm:border-border"
+                                className="fixed inset-0 z-[10000] flex flex-col bg-background sm:inset-auto sm:bottom-5 sm:right-5 sm:h-[min(600px,calc(100dvh-2.5rem))] sm:w-[380px] sm:overflow-hidden sm:rounded-3xl sm:border sm:border-border"
                             >
                                 <header className="flex items-center gap-3 border-b border-border py-3 pl-5 pr-2 pt-[max(0.75rem,env(safe-area-inset-top))]">
                                     <Mark size={32} />
@@ -303,7 +299,7 @@ export default function ConciergeWidget() {
                                     role="log"
                                     aria-live="polite"
                                     aria-relevant="additions"
-                                    className="flex-1 overflow-y-auto overscroll-contain px-5 py-6 [scrollbar-color:var(--color-border)_transparent] [scrollbar-width:thin]"
+                                    className="flex-1 overflow-y-auto overscroll-contain px-5 py-5 [scrollbar-color:var(--color-border)_transparent] [scrollbar-width:thin]"
                                 >
                                     {empty ? (
                                         <Starters onPick={submit} />
@@ -381,7 +377,6 @@ export default function ConciergeWidget() {
                                             className={cn("absolute bottom-1.5 right-1.5", !canSend && "bg-muted border-muted text-muted-foreground opacity-100")}
                                         />
                                     </form>
-                                    <p className="text-center text-xs text-muted-foreground">AI can make mistakes. Prices and availability are checked live.</p>
                                 </div>
                             </motion.div>
                         )}

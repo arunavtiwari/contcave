@@ -28,6 +28,10 @@ export type TurnResult = { handedOff: string | null; usedModel: boolean };
 
 const LINK_HOSTS = ["contcave.com"];
 const PARAGRAPH = "\n\n";
+const FALLBACK_WITH_RESULTS =
+    "Here are the studios that fit. Open one to check its slots and the full price, or tell me what to change: area, date, time or budget.";
+const FALLBACK_UNAVAILABLE =
+    "I couldn't pull that together just now. Please try again in a moment, or message the ContCave team on WhatsApp and a person will help.";
 
 /**
  * Everything that varies per request goes here, on the customer's message,
@@ -189,7 +193,9 @@ export async function runTurn(input: TurnInput): Promise<TurnResult> {
     }
 
     if (!reply) {
-        reply = "Sorry, I couldn't finish that just now. Please send it again in a moment, or ask for the ContCave team and a person will help.";
+        // The AI's wording failed (usually provider overload). If the tools already found studios,
+        // point to them rather than apologising over results the customer can see.
+        reply = cards.length > 0 ? FALLBACK_WITH_RESULTS : FALLBACK_UNAVAILABLE;
         if (state.history[state.history.length - 1]?.role !== "assistant") state.history.push({ role: "assistant", content: reply });
         emit(streamedText ? { type: "replace", text: reply } : { type: "text", delta: reply });
         streamedText = reply;
