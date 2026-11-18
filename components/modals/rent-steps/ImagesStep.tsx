@@ -7,6 +7,7 @@ import { IoMdClose } from "react-icons/io";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import FormField from "@/components/ui/FormField";
 import Heading from "@/components/ui/Heading";
+import MediaButton from "@/components/ui/MediaButton";
 
 interface ImagesStepProps {
   imageSrc: string[];
@@ -40,16 +41,13 @@ const ImagesStep: React.FC<ImagesStepProps> = ({
               {imageSrc.map((src, index) => (
                 <div key={index} className="relative group w-full aspect-square">
                   <Image fill sizes="(max-width: 768px) 50vw, 250px" src={src} alt={`Upload ${index + 1}`} className="object-cover rounded-xl border border-border" />
-                  <button
+                  <MediaButton icon={IoMdClose} tone="dark" size="xs" reveal aria-label="Remove photo"
                     onClick={() => {
                       const newImages = [...imageSrc];
                       newImages.splice(index, 1);
                       setCustomValue("imageSrc", newImages);
                     }}
-                    className="absolute top-2 right-2 bg-foreground/60 hover:bg-foreground/80 text-background rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-10"
-                  >
-                    <IoMdClose size={18} />
-                  </button>
+                    className="absolute top-2 right-2 z-10" />
                 </div>
               ))}
             </div>

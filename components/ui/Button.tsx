@@ -6,6 +6,7 @@ import React from "react";
 import { IconType } from "react-icons";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
+import { textLinkVariants } from "@/components/ui/TextLink";
 import Tooltip from "@/components/ui/Tooltip";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +22,7 @@ const buttonVariants = cva(
         secondary: "bg-background/10 border-background/20 text-background",
         outline: "bg-background border-border text-foreground hover:bg-muted",
         glass: "glass text-foreground border-border/40 hover:bg-background/80",
-        link: "w-fit! border-transparent bg-transparent font-medium text-foreground underline underline-offset-4 hover:text-foreground/70",
+        link: cn("w-fit! border-transparent bg-transparent", textLinkVariants()),
       },
       size: {
         sm: "h-10 px-4 text-sm",

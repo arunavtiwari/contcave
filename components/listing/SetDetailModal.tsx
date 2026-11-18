@@ -13,6 +13,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import Button from "@/components/ui/Button";
 import Dialog, { DialogTitle } from "@/components/ui/Dialog";
 import Heading from "@/components/ui/Heading";
+import MediaButton from "@/components/ui/MediaButton";
 import Pill from "@/components/ui/Pill";
 import { ListingSet } from "@/types/set";
 
@@ -45,7 +46,7 @@ export default function SetDetailModal({
         if (!isOpen) setJustActed(null);
     }, [isOpen]);
 
-    if (!isOpen || !set) return null;
+    if (!set) return null;
 
     const handleToggle = () => {
         setJustActed(isSelected ? "removed" : "added");
@@ -59,14 +60,10 @@ export default function SetDetailModal({
             overlayClassName="backdrop-blur-sm"
             className="flex h-[70vh] w-[calc(100%-2rem)] max-w-4xl flex-col overflow-hidden rounded-3xl bg-background md:flex-row"
         >
-                <button
-                    type="button"
+                <MediaButton icon={IoClose} tone="dark" size="sm"
                     aria-label="Close set details"
                     onClick={onClose}
-                    className="absolute top-4 right-4 z-20 p-2 bg-foreground/40 hover:bg-foreground/60 text-background rounded-full transition backdrop-blur-md "
-                >
-                    <IoClose size={18} />
-                </button>
+                    className="absolute top-4 right-4 z-20" />
 
 
                 <div className="w-full md:w-3/5 bg-neutral-100 relative min-h-75 md:min-h-full group">
@@ -102,20 +99,12 @@ export default function SetDetailModal({
 
                             {set.images.length > 1 && (
                                 <>
-                                    <button
-                                        type="button"
+                                    <MediaButton icon={IoChevronBack} tone="light" size="md"
                                         aria-label="Previous set photo"
-                                        className="set-modal-prev absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-background/80 hover:bg-background text-foreground rounded-full  transition md:opacity-0 md:group-hover:opacity-100 md:-translate-x-2.5 md:group-hover:translate-x-0 duration-300 cursor-pointer"
-                                    >
-                                        <IoChevronBack size={20} />
-                                    </button>
-                                    <button
-                                        type="button"
+                                        className="set-modal-prev absolute left-4 top-1/2 -translate-y-1/2 z-10 transition duration-300 md:opacity-0 md:group-hover:opacity-100 md:-translate-x-2.5 md:group-hover:translate-x-0" />
+                                    <MediaButton icon={IoChevronForward} tone="light" size="md"
                                         aria-label="Next set photo"
-                                        className="set-modal-next absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-background/80 hover:bg-background text-foreground rounded-full  transition md:opacity-0 md:group-hover:opacity-100 md:translate-x-2.5 md:group-hover:translate-x-0 duration-300 cursor-pointer"
-                                    >
-                                        <IoChevronForward size={20} />
-                                    </button>
+                                        className="set-modal-next absolute right-4 top-1/2 -translate-y-1/2 z-10 transition duration-300 md:opacity-0 md:group-hover:opacity-100 md:translate-x-2.5 md:group-hover:translate-x-0" />
 
                                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-foreground/20 px-3 py-1.5 rounded-full backdrop-blur-sm z-10">
                                         {set.images.map((_, idx) => (

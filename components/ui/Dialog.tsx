@@ -31,7 +31,6 @@ export default function Dialog({
   onCloseAutoFocus,
   ...props
 }: DialogProps) {
-  // Our dialogs open from state rather than a Radix Trigger, so remember what had focus and return to it.
   const returnFocus = useRef<HTMLElement | null>(null);
   const keepOpen = modalOnly ? (event: Event) => event.preventDefault() : undefined;
   return (

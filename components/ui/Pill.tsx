@@ -42,7 +42,7 @@ const pillVariants = cva(
     }
 );
 
-interface PillProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof pillVariants> {
+interface PillProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "onClick">, VariantProps<typeof pillVariants> {
     label: string | React.ReactNode;
     icon?: IconType;
 }
@@ -52,14 +52,13 @@ const Pill: React.FC<PillProps> = ({
     variant,
     size,
     icon: Icon,
+    clickable,
     className,
-    onClick,
     ...props
 }) => {
     return (
         <div
-            onClick={onClick}
-            className={cn(pillVariants({ variant, size, clickable: !!onClick, className }))}
+            className={cn(pillVariants({ variant, size, clickable, className }))}
             {...props}
         >
             {Icon && <Icon className="shrink-0" size={size === "xs" ? 10 : 12} />}

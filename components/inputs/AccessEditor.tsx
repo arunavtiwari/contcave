@@ -3,8 +3,8 @@
 import { useState } from "react";
 
 import Input from "@/components/ui/Input";
+import ToggleChip from "@/components/ui/ToggleChip";
 import { floorLabel, type ListingAccess, PARKING_LABELS, PARKING_TYPES } from "@/lib/listing/equipment";
-import { cn } from "@/lib/utils";
 
 const LIFT_OPTIONS = [
     { value: "none", label: "No lift" },
@@ -32,20 +32,16 @@ function Choice({
                 {options.map((option) => {
                     const selected = value === option.value;
                     return (
-                        <button
+                        <ToggleChip
                             key={option.value}
-                            type="button"
                             role="radio"
                             aria-checked={selected}
+                            selected={selected}
                             // Tapping the selected option again clears it back to "unknown".
                             onClick={() => onChange(selected ? null : option.value)}
-                            className={cn(
-                                "rounded-full border px-3 py-1.5 text-xs font-medium transition",
-                                selected ? "border-foreground bg-foreground text-background" : "border-border text-foreground hover:bg-muted"
-                            )}
                         >
                             {option.label}
-                        </button>
+                        </ToggleChip>
                     );
                 })}
             </div>
@@ -92,16 +88,9 @@ export default function AccessEditor({
                             }}
                         />
                     </div>
-                    <button
-                        type="button"
-                        onClick={() => update({ floor: 0 })}
-                        className={cn(
-                            "h-10 rounded-full border px-4 text-xs font-medium transition",
-                            access.floor === 0 ? "border-foreground bg-foreground text-background" : "border-border hover:bg-muted"
-                        )}
-                    >
+                    <ToggleChip size="md" selected={access.floor === 0} onClick={() => update({ floor: 0 })} className="text-xs">
                         Ground floor
-                    </button>
+                    </ToggleChip>
                     {access.floor != null && <span className="pb-2.5 text-sm text-muted-foreground">{floorLabel(access.floor)}</span>}
                 </div>
                 <p className="text-xs text-muted-foreground">Use -1 for a basement. Leave blank if you&apos;re not sure.</p>

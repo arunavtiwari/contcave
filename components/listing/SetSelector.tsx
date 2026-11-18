@@ -15,6 +15,7 @@ import SetDetailModal from "@/components/listing/SetDetailModal";
 import Button from "@/components/ui/Button";
 import Checkbox from "@/components/ui/Checkbox";
 import Heading from "@/components/ui/Heading";
+import MediaButton from "@/components/ui/MediaButton";
 import { Package } from "@/types/package";
 import { ListingSet } from "@/types/set";
 
@@ -100,24 +101,18 @@ export default function SetSelector({
             <div className="relative overflow-hidden">
                 {/* Left navigation arrow */}
                 {!isBeginning && (
-                    <button
+                    <MediaButton icon={HiOutlineChevronLeft} tone="light" size="sm"
                         onClick={() => swiperRef.current?.slidePrev()}
                         aria-label="Scroll left"
-                        className="absolute left-1 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-8 h-8 bg-background rounded-full border border-border  hover:scale-105 transition-all cursor-pointer shadow-sm hover:shadow-md"
-                    >
-                        <HiOutlineChevronLeft className="text-muted-foreground" size={16} />
-                    </button>
+                        className="absolute left-1 top-1/2 -translate-y-1/2 z-20" />
                 )}
 
                 {/* Right navigation arrow */}
                 {!isEnd && sets.length >= 3 && (
-                    <button
+                    <MediaButton icon={HiOutlineChevronRight} tone="light" size="sm"
                         onClick={() => swiperRef.current?.slideNext()}
                         aria-label="Scroll right"
-                        className="absolute right-1 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-8 h-8 bg-background rounded-full border border-border  hover:scale-105 transition-all cursor-pointer shadow-sm hover:shadow-md"
-                    >
-                        <HiOutlineChevronRight className="text-muted-foreground" size={16} />
-                    </button>
+                        className="absolute right-1 top-1/2 -translate-y-1/2 z-20" />
                 )}
 
                 <Swiper
@@ -212,14 +207,10 @@ export default function SetSelector({
 
                                         {/* Info icon bottom-left → opens detail modal */}
                                         {(set.description || set.images.length > 1) && (
-                                            <button
-                                                type="button"
+                                            <MediaButton icon={IoInformationCircleOutline} tone="light" size="xs"
                                                 onClick={(e) => { e.stopPropagation(); setModalSet(set); }}
-                                                className="absolute bottom-2 left-2 z-10 w-6 h-6 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors"
-                                                aria-label="View set details"
-                                            >
-                                                <IoInformationCircleOutline size={14} className="text-foreground" />
-                                            </button>
+                                                className="absolute bottom-2 left-2 z-10"
+                                                aria-label="View set details" />
                                         )}
 
                                         {!isAvailable && (

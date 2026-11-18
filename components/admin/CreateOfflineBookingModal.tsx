@@ -34,6 +34,7 @@ import Pill from "@/components/ui/Pill";
 import Select, { SelectOption } from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import Textarea from "@/components/ui/Textarea";
+import ToggleChip from "@/components/ui/ToggleChip";
 import { GST_PERCENT } from "@/constants/gst";
 import type { AdminStudioOption, AdminStudioSummary, OfflineBookingCreationResult } from "@/lib/admin/offlineBooking";
 import { computePayoutBreakdown, panFromGstin } from "@/lib/payout/breakdown";
@@ -1094,14 +1095,9 @@ export default function CreateOfflineBookingModal({
               />
               <div className="mt-1.5 flex flex-wrap gap-1">
                 {PAYMENT_TERMS_PRESETS.map((preset) => (
-                  <button
-                    key={preset}
-                    type="button"
-                    onClick={() => setValue("paymentTerms", preset, { shouldValidate: true })}
-                    className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground transition hover:bg-muted/80 hover:text-foreground"
-                  >
+                  <ToggleChip key={preset} size="xs" onClick={() => setValue("paymentTerms", preset, { shouldValidate: true })}>
                     {preset}
-                  </button>
+                  </ToggleChip>
                 ))}
               </div>
             </div>

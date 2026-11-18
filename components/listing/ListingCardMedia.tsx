@@ -8,6 +8,7 @@ import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 
 import HeartButton from "@/components/listing/HeartButton";
 import ListingTypeBadge from "@/components/listing/ListingTypeBadge";
+import MediaButton from "@/components/ui/MediaButton";
 import Pill from "@/components/ui/Pill";
 import { cn } from "@/lib/utils";
 import { SafeUser } from "@/types/user";
@@ -179,22 +180,14 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
 
             {images.length > 1 && (
                 <>
-                    <button
-                        type="button"
+                    <MediaButton icon={HiOutlineChevronLeft} tone="dark" size="sm"
                         aria-label="Previous photo"
                         onClick={goToPrev}
-                        className="absolute left-2 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center rounded-full border border-background/40 bg-foreground/50 p-1.5 text-background backdrop-blur-md transition-all duration-200 hover:bg-foreground/70 lg:hidden"
-                    >
-                        <HiOutlineChevronLeft size={16} />
-                    </button>
-                    <button
-                        type="button"
+                        className="absolute left-2 top-1/2 z-20 -translate-y-1/2 lg:hidden" />
+                    <MediaButton icon={HiOutlineChevronRight} tone="dark" size="sm"
                         aria-label="Next photo"
                         onClick={goToNext}
-                        className="absolute right-2 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center rounded-full border border-background/40 bg-foreground/50 p-1.5 text-background backdrop-blur-md transition-all duration-200 hover:bg-foreground/70 lg:hidden"
-                    >
-                        <HiOutlineChevronRight size={16} />
-                    </button>
+                        className="absolute right-2 top-1/2 z-20 -translate-y-1/2 lg:hidden" />
                 </>
             )}
 

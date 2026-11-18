@@ -3,7 +3,6 @@ import { IoClose } from 'react-icons/io5';
 
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import Pill from '@/components/ui/Pill';
 import type { SafeAmenity } from '@/types/amenity';
 
 export interface AmenitiesData {
@@ -12,6 +11,7 @@ export interface AmenitiesData {
 }
 
 import FormField from "@/components/ui/FormField";
+import ToggleChip from "@/components/ui/ToggleChip";
 
 interface AmenitiesCheckboxProps {
   amenities: SafeAmenity[];
@@ -95,13 +95,9 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
           {amenities.map(({ id, name }) => {
             const isSelected = !!checkedItems[id];
             return (
-              <Pill
-                key={id}
-                label={name}
-                variant={isSelected ? "solid" : "secondary"}
-                onClick={() => handleCheckboxChange(id)}
-                className="cursor-pointer transition-all hover:opacity-80"
-              />
+              <ToggleChip key={id} selected={isSelected} onClick={() => handleCheckboxChange(id)}>
+                {name}
+              </ToggleChip>
             );
           })}
         </div>
@@ -137,14 +133,10 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
         {!disableCustom && amenitiesList.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-4">
             {amenitiesList.map((amenity) => (
-              <Pill
-                key={amenity}
-                label={amenity}
-                variant="solid"
-                size="sm"
-                onClick={() => handleRemoveAmenity(amenity)}
-                icon={IoClose}
-              />
+              <ToggleChip key={amenity} selected aria-label={`Remove ${amenity}`} onClick={() => handleRemoveAmenity(amenity)}>
+                {amenity}
+                <IoClose aria-hidden="true" />
+              </ToggleChip>
             ))}
           </div>
         )}

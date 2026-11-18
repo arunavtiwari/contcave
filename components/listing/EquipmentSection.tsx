@@ -5,6 +5,7 @@ import type { IconType } from "react-icons";
 import { FiBox, FiCamera, FiChevronDown, FiImage, FiMic, FiPackage, FiSun, FiTool, FiUmbrella, FiUsers } from "react-icons/fi";
 
 import Pill from "@/components/ui/Pill";
+import QuantityStepper from "@/components/ui/QuantityStepper";
 import { useStudioPageUrl } from "@/hooks/useStudioPageUrl";
 import {
     addonIdFor,
@@ -225,32 +226,7 @@ function EquipmentStatus({
     return (
         <div className="flex shrink-0 items-center gap-2">
             <Pill label={priceLabel} variant="warning" size="xs" />
-            {bookable && (cap === 0 ? (
-                <span className="text-xs text-muted-foreground">Unavailable</span>
-            ) : qty === 0 ? (
-                <button
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => onQtyChange(1)}
-                    className="h-7 rounded-full bg-foreground px-3 text-xs font-semibold text-background disabled:opacity-50"
-                >
-                    Add
-                </button>
-            ) : (
-                <div className="flex h-7 items-center overflow-hidden rounded-full border border-border text-sm">
-                    <button type="button" aria-label={`Remove one ${item.name}`} onClick={() => onQtyChange(qty - 1)} className="h-full w-7 bg-muted hover:bg-muted/80">−</button>
-                    <span className="w-7 text-center">{qty}</span>
-                    <button
-                        type="button"
-                        aria-label={`Add one more ${item.name}`}
-                        disabled={qty >= cap}
-                        onClick={() => onQtyChange(qty + 1)}
-                        className="h-full w-7 bg-muted hover:bg-muted/80 disabled:text-muted-foreground/50"
-                    >
-                        +
-                    </button>
-                </div>
-            ))}
+            {bookable && <QuantityStepper value={qty} max={cap} onChange={onQtyChange} itemName={item.name} disabled={disabled} />}
         </div>
     );
 }

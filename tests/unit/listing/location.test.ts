@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { LatLng } from "@/lib/geo";
-import { applyAddressChoice, applyCityChoice, resolveListingLocation } from "@/lib/listing/location";
+import { applyAddressChoice, applyCityChoice, listingLocationIssues, resolveListingLocation } from "@/lib/listing/location";
 
 describe("resolveListingLocation", () => {
     it("resolves listing locations without drifting or inventing coordinates", () => {
@@ -85,5 +85,21 @@ describe("location form changes", () => {
         const withoutPoint = applyAddressChoice(before, { display_name: "Somewhere Else" });
         expect(withoutPoint.display_name).toBe("Somewhere Else");
         expect(withoutPoint.latlng).toBeUndefined();
+    });
+});
+
+describe("listingLocationIssues", () => {
+    const delhiAddress = { value: "Delhi", label: "Delhi", display_name: "Hauz Khas, New Delhi", latlng: [28.5494, 77.2001] as LatLng };
+
+    it("accepts an address inside the chosen city", () => {
+        expect(listingLocationIssues(delhiAddress)).toEqual({});
+    });
+
+    it("rejects an address far from the chosen city", () => {
+        expect(listingLocationIssues({ ...delhiAddress, value: "Mumbai", label: "Mumbai" }).address).toMatch(/isn't in Mumbai/);
+    });
+
+    it("accepts suburbs within the city's area", () => {
+        expect(listingLocationIssues({ ...delhiAddress, display_name: "Dwarka", latlng: [28.5921, 77.046] })).toEqual({});
     });
 });

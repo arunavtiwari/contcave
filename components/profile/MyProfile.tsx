@@ -30,12 +30,12 @@ import Input from "@/components/ui/Input";
 import LoadingOverlay from "@/components/ui/LoadingOverlay";
 import Pill from "@/components/ui/Pill";
 import Textarea from "@/components/ui/Textarea";
+import ToggleChip from "@/components/ui/ToggleChip";
 import { PROFILE_LANGUAGE_OPTIONS, PROFILE_TITLE_OPTIONS } from "@/constants/user";
 import useUIStore from "@/hooks/useUIStore";
 import { discardUploadedMedia } from "@/lib/storage/discard";
 import { uploadToR2 } from "@/lib/storage/upload";
 import { isOwner } from "@/lib/user/permissions";
-import { cn } from "@/lib/utils";
 import { UserDataSchema } from "@/schemas/user";
 import { SafeUser, UserRole } from "@/types/user";
 
@@ -194,7 +194,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile, openOwnerOnLoad = fa
     return (
         <div className="flex flex-col w-full gap-8">
             <Heading title="My Profile" subtitle="Manage your profile information." />
-            <div className="grid lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
 
                 <div className="lg:col-span-2 space-y-8">
 
@@ -230,9 +230,9 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile, openOwnerOnLoad = fa
                             </div>
                         </div>
 
-                        <div className="pt-14 py-6 px-8">
-                            <div className="flex justify-between mb-6 gap-8 items-center">
-                                <div className="flex-1">
+                        <div className="px-4 pt-14 pb-6 sm:px-8">
+                            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+                                <div className="min-w-0 flex-1">
                                     <AnimatePresence mode="wait">
                                         {editMode ? (
                                             <motion.div
@@ -358,13 +358,14 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile, openOwnerOnLoad = fa
                                             className="flex gap-2"
                                         >
                                             {PROFILE_TITLE_OPTIONS.map((t) => (
-                                                <Pill
+                                                <ToggleChip
                                                     key={t}
-                                                    label={t}
+                                                    selected={userData.title === t}
                                                     onClick={() => handleTitleChange(t)}
-                                                    variant={userData.title === t ? "solid" : "secondary"}
-                                                    className="cursor-pointer min-w-14"
-                                                />
+                                                    className="min-w-14"
+                                                >
+                                                    {t}
+                                                </ToggleChip>
                                             ))}
                                         </motion.div>
                                     ) : (
@@ -500,21 +501,14 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile, openOwnerOnLoad = fa
                                                 const isSelected = (userData.languages || []).includes(language);
                                                 const isDisabled = !isSelected && (userData.languages || []).length >= 2;
                                                 return (
-                                                    <Pill
+                                                    <ToggleChip
                                                         key={language}
-                                                        label={language}
-                                                        onClick={() => {
-                                                            if (isSelected || !isDisabled) {
-                                                                handleLanguageToggle(language);
-                                                            }
-                                                        }}
-                                                        variant={isSelected ? "solid" : "secondary"}
-                                                        className={cn(
-                                                            "cursor-pointer transition-all",
-                                                            isDisabled && "opacity-30 cursor-not-allowed grayscale",
-                                                            !isSelected && "hover:bg-neutral-100"
-                                                        )}
-                                                    />
+                                                        selected={isSelected}
+                                                        disabled={isDisabled}
+                                                        onClick={() => handleLanguageToggle(language)}
+                                                    >
+                                                        {language}
+                                                    </ToggleChip>
                                                 );
                                             })}
                                         </motion.div>

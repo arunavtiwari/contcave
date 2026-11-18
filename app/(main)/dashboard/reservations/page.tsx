@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import ReservationsClient from "@/app/(main)/dashboard/reservations/ReservationsClient";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { getReservationsPageAction } from "@/app/actions/reservationActions";
-import DashboardPagination from "@/components/ui/DashboardPagination";
 import EmptyState from "@/components/ui/EmptyState";
+import { TablePagination } from "@/components/ui/Table";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -59,10 +59,12 @@ async function ReservationsContent({ searchParams }: { searchParams: Promise<{ p
   return (
     <div className="space-y-6">
       <ReservationsClient reservations={reservations} currentUser={currentUser} />
-      <DashboardPagination
-        {...pagination}
-        itemLabel="reservations"
-        hrefForPage={(page) => `/dashboard/reservations?page=${page}`}
+      <TablePagination
+        page={pagination.page}
+        pageSize={pagination.pageSize}
+        total={pagination.total}
+        label="reservations"
+        pagePath="/dashboard/reservations"
       />
     </div>
   );

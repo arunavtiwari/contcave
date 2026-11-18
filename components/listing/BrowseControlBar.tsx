@@ -1,26 +1,12 @@
 "use client";
 
-import { FiMapPin, FiSliders, FiX } from "react-icons/fi";
+import { FiMapPin, FiX } from "react-icons/fi";
 import { HiLocationMarker } from "react-icons/hi";
 
 import BrowseResultLine from "@/components/listing/BrowseResultLine";
 import SortMenu from "@/components/listing/SortMenu";
+import Spinner from "@/components/ui/Spinner";
 import { useBrowseLocation } from "@/hooks/useBrowseLocation";
-import useUIStore from "@/hooks/useUIStore";
-
-function FiltersButton() {
-    const uiStore = useUIStore();
-    return (
-        <button
-            type="button"
-            onClick={() => uiStore.onOpen("filter")}
-            aria-label="Filters"
-            className="flex size-11 shrink-0 items-center justify-center rounded-full border border-border bg-background text-foreground transition hover:bg-muted"
-        >
-            <FiSliders size={17} aria-hidden="true" />
-        </button>
-    );
-}
 
 /**
  * The phone controls. Before a location is set this is an ordinary row under the heading; once
@@ -42,10 +28,7 @@ export default function BrowseControlBar() {
                         className="flex h-11 min-w-0 flex-1 items-center justify-between gap-2 rounded-full border border-border bg-background px-4 text-sm font-medium text-foreground"
                     >
                         <span className="flex min-w-0 items-center gap-2">
-                            <span
-                                aria-hidden="true"
-                                className="size-3.5 shrink-0 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground"
-                            />
+                            <Spinner />
                             <span className="truncate">Finding you…</span>
                         </span>
                         <span className="shrink-0 text-muted-foreground">Cancel</span>
@@ -61,7 +44,6 @@ export default function BrowseControlBar() {
                     </button>
                 )}
                 <SortMenu compact />
-                <FiltersButton />
             </div>
         );
     }
@@ -71,30 +53,28 @@ export default function BrowseControlBar() {
         // to the edges of the screen the way a sticky bar should.
         // top-16 clears the fixed navbar (min-h-16 on phones), so the bar sticks below it
         // rather than sliding underneath.
-        <div className="sticky top-16 z-30 -mx-6 mb-6 border-b border-border bg-background px-6 py-2.5 shadow-sm md:hidden">
+        <div className="sticky top-16 z-30 -mx-6 mb-6 border-b border-border bg-background px-6 py-2.5 md:hidden">
             <div className="flex items-center gap-2">
-                {/* Two sibling buttons rather than one nested in the other: an interactive
-                    element inside an interactive element is reachable by neither reliably. */}
-                <div className="flex h-11 min-w-0 items-center rounded-full bg-foreground pl-3.5 pr-1.5 text-sm font-semibold text-background">
+                <div className="flex h-11 min-w-0 flex-1 items-center rounded-full border border-foreground bg-background pl-4 pr-1 text-sm font-semibold text-foreground">
                     <button
                         type="button"
                         onClick={openPicker}
-                        className="flex min-w-0 items-center gap-1.5 self-stretch pr-1.5"
+                        aria-label={`Change location, now ${location.label}`}
+                        className="flex min-w-0 flex-1 items-center gap-2 self-stretch text-left"
                     >
-                        <HiLocationMarker size={15} aria-hidden="true" className="shrink-0" />
+                        <HiLocationMarker size={16} aria-hidden="true" className="shrink-0" />
                         <span className="truncate">{location.label}</span>
                     </button>
                     <button
                         type="button"
                         onClick={clearLocation}
                         aria-label="Clear location"
-                        className="flex size-8 shrink-0 items-center justify-center rounded-full bg-background/25 transition hover:bg-background/40"
+                        className="flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"
                     >
-                        <FiX size={15} aria-hidden="true" />
+                        <FiX size={16} aria-hidden="true" />
                     </button>
                 </div>
                 <SortMenu compact />
-                <FiltersButton />
             </div>
 
             <BrowseResultLine />

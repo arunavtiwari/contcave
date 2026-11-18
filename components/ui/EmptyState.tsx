@@ -1,57 +1,31 @@
-"use client";
-
-import { motion } from "framer-motion";
-import React from "react";
+import type { ReactNode } from "react";
+import type { IconType } from "react-icons";
 import { FiSearch } from "react-icons/fi";
 
-import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
-import { useFilterNavigation } from "@/hooks/useFilterNavigation";
 
-type Props = {
+type EmptyStateProps = {
   title?: string;
   subtitle?: string;
-  showReset?: boolean;
+  icon?: IconType;
+  /** Optional next step, such as a button. */
+  action?: ReactNode;
 };
 
-function EmptyState({
-  title = "No exact matches",
-  subtitle = "Try changing or removing some of your filters.",
-  showReset,
-}: Props) {
-  const { navigate } = useFilterNavigation();
-
+/** Centred message for an empty list or an unavailable page section. */
+export default function EmptyState({
+  title = "Nothing here yet",
+  subtitle,
+  icon: Icon = FiSearch,
+  action,
+}: EmptyStateProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="h-[60vh] flex flex-col items-center justify-center text-center px-6"
-    >
-      <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-white border border-border">
-        <FiSearch className="h-8 w-8 text-muted-foreground" />
+    <div className="flex h-[60vh] animate-menu-in flex-col items-center justify-center px-6 text-center">
+      <div className="mb-6 flex size-16 items-center justify-center rounded-2xl border border-border bg-background">
+        <Icon aria-hidden="true" className="size-8 text-muted-foreground" />
       </div>
-
-      <Heading
-        center
-        title={title}
-        subtitle={subtitle}
-        variant="h3"
-      />
-
-      {showReset && (
-        <div className="mt-8">
-          <Button
-            label="Clear all filters"
-            onClick={() => navigate("/studios")}
-            className="px-8"
-            rounded
-          />
-        </div>
-      )}
-    </motion.div>
+      <Heading center title={title} subtitle={subtitle} variant="h3" />
+      {action && <div className="mt-8">{action}</div>}
+    </div>
   );
 }
-
-export default EmptyState;
-

@@ -5,8 +5,8 @@ import BookingClient from "@/app/(main)/dashboard/bookings/BookingClient";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { getReservationsPageAction } from "@/app/actions/reservationActions";
 import BookingGridSkeleton from "@/components/listing/BookingGridSkeleton";
-import DashboardPagination from "@/components/ui/DashboardPagination";
 import EmptyState from "@/components/ui/EmptyState";
+import { TablePagination } from "@/components/ui/Table";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -58,10 +58,12 @@ async function BookingContent({ searchParams }: { searchParams: Promise<{ page?:
   return (
     <div className="space-y-6">
       <BookingClient reservations={reservations} currentUser={currentUser} />
-      <DashboardPagination
-        {...pagination}
-        itemLabel="bookings"
-        hrefForPage={(page) => `/dashboard/bookings?page=${page}`}
+      <TablePagination
+        page={pagination.page}
+        pageSize={pagination.pageSize}
+        total={pagination.total}
+        label="bookings"
+        pagePath="/dashboard/bookings"
       />
     </div>
   );

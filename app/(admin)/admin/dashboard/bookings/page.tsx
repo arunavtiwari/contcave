@@ -4,7 +4,7 @@ import React, { Suspense } from "react";
 import { getAdminBookingOperations } from "@/app/actions/adminBookingActions";
 import AdminBookingsClient from "@/components/admin/AdminBookingsClient";
 import Skeleton from "@/components/ui/Skeleton";
-import { StatCardSkeleton } from "@/components/ui/StatCard";
+import { StatCardSkeleton, StatGrid } from "@/components/ui/StatCard";
 import {
   Table,
   TableBody,
@@ -32,11 +32,11 @@ function BookingsSkeleton() {
         <Skeleton className="h-8 w-24 rounded-lg" />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+      <StatGrid columns={6}>
         {Array.from({ length: 6 }).map((_, i) => (
           <StatCardSkeleton key={i} />
         ))}
-      </div>
+      </StatGrid>
 
       <div className="inline-flex flex-wrap items-center gap-1 rounded-xl border border-border bg-muted/40 p-1">
         {Array.from({ length: 6 }).map((_, i) => (

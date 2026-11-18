@@ -3,7 +3,7 @@ import React, { Suspense } from "react";
 import { type AdminOwnerTab, getAdminOwnersOperations } from "@/app/actions/adminOwnerActions";
 import AdminOwnersClient from "@/components/admin/AdminOwnersClient";
 import Skeleton from "@/components/ui/Skeleton";
-import { StatCardSkeleton } from "@/components/ui/StatCard";
+import { StatCardSkeleton, StatGrid } from "@/components/ui/StatCard";
 import {
   Table,
   TableBody,
@@ -37,11 +37,11 @@ function OwnersSkeleton() {
         <Skeleton className="h-9 w-28 rounded-xl" />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+      <StatGrid columns={6}>
         {Array.from({ length: 6 }).map((_, i) => (
           <StatCardSkeleton key={i} />
         ))}
-      </div>
+      </StatGrid>
 
       <div className="inline-flex flex-wrap items-center gap-1 rounded-xl border border-border bg-muted/40 p-1">
         {Array.from({ length: 5 }).map((_, i) => (

@@ -7,7 +7,7 @@ import Button from "@/components/ui/Button";
 import Checkbox from "@/components/ui/Checkbox";
 import FormField from "@/components/ui/FormField";
 import Input from "@/components/ui/Input";
-import Pill from "@/components/ui/Pill";
+import ToggleChip from "@/components/ui/ToggleChip";
 import type { EquipmentItem } from "@/lib/listing/equipment";
 import { cn } from "@/lib/utils";
 import { SETS_REQUIRE_PACKAGE_MESSAGE } from "@/schemas/listing";
@@ -274,21 +274,14 @@ export default function PackagesForm({
             >
               <div className="flex flex-wrap items-center gap-2 min-h-19 p-3 rounded-xl bg-muted/30 border border-dashed border-border/60">
                 {pkg.features.map((f, i) => (
-                  <Pill
+                  <ToggleChip
                     key={i}
-                    label={f}
-                    variant="card-feature"
-                    size="sm"
-                    onClick={() =>
-                      updatePackage(
-                        idx,
-                        "features",
-                        pkg.features.filter((_, fi) => fi !== i)
-                      )
-                    }
-                    className="group"
-                    icon={IoClose}
-                  />
+                    aria-label={`Remove ${f}`}
+                    onClick={() => updatePackage(idx, "features", pkg.features.filter((_, fi) => fi !== i))}
+                  >
+                    {f}
+                    <IoClose aria-hidden="true" />
+                  </ToggleChip>
                 ))}
                 <div className="min-w-45 flex-1">
                   <Input

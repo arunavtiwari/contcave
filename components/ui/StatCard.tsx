@@ -73,3 +73,10 @@ export default function StatCard({
     </div>
   );
 }
+
+const STAT_GRID_COLUMNS = { 4: "xl:grid-cols-4", 6: "xl:grid-cols-6" } as const;
+
+/** The row of stat cards at the top of admin pages: 2 per row on phones, 3 on tablets. */
+export function StatGrid({ columns = 4, children }: { columns?: keyof typeof STAT_GRID_COLUMNS; children: React.ReactNode }) {
+  return <div className={cn("grid grid-cols-2 gap-3 md:grid-cols-3", STAT_GRID_COLUMNS[columns])}>{children}</div>;
+}

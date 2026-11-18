@@ -5,6 +5,7 @@ import { IoAdd, IoCopyOutline, IoTrashOutline } from "react-icons/io5";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
+import ToggleChip from "@/components/ui/ToggleChip";
 import {
     EQUIPMENT_CATEGORIES,
     EQUIPMENT_CATEGORY_LABELS,
@@ -161,18 +162,9 @@ export default function EquipmentEditor({
                     {STARTER_ITEMS.map((starter) => {
                         const checked = starterChecked(starter.name);
                         return (
-                            <button
-                                key={starter.name}
-                                type="button"
-                                aria-pressed={checked}
-                                onClick={() => toggleStarter(starter)}
-                                className={cn(
-                                    "rounded-full border px-3 py-1.5 text-xs font-medium transition",
-                                    checked ? "border-foreground bg-foreground text-background" : "border-border text-foreground hover:bg-muted"
-                                )}
-                            >
+                            <ToggleChip key={starter.name} selected={checked} onClick={() => toggleStarter(starter)}>
                                 {checked ? "✓ " : "+ "}{starter.name}
-                            </button>
+                            </ToggleChip>
                         );
                     })}
                 </div>

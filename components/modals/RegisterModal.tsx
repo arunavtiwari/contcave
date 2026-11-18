@@ -156,23 +156,13 @@ function RegisterModal() {
           <div className="text-muted-foreground text-center mt-4 font-light">
             <div>
               Already have an account{" "}
-              <span
-                onClick={toggle}
-                className="text-foreground cursor-pointer hover:underline"
-              >
-                Log in
-              </span>
+              <Button variant="link" label="Log in" onClick={toggle} className="inline-flex" />
             </div>
           </div>
           <div className="text-muted-foreground text-center mt-4 font-light">
             <div>
               Are you a space owner{" "}
-              <span
-                onClick={ownertoggle}
-                className="text-foreground cursor-pointer hover:underline"
-              >
-                Register here
-              </span>
+              <Button variant="link" label="Register here" onClick={ownertoggle} className="inline-flex" />
             </div>
           </div>
         </div>

@@ -30,7 +30,7 @@ import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
 import SearchInput from "@/components/ui/SearchInput";
 import Skeleton from "@/components/ui/Skeleton";
-import StatCard from "@/components/ui/StatCard";
+import StatCard, { StatGrid } from "@/components/ui/StatCard";
 import {
   EmptyTable,
   Table,
@@ -251,14 +251,14 @@ export default function AdminOwnersClient(props: AdminOwnersClientProps) {
       </div>
 
       {/* STAT CARDS */}
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+      <StatGrid columns={6}>
         <StatCard label="Total Space Owners" value={data.summary.totalOwners} />
         <StatCard label="Fully Verified" value={data.summary.verifiedOwners} />
         <StatCard label="Pending Verification" value={data.summary.pendingOwners} />
         <StatCard label="Active Studios" value={data.summary.activeStudios} />
         <StatCard label="Completed Bookings" value={data.summary.totalBookings} />
         <StatCard label="Gross Revenue (GMV)" value={formatINR(data.summary.totalRevenue)} />
-      </div>
+      </StatGrid>
 
       <AdminFilterBar
         tabs={(
@@ -539,8 +539,6 @@ function OwnerDetailModal({
   onClose: () => void;
 }) {
   const publicUrl = usePublicSiteUrl();
-
-  if (!state.isOpen) return null;
 
   const owner = state.data;
 

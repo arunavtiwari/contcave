@@ -4,8 +4,8 @@ import dynamic from "next/dynamic";
 import React from "react";
 
 import CitySelect from "@/components/inputs/CitySelect";
-import AutoComplete, { AutoCompleteValue } from "@/components/ui/AutoComplete";
 import Input from "@/components/ui/Input";
+import AutoComplete, { AutoCompleteValue } from "@/components/ui/PlacesAutocomplete";
 import { INDIAN_CITIES } from "@/hooks/useCities";
 import { isLatLng } from "@/lib/geo";
 import { applyAddressChoice, applyCityChoice, type LocationDraft } from "@/lib/listing/location";

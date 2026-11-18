@@ -112,15 +112,15 @@ function LoginModal() {
           />
 
           <div className="flex justify-end">
-            <span
+            <Button
+              variant="link"
+              label="Forgot password?"
               onClick={() => {
                 uiStore.onClose("login");
                 router.push("/forgot-password");
               }}
-              className="text-sm text-muted-foreground hover:underline cursor-pointer"
-            >
-              Forgot Password?
-            </span>
+              className="text-sm font-normal text-muted-foreground"
+            />
           </div>
         </div>
       }
@@ -137,12 +137,7 @@ function LoginModal() {
           <div className="text-muted-foreground text-center mt-4 font-light">
             <div>
               {"Don't have an Account? "}
-              <span
-                onClick={toggle}
-                className="text-foreground cursor-pointer hover:underline"
-              >
-                Create Account
-              </span>
+              <Button variant="link" label="Create account" onClick={toggle} className="inline-flex" />
             </div>
           </div>
         </div>

@@ -29,7 +29,7 @@ import VouchersTable from "@/components/admin/bookings/VouchersTable";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import StatCard from "@/components/ui/StatCard";
+import StatCard, { StatGrid } from "@/components/ui/StatCard";
 import { TablePagination } from "@/components/ui/Table";
 import { type AdminBookingTab, bookingTabsFor } from "@/lib/admin/bookingTabs";
 import { downloadCsv } from "@/lib/csv";
@@ -329,14 +329,14 @@ export default function AdminBookingsClient({
         />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+      <StatGrid columns={6}>
         <StatCard label="Bookings" value={data.tabCounts.bookings} />
         <StatCard label="Customer Invoices" value={data.customerInvoiceTotal} />
         <StatCard label="Pending Invoices" value={data.pendingCustomerInvoiceTotal} />
         <StatCard label="Owner Invoices" value={data.tabCounts.ownerInvoices} />
         <StatCard label="Receipts & Refunds" value={data.tabCounts.vouchers} />
         <StatCard label="Payouts" value={data.tabCounts.payouts} />
-      </div>
+      </StatGrid>
 
       <AdminTabs
         activeId={optimisticTab}

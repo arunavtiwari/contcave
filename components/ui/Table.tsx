@@ -253,6 +253,8 @@ export interface TablePaginationProps {
   pageSizeOptions?: number[];
   onPageSizeChange?: (size: number) => void;
   hrefForPage?: (page: number, pageSize?: number) => string;
+  /** For server pages, which can't pass functions: links go to `${pagePath}?page=N`. */
+  pagePath?: string;
   onPageChange?: (page: number) => void;
   className?: string;
   label?: string;
@@ -264,11 +266,13 @@ function TablePagination({
   total,
   pageSizeOptions,
   onPageSizeChange,
-  hrefForPage,
+  hrefForPage: hrefForPageProp,
+  pagePath,
   onPageChange,
   className,
   label = "items",
 }: TablePaginationProps) {
+  const hrefForPage = hrefForPageProp ?? (pagePath ? (target: number) => `${pagePath}?page=${target}` : undefined);
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const currentPage = Math.min(Math.max(1, page), pageCount);
   const first = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;

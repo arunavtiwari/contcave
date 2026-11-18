@@ -3,7 +3,7 @@ import React, { Suspense } from "react";
 import { getAdminJobLogs } from "@/app/actions/adminJobLogActions";
 import AdminJobLogsClient from "@/components/admin/AdminJobLogsClient";
 import Skeleton from "@/components/ui/Skeleton";
-import { StatCardSkeleton } from "@/components/ui/StatCard";
+import { StatCardSkeleton, StatGrid } from "@/components/ui/StatCard";
 import {
   Table,
   TableBody,
@@ -30,11 +30,11 @@ function JobLogsSkeleton() {
         <Skeleton className="h-8 w-24 rounded-lg" />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <StatGrid columns={4}>
         {Array.from({ length: 4 }).map((_, i) => (
           <StatCardSkeleton key={i} />
         ))}
-      </div>
+      </StatGrid>
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-white p-3">
         <div className="flex flex-wrap items-center gap-3">

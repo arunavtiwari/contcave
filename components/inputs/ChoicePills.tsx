@@ -1,6 +1,6 @@
 "use client";
 
-import Pill from "@/components/ui/Pill";
+import ToggleChip from "@/components/ui/ToggleChip";
 
 type ChoicePillsProps<T extends string> = {
     label: string;
@@ -13,9 +13,9 @@ export default function ChoicePills<T extends string>({ label, options, value, o
     return (
         <div role="group" aria-label={label} className="flex flex-wrap gap-2">
             {options.map((option) => (
-                <button key={option.value} type="button" aria-pressed={option.value === value} className="rounded-full" onClick={() => onChange(option.value)}>
-                    <Pill size="sm" variant={option.value === value ? "solid" : "secondary"} label={option.label} />
-                </button>
+                <ToggleChip key={option.value} selected={option.value === value} onClick={() => onChange(option.value)}>
+                    {option.label}
+                </ToggleChip>
             ))}
         </div>
     );

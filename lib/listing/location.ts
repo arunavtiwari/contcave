@@ -1,5 +1,6 @@
 import { getGstStateCodeFromStateName } from "@/constants/gstStateCodes";
-import { isLatLng, type LatLng } from "@/lib/geo";
+import { INDIAN_CITIES } from "@/hooks/useCities";
+import { distanceKm, isLatLng, type LatLng } from "@/lib/geo";
 import type { LocationSchema } from "@/schemas/listing";
 
 import { jitterLatLng } from "./utils";
@@ -71,6 +72,9 @@ export function resolveListingLocation(incoming: LocationInput | null, stored?: 
     };
 }
 
+/** How far from a city's centre an address can be and still count as that city (suburbs included). */
+export const CITY_MATCH_RADIUS_KM = 60;
+
 type PickedLocation = { value?: string; label?: string; display_name?: string; latlng?: unknown } | null | undefined;
 
 export const listingLocationValue = (location: PickedLocation) =>
@@ -81,6 +85,10 @@ export function listingLocationIssues(location: PickedLocation): { city?: string
     if (!location.display_name) return { address: "Please enter a complete address" };
     if (!isLatLng(location.latlng)) {
         return { address: "Please select a valid location using autocomplete to fetch map coordinates" };
+    }
+    const cityCentre = INDIAN_CITIES.find((city) => city.value === location.value)?.latlng;
+    if (isLatLng(cityCentre) && distanceKm(location.latlng, cityCentre) > CITY_MATCH_RADIUS_KM) {
+        return { address: `This address isn't in ${location.label || location.value}. Pick the matching city or address.` };
     }
     return {};
 }

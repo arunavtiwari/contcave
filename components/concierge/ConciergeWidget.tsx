@@ -23,6 +23,7 @@ import ReactMarkdown from "react-markdown";
 
 import Button from "@/components/ui/Button";
 import Callout from "@/components/ui/Callout";
+import { floatingButton } from "@/components/ui/floatingButton";
 import Pill from "@/components/ui/Pill";
 import Textarea from "@/components/ui/Textarea";
 import type { ConciergeBrief } from "@/lib/concierge/types";
@@ -233,19 +234,17 @@ export default function ConciergeWidget() {
             <AnimatePresence initial={false}>
                 {!open && (
                     <motion.div key="launcher" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} transition={SPRING}>
-                        <Button
-                            ref={launcherRef as React.Ref<HTMLButtonElement>}
-                            rounded
-                            fit
-                            size="md"
-                            icon={LuSparkles}
+                        <button
+                            ref={launcherRef}
+                            type="button"
                             onClick={() => setOpen(true)}
                             aria-haspopup="dialog"
                             aria-label={`Plan your shoot with ${CONCIERGE_NAME}, ContCave's AI assistant`}
-                            className="h-12 min-w-12 px-3.5 text-sm sm:px-4"
+                            className={cn(floatingButton(), "text-sm font-medium sm:px-4")}
                         >
+                            <LuSparkles aria-hidden="true" className="size-5" />
                             <span className="hidden sm:inline">Plan my shoot</span>
-                        </Button>
+                        </button>
                     </motion.div>
                 )}
             </AnimatePresence>

@@ -3,7 +3,7 @@
 import React from "react";
 
 import FormField from "@/components/ui/FormField";
-import Pill from "@/components/ui/Pill";
+import ToggleChip from "@/components/ui/ToggleChip";
 import { TaxonomyItem } from "@/lib/taxonomy";
 
 interface TaxonomyPillSelectProps {
@@ -41,12 +41,9 @@ const TaxonomyPillSelect: React.FC<TaxonomyPillSelectProps> = ({
     const renderPills = (items: TaxonomyItem[]) => (
         <div className="w-full flex flex-wrap gap-2">
             {items.map((item) => (
-                <Pill
-                    key={item.slug}
-                    label={item.label}
-                    onClick={() => toggle(item.label)}
-                    variant={value.includes(item.label) ? "solid" : "secondary"}
-                />
+                <ToggleChip key={item.slug} selected={value.includes(item.label)} onClick={() => toggle(item.label)}>
+                    {item.label}
+                </ToggleChip>
             ))}
         </div>
     );

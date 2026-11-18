@@ -23,6 +23,8 @@ import Image from "next/image";
 import React, { useId, useMemo, useState } from "react";
 import { IoMdClose } from "react-icons/io";
 
+import MediaButton from "@/components/ui/MediaButton";
+
 const isVideo = (url: string) => {
     return /\.(mp4|webm|mov)$/i.test(url);
 };
@@ -78,8 +80,7 @@ function SortablePhotoItem({ id, url, index, onRemove }: SortablePhotoItemProps)
             )}
 
             {onRemove && (
-                <button
-                    type="button"
+                <MediaButton icon={IoMdClose} tone="dark" size="xs" reveal
                     onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
@@ -88,11 +89,8 @@ function SortablePhotoItem({ id, url, index, onRemove }: SortablePhotoItemProps)
                     onPointerDown={(e) => {
                         e.stopPropagation();
                     }}
-                    className="absolute top-2 right-2 bg-foreground/60 hover:bg-foreground/80 text-background rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-20"
-                    aria-label="Remove media"
-                >
-                    <IoMdClose size={18} />
-                </button>
+                    className="absolute top-2 right-2 z-20"
+                    aria-label="Remove media" />
             )}
         </div>
     );

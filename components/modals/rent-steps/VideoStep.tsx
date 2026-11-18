@@ -7,6 +7,7 @@ import { TbVideoPlus } from "react-icons/tb";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import FormField from "@/components/ui/FormField";
 import Heading from "@/components/ui/Heading";
+import MediaButton from "@/components/ui/MediaButton";
 
 interface VideoStepProps {
   videoSrc: string | null;
@@ -33,12 +34,9 @@ const VideoStep: React.FC<VideoStepProps> = ({ videoSrc, setCustomValue }) => {
           {videoSrc && (
             <div className="mt-4 relative group w-full max-w-md">
               <video src={videoSrc} controls className="w-full h-48 rounded-xl object-cover border border-border" />
-              <button
+              <MediaButton icon={IoMdClose} tone="dark" size="xs" reveal aria-label="Remove video"
                 onClick={() => setCustomValue("videoSrc", null)}
-                className="absolute top-2 right-2 bg-foreground/60 hover:bg-foreground/80 text-background rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-10"
-              >
-                <IoMdClose size={18} />
-              </button>
+                className="absolute top-2 right-2 z-10" />
             </div>
           )}
         </div>

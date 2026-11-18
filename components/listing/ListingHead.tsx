@@ -15,6 +15,7 @@ import VideoTourModal from "@/components/modals/VideoTourModal";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import Button from "@/components/ui/Button";
 import Dialog, { DialogTitle } from "@/components/ui/Dialog";
+import MediaButton from "@/components/ui/MediaButton";
 import type { BreadcrumbItem } from "@/lib/seo";
 
 type Props = {
@@ -187,12 +188,8 @@ function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, breadcrum
         ))}
       </Swiper>
 
-      <button type="button" aria-label="Previous photo" className="swiper-button-prev-custom absolute top-1/2 left-3 transform -translate-y-1/2 z-10 cursor-pointer bg-foreground/60 backdrop-blur-2xl p-2 rounded-full border border-background/50 hover:bg-foreground/80 transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100">
-        <HiOutlineChevronLeft className="text-background" size={24} />
-      </button>
-      <button type="button" aria-label="Next photo" className="swiper-button-next-custom absolute top-1/2 right-3 transform -translate-y-1/2 z-10 cursor-pointer bg-foreground/60 backdrop-blur-2xl p-2 rounded-full border border-background/50 hover:bg-foreground/80 transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100">
-        <HiOutlineChevronRight className="text-background" size={24} />
-      </button>
+      <MediaButton icon={HiOutlineChevronLeft} tone="dark" size="md" aria-label="Previous photo" className="swiper-button-prev-custom absolute top-1/2 left-3 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 focus-visible:opacity-100" />
+      <MediaButton icon={HiOutlineChevronRight} tone="dark" size="md" aria-label="Next photo" className="swiper-button-next-custom absolute top-1/2 right-3 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 focus-visible:opacity-100" />
       {galleryActions}
     </div>
   );
@@ -328,12 +325,8 @@ function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, breadcrum
               </Swiper>
             </div>
 
-            <button type="button" aria-label="Previous photo" className="swiper-lb-prev absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-50 cursor-pointer border border-background/20 bg-background/5 hover:bg-background/15 hover:border-background/50 text-background p-3 rounded-full backdrop-blur-sm transition-colors hidden md:flex items-center justify-center">
-              <HiOutlineChevronLeft size={20} />
-            </button>
-            <button type="button" aria-label="Next photo" className="swiper-lb-next absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-50 cursor-pointer border border-background/20 bg-background/5 hover:bg-background/15 hover:border-background/50 text-background p-3 rounded-full backdrop-blur-sm transition-colors hidden md:flex items-center justify-center">
-              <HiOutlineChevronRight size={20} />
-            </button>
+            <MediaButton icon={HiOutlineChevronLeft} tone="clear" size="lg" aria-label="Previous photo" className="swiper-lb-prev absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-50 hidden md:inline-flex" />
+            <MediaButton icon={HiOutlineChevronRight} tone="clear" size="lg" aria-label="Next photo" className="swiper-lb-next absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-50 hidden md:inline-flex" />
           </div>
       </Dialog>
     </>

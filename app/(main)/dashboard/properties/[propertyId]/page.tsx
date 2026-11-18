@@ -19,7 +19,7 @@ const EditPropertyComponent = async (props: { params: Promise<IParams> }) => {
     return <EmptyState title="Unauthorized" subtitle="Please login" />;
   }
   if (!listing || (listing.userId !== currentUser.id && currentUser.role !== "ADMIN")) {
-    return <EmptyState />;
+    return <EmptyState title="Studio not found" subtitle="This studio doesn't exist or isn't yours to edit." />;
   }
   const [amenitiesData, addonsData] = await Promise.all([getAmenities(), getAddons()]);
   return (

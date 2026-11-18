@@ -20,11 +20,12 @@ import Button from "@/components/ui/Button";
 import FormField from "@/components/ui/FormField";
 import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
-import Pill from "@/components/ui/Pill";
+import MediaButton from "@/components/ui/MediaButton";
 import RadioGroup from "@/components/ui/RadioGroup";
 import Select, { SelectOption } from "@/components/ui/Select";
 import Switch from "@/components/ui/Switch";
 import Textarea from "@/components/ui/Textarea";
+import ToggleChip from "@/components/ui/ToggleChip";
 import { TIME_SLOTS } from "@/constants/timeSlots";
 import type { EquipmentItem, EquipmentPolicy, ListingAccess } from "@/lib/listing/equipment";
 import { listingLocationValue } from "@/lib/listing/location";
@@ -175,17 +176,17 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
       <FormField label="Listed Services" description="Select all services available in this space" variant="horizontal" align="start">
         <div className="w-full flex flex-wrap gap-2">
           {Array.from(new Set([...USE_CASE_LABELS, ...(initialListing.type || [])])).map((t) => (
-            <Pill
+            <ToggleChip
               key={t}
-              label={t}
+              selected={(initialListing.type || []).includes(t)}
               onClick={() => {
                 const currentType = initialListing.type || [];
-                const exists = currentType.includes(t);
-                const newType = exists ? currentType.filter((x) => x !== t) : [...currentType, t];
+                const newType = currentType.includes(t) ? currentType.filter((x) => x !== t) : [...currentType, t];
                 handleInputChange("type", newType);
               }}
-              variant={(initialListing.type || []).includes(t) ? "solid" : "secondary"}
-            />
+            >
+              {t}
+            </ToggleChip>
           ))}
         </div>
       </FormField>
@@ -300,12 +301,9 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
               {initialListing.videoSrc && (
                 <div className="mt-4 relative group w-full max-w-md">
                   <video src={initialListing.videoSrc} controls className="w-full h-48 rounded-xl object-cover border border-border" />
-                  <button
+                  <MediaButton icon={IoMdClose} tone="dark" size="xs" reveal aria-label="Remove video"
                     onClick={() => handleInputChange("videoSrc", null)}
-                    className="absolute top-2 right-2 bg-foreground/60 hover:bg-foreground/80 text-background rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-10"
-                  >
-                    <IoMdClose size={18} />
-                  </button>
+                    className="absolute top-2 right-2 z-10" />
                 </div>
               )}
             </div>

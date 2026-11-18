@@ -12,6 +12,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 
 import Container from "@/components/layout/Container";
 import Button from "@/components/ui/Button";
+import MediaButton from "@/components/ui/MediaButton";
 import SectionHeader from "@/components/ui/SectionHeader";
 import StarRating from "@/components/ui/StarRating";
 import { reviews } from "@/constants/testimonials";
@@ -143,20 +144,12 @@ const SocialProof = () => {
 
             {reviews.length > REVIEWS_PER_PAGE && (
               <div className="mt-5 flex items-center justify-center gap-3">
-                <button
-                  type="button"
+                <MediaButton icon={FiChevronLeft} tone="light" size="sm"
                   aria-label="Previous reviews"
-                  className="reviews-prev flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border text-foreground transition hover:bg-background [&.swiper-button-disabled]:pointer-events-none [&.swiper-button-disabled]:opacity-30"
-                >
-                  <FiChevronLeft size={16} />
-                </button>
-                <button
-                  type="button"
+                  className="reviews-prev [&.swiper-button-disabled]:pointer-events-none [&.swiper-button-disabled]:opacity-30" />
+                <MediaButton icon={FiChevronRight} tone="light" size="sm"
                   aria-label="Next reviews"
-                  className="reviews-next flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border text-foreground transition hover:bg-background [&.swiper-button-disabled]:pointer-events-none [&.swiper-button-disabled]:opacity-30"
-                >
-                  <FiChevronRight size={16} />
-                </button>
+                  className="reviews-next [&.swiper-button-disabled]:pointer-events-none [&.swiper-button-disabled]:opacity-30" />
               </div>
             )}
           </motion.div>

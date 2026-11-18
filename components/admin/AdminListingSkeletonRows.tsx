@@ -1,7 +1,7 @@
 import React from "react";
 
 import Skeleton from "@/components/ui/Skeleton";
-import { StatCardSkeleton } from "@/components/ui/StatCard";
+import { StatCardSkeleton, StatGrid } from "@/components/ui/StatCard";
 import {
   Table,
   TableBody,
@@ -133,12 +133,12 @@ export function AdminListingsPageSkeleton() {
       </div>
 
       {/* Metric Cards Row */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <StatGrid columns={4}>
         <StatCardSkeleton hasIcon />
         <StatCardSkeleton hasIcon />
         <StatCardSkeleton hasIcon />
         <StatCardSkeleton hasIcon />
-      </div>
+      </StatGrid>
 
       {/* Status Filter Tabs */}
       <div className="inline-flex items-center gap-1 rounded-xl border border-border bg-muted/40 p-1">

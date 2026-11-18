@@ -10,6 +10,7 @@ import ListingGridSkeleton from "@/components/listing/ListingGridSkeleton";
 import PagedFeed from "@/components/listing/PagedFeed";
 import StudioBrowse from "@/components/listing/StudioBrowse";
 import JsonLd from "@/components/seo/JsonLd";
+import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import { isHtmlOnlyCrawler } from "@/lib/crawlers";
 import { DEFAULT_BROWSE_SORT, parseBrowseSort } from "@/lib/listing/browseSort";
@@ -148,7 +149,7 @@ async function StudiosFeed(props: StudiosProps) {
       {items.length === 0 ? (
         <div className="space-y-10">
           <EmptyState
-            showReset={isFiltered}
+            action={isFiltered ? <Button label="Clear all filters" href="/studios" rounded fit className="px-8" /> : undefined}
             title={isFiltered ? "No exact matches found" : "No listings found"}
             subtitle={
               isFiltered

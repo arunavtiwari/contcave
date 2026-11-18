@@ -8,6 +8,7 @@ import { FreeMode } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
 import Heading from "@/components/ui/Heading";
+import QuantityStepper from "@/components/ui/QuantityStepper";
 import { Addon } from "@/types/addon";
 type AddonListItem = { name: string; imageUrl?: string };
 
@@ -35,15 +36,11 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
   const maxQty = addon.qty == null || !Number.isFinite(configuredQty)
     ? Infinity
     : Math.max(0, Math.floor(configuredQty));
-  const inc = useCallback(() => onQtyChange(Math.min(qty + 1, maxQty)), [qty, onQtyChange, maxQty]);
-  const dec = useCallback(() => onQtyChange(Math.max(0, qty - 1)), [qty, onQtyChange]);
-  const add = useCallback(() => onQtyChange(1), [onQtyChange]);
 
   const resolvedImg = imgUrl || addon.imageUrl || "";
-  const atMax = qty >= maxQty;
 
   return (
-    <div className="flex gap-4 items-center bg-muted/30 rounded-lg p-2 border border-border/10 shadow-xs">
+    <div className="flex gap-4 items-center bg-muted/30 rounded-lg p-2 border border-border/10">
       {resolvedImg.trim() ? (
         <div className="relative h-16 w-16 shrink-0 rounded-lg overflow-hidden bg-muted">
           <Image
@@ -84,30 +81,7 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
           </div>
         </div>
 
-        {qty === 0 ? (
-          <button disabled={maxQty === 0} onClick={add} className="bg-foreground text-background h-8 rounded-full disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed">
-            {maxQty === 0 ? "UNAVAILABLE" : "ADD"}
-          </button>
-        ) : (
-          <div className="flex items-center w-full">
-            <button
-              onClick={dec}
-              className="text-foreground/80 bg-muted hover:bg-muted/80 h-8 w-20 rounded-l-xl text-lg font-medium transition border border-border"
-            >
-              -
-            </button>
-            <span className="bg-background text-foreground border-y flex items-center justify-center border-border h-8 w-full text-center">
-              {qty}
-            </span>
-            <button
-              onClick={inc}
-              disabled={atMax}
-              className={`h-8 w-20 rounded-r-xl text-lg font-medium transition border border-border ${atMax ? "bg-muted text-muted-foreground/60 cursor-not-allowed" : "text-foreground/80 bg-muted hover:bg-muted/80"}`}
-            >
-              +
-            </button>
-          </div>
-        )}
+        <QuantityStepper value={qty} max={maxQty} onChange={onQtyChange} itemName={addon.name} fill />
       </div>
     </div>
   );

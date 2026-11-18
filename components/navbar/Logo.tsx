@@ -6,8 +6,8 @@ import { memo } from "react";
 
 const Logo = memo(function Logo() {
   return (
-    <Link href="/">
-      <div className="w-full max-w-50">
+    <Link href="/" className="shrink-0">
+      <div className="max-w-50">
         <Image
           alt="ContCave"
           height={40}
@@ -21,7 +21,7 @@ const Logo = memo(function Logo() {
           height={32}
           width={32}
           src="/assets/logo_small.png"
-          className="block sm:hidden cursor-pointer h-8 w-auto"
+          className="block size-8 shrink-0 cursor-pointer sm:hidden"
           priority
         />
       </div>

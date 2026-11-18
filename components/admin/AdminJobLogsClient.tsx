@@ -8,7 +8,7 @@ import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
 import Select, { type SelectOption } from "@/components/ui/Select";
-import StatCard from "@/components/ui/StatCard";
+import StatCard, { StatGrid } from "@/components/ui/StatCard";
 import {
   EmptyTable,
   Table,
@@ -300,7 +300,7 @@ export default function AdminJobLogsClient({
       </div>
 
       {/* Aggregate Statistics */}
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <StatGrid columns={4}>
         <StatCard
           label="Mutation Runs Logged"
           value={logsData.stats.totalRecorded}
@@ -321,7 +321,7 @@ export default function AdminJobLogsClient({
           value={logsData.stats.failedCount + logsData.stats.partialCount}
           subtext={`${logsData.stats.failedCount} failed, ${logsData.stats.partialCount} partial`}
         />
-      </div>
+      </StatGrid>
 
       {/* Filter Controls */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-background p-3">
@@ -436,9 +436,7 @@ export default function AdminJobLogsClient({
                       ) : null}
                     </TableCell>
                     <TableCell className="text-center">
-                      <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 font-mono text-xs font-medium text-foreground">
-                        {job.itemsModified}
-                      </span>
+                      <Pill size="xs" variant="card-feature" className="font-mono tracking-normal" label={job.itemsModified} />
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {formatISTDateTime(job.createdAt)}

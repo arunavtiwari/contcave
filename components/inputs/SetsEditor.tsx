@@ -9,6 +9,7 @@ import TaxonomyPillSelect from "@/components/inputs/TaxonomyPillSelect";
 import Button from "@/components/ui/Button";
 import FormField from "@/components/ui/FormField";
 import Input from "@/components/ui/Input";
+import MediaButton from "@/components/ui/MediaButton";
 import Textarea from "@/components/ui/Textarea";
 import { AESTHETICS, SET_FEATURES } from "@/lib/taxonomy";
 import { AdditionalSetPricingType } from "@/types/set";
@@ -289,14 +290,10 @@ export default function SetsEditor({
                                                             className="object-cover"
                                                             unoptimized
                                                         />
-                                                        <button
-                                                            type="button"
+                                                        <MediaButton icon={IoClose} tone="dark" size="xs" reveal aria-label="Remove photo"
                                                             onClick={() => removeImage(index, imgIndex)}
                                                             disabled={disabled}
-                                                            className="absolute top-1 right-1 p-1 bg-foreground/50 text-background rounded-full opacity-0 group-hover:opacity-100 transition"
-                                                        >
-                                                            <IoClose size={14} />
-                                                        </button>
+                                                            className="absolute top-1 right-1" />
                                                     </div>
                                                 ))}
                                             </div>

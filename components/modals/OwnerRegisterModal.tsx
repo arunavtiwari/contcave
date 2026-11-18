@@ -155,12 +155,15 @@ function OwnerRegisterModal() {
                     />
                     <div className="text-muted-foreground text-center mt-4 font-light">
                         Already have an account{" "}
-                        <span
-                            onClick={() => uiStore.onClose("ownerRegister")}
-                            className="text-foreground cursor-pointer hover:underline"
-                        >
-                            Log in
-                        </span>
+                        <Button
+                            variant="link"
+                            label="Log in"
+                            onClick={() => {
+                                uiStore.onOpen("login");
+                                uiStore.onClose("ownerRegister");
+                            }}
+                            className="inline-flex"
+                        />
                     </div>
                 </div>
             }

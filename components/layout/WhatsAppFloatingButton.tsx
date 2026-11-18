@@ -1,36 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { IoLogoWhatsapp } from "react-icons/io";
 
+import { floatingButton } from "@/components/ui/floatingButton";
+import Tooltip from "@/components/ui/Tooltip";
 import { useStudioPageUrl } from "@/hooks/useStudioPageUrl";
 import { buildWhatsAppUrl, generalEnquiryMessage } from "@/lib/whatsapp/urls";
 
 export default function WhatsAppFloatingButton() {
-    const [hovered, setHovered] = useState(false);
     const studioUrl = useStudioPageUrl();
     const href = buildWhatsAppUrl(generalEnquiryMessage(studioUrl));
 
     return (
-        <Link
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Chat with ContCave on WhatsApp"
-            data-tracking-source="floating_button"
-            className="relative flex items-center group"
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
-        >
-            {hovered && (
-                <span className="absolute right-full mr-2 hidden md:inline-block bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap animate-in fade-in slide-in-from-right-2 duration-150">
-                    Any special requirements? Chat with us
-                </span>
-            )}
-            <div className="w-13 h-13 rounded-full bg-[#25D366] flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200">
-                <IoLogoWhatsapp size={28} className="text-white" />
-            </div>
-        </Link>
+        <Tooltip content="Any special requirements? Chat with us" side="left">
+            <Link
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Chat with ContCave on WhatsApp"
+                data-tracking-source="floating_button"
+                className={floatingButton({ tone: "whatsapp" })}
+            >
+                <IoLogoWhatsapp aria-hidden="true" className="size-6" />
+            </Link>
+        </Tooltip>
     );
 }

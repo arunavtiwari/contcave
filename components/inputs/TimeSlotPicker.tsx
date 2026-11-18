@@ -21,6 +21,7 @@ interface TimeSlotPickerProps {
     minBookingMinutes?: number;
 }
 
+import ToggleChip from "@/components/ui/ToggleChip";
 import { TIME_SLOTS } from "@/constants/timeSlots";
 import { asEndOfDayMinutes } from "@/lib/scheduling";
 
@@ -258,20 +259,16 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                                 (activeSegment === "end" && to12hLabel(label) === normEnd);
 
                             return (
-                                <button
+                                <ToggleChip
                                     key={startIdx + offset}
-                                    type="button"
-                                    onClick={() => handleClick(label)}
+                                    size="md"
+                                    selected={selected}
                                     disabled={disabled}
-                                    className={`rounded-xl px-4 py-2 text-sm border transition-colors ${selected
-                                        ? "border-foreground bg-foreground text-background"
-                                        : disabled
-                                            ? "border-border bg-muted/50 text-muted-foreground/60 cursor-not-allowed"
-                                            : "border-border bg-transparent hover:border-foreground"
-                                        }`}
+                                    onClick={() => handleClick(label)}
+                                    className="rounded-xl font-normal"
                                 >
                                     {label}
-                                </button>
+                                </ToggleChip>
                             );
                         })}
                     </div>

@@ -24,7 +24,7 @@ export default function BrowseResultLine() {
                     : null;
 
     return (
-        <p aria-live="polite" className="mt-1 min-h-5 text-sm text-muted-foreground">
+        <p aria-live="polite" className="mt-2 min-h-5 text-sm text-muted-foreground">
             {count && (
                 <>
                     {count}

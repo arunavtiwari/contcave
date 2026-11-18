@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
     FiCheck,
     FiClock,
@@ -38,7 +38,7 @@ import SafeHtml from "@/components/ui/SafeHtml";
 import SearchInput from "@/components/ui/SearchInput";
 import Select, { type SelectOption } from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
-import StatCard from "@/components/ui/StatCard";
+import StatCard, { StatGrid } from "@/components/ui/StatCard";
 import {
     EmptyTable,
     Table,
@@ -298,10 +298,9 @@ function ReviewModal({
     const publicUrl = usePublicSiteUrl();
 
     if (!listing) {
-        if (!isOpening) return null;
         return (
             <Modal
-                isOpen
+                isOpen={Boolean(isOpening)}
                 onCloseAction={onClose}
                 title="Listing Review"
                 customWidth="max-w-6xl"
@@ -653,6 +652,7 @@ export default function AdminListingsClient({
     const [selected, setSelected] = useState<AdminListingReview | null>(null);
     // Set the moment a row is clicked so the dialog can open on its skeleton.
     const [pendingReviewId, setPendingReviewId] = useState<string | null>(null);
+    const requestedReviewId = useRef<string | null>(null);
     const [reviewsFor, setReviewsFor] = useState<{ id: string; title: string } | null>(null);
     const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
     const [rejectReason, setRejectReason] = useState("");
@@ -670,10 +670,12 @@ export default function AdminListingsClient({
     };
 
     const openReview = (listingId: string) => {
+        requestedReviewId.current = listingId;
         setPendingReviewId(listingId);
         startTransition(async () => {
             try {
                 const detail = await getAdminListingReviewDetail(listingId);
+                if (requestedReviewId.current !== listingId) return;
                 if (!detail) {
                     toast.error("Listing review details are unavailable");
                     setPendingReviewId(null);
@@ -688,6 +690,7 @@ export default function AdminListingsClient({
     };
 
     const closeReview = () => {
+        requestedReviewId.current = null;
         setSelected(null);
         setPendingReviewId(null);
     };
@@ -916,12 +919,12 @@ export default function AdminListingsClient({
             </div>
 
             <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                <StatGrid columns={4}>
                     <StatCard label={viewMode === "CURATED" ? "All Curated" : "All Listings"} value={activeCounts?.ALL} icon={FiLayers} />
                     <StatCard label="Pending" value={activeCounts?.PENDING} icon={FiClock} />
                     <StatCard label="Approved" value={activeCounts?.VERIFIED} icon={FiCheck} />
                     <StatCard label="Rejected" value={activeCounts?.REJECTED} icon={FiX} />
-                </div>
+                </StatGrid>
 
                 <AdminFilterBar
                     tabs={(

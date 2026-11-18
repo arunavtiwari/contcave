@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 export const textLinkVariants = cva("transition-colors", {
   variants: {
     variant: {
-      default: "font-semibold text-foreground underline underline-offset-4",
+      default: "font-semibold text-foreground underline underline-offset-4 hover:text-foreground/70",
       muted: "text-sm text-muted-foreground hover:text-foreground",
     },
   },
