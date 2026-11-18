@@ -13,7 +13,8 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
     error?: string;
     errors?: FieldErrors;
     variant?: "vertical" | "horizontal";
-    size?: "sm" | "md";
+    /** compact: a one-line box that grows as you type, e.g. a chat composer. */
+    size?: "compact" | "sm" | "md";
 }
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
@@ -21,6 +22,8 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         const error = (errors?.[id]?.message as string) || propError;
 
         const sizeClasses = {
+            // 16px on phones so iOS does not zoom into the field.
+            compact: "text-base sm:text-sm px-3.5 py-2.5 min-h-11",
             sm: "text-sm p-3 min-h-[80px]",
             md: "text-sm p-3.5 min-h-[100px]",
         };

@@ -365,16 +365,19 @@ export default function ConciergeWidget() {
                                                 }
                                             }}
                                             placeholder={chat.handedOff ? "Add anything else for the team" : `Message ${CONCIERGE_NAME}`}
-                                            className="block min-h-12 resize-none rounded-2xl py-3 pl-4 pr-12 text-base leading-6"
+                                            size="compact"
+                                            className="block resize-none pr-12"
                                             style={{ maxHeight: COMPOSER_MAX_HEIGHT }}
                                         />
                                         <Button
                                             type="submit"
                                             rounded
+                                            size="sm"
+                                            isIconOnly
                                             icon={LuArrowUp}
                                             disabled={!canSend}
                                             aria-label="Send message"
-                                            className={cn("absolute bottom-1.5 right-1.5", !canSend && "bg-muted border-muted text-muted-foreground opacity-100")}
+                                            className={cn("absolute bottom-1 right-1", !canSend && "bg-muted border-muted text-muted-foreground opacity-100")}
                                         />
                                     </form>
                                 </div>
