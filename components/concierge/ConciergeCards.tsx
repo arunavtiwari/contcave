@@ -10,11 +10,9 @@ import {
     LuChevronDown,
     LuClock,
     LuCopy,
-    LuLightbulb,
     LuMapPin,
-    LuMaximize2,
     LuStar,
-    LuUsers,
+    LuWallet,
 } from "react-icons/lu";
 
 import ListingTypeBadge from "@/components/listing/ListingTypeBadge";
@@ -23,7 +21,7 @@ import Checkbox from "@/components/ui/Checkbox";
 import Pill from "@/components/ui/Pill";
 import WhatsAppLinkButton from "@/components/ui/WhatsAppLinkButton";
 import type { ConciergeCard, StudioCardItem } from "@/lib/concierge/types";
-import { cn, formatINR, formatNumber } from "@/lib/utils";
+import { cn, formatINR } from "@/lib/utils";
 
 type Props = {
     card: ConciergeCard;
@@ -58,17 +56,11 @@ function OpenLink({ href, label }: { href: string; label: string }) {
 }
 
 function StudioCard({ studio, onAsk, disabled }: { studio: StudioCardItem; onAsk: Props["onAsk"]; disabled: boolean }) {
-    const price = studio.price
-        ? formatINR(studio.price)
-        : studio.priceRange
-            ? `${formatINR(studio.priceRange.min)}–${formatINR(studio.priceRange.max)}`
-            : null;
     const facts = [
-        studio.people && { icon: LuUsers, text: `Up to ${studio.people}` },
-        studio.areaSqFt && { icon: LuMaximize2, text: `${formatNumber(studio.areaSqFt)} sq ft` },
+        studio.estimate && { icon: LuWallet, text: studio.estimate },
+        studio.availability && { icon: LuCalendarDays, text: studio.availability },
         studio.rating && { icon: LuStar, text: studio.rating.toFixed(1) },
-        studio.lightsIncluded && { icon: LuLightbulb, text: "Lights included" },
-    ].filter((fact): fact is { icon: typeof LuUsers; text: string } => Boolean(fact));
+    ].filter((fact): fact is { icon: typeof LuStar; text: string } => Boolean(fact));
 
     return (
         <li className={cn(SHELL, "group flex w-[248px] shrink-0 snap-start flex-col")}>
@@ -84,34 +76,25 @@ function StudioCard({ studio, onAsk, disabled }: { studio: StudioCardItem; onAsk
                 ) : (
                     <span className="flex h-full items-center justify-center text-sm text-muted-foreground">No photo yet</span>
                 )}
-                <span className="absolute left-2.5 top-2.5">
+                <span className="absolute left-2.5 top-2.5 flex gap-1.5">
                     <ListingTypeBadge listingType={studio.bookable ? "STANDARD" : "CURATED"} />
+                    {studio.fallback && <Pill size="xs" variant="neutral" className="bg-background/80 tracking-normal" label="Closest" />}
                 </span>
-                {price && (
-                    <Pill
-                        size="sm"
-                        variant="glass"
-                        className="absolute bottom-2.5 left-2.5 bg-background/95 font-semibold tracking-normal"
-                        label={<>{price}<span className="font-normal text-muted-foreground">/hr</span></>}
-                    />
-                )}
             </Link>
 
             <div className="flex flex-1 flex-col gap-3 p-3.5">
                 <div>
                     <h4 className="line-clamp-1 text-base font-semibold leading-6 text-foreground">{studio.title}</h4>
-                    {studio.locality && (
-                        <p className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <LuMapPin size={13} className="shrink-0" aria-hidden />
-                            <span className="line-clamp-1">{studio.locality}</span>
-                        </p>
-                    )}
+                    <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <LuMapPin size={13} className="shrink-0" aria-hidden />
+                        <span className="line-clamp-1">{studio.location}</span>
+                    </p>
                 </div>
                 {facts.length > 0 && (
-                    <ul className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                    <ul className="space-y-1 text-sm text-muted-foreground">
                         {facts.map(({ icon: Icon, text }) => (
-                            <li key={text} className="flex items-center gap-1">
-                                <Icon size={13} aria-hidden />
+                            <li key={text} className="flex items-start gap-1.5">
+                                <Icon size={13} className="mt-1 shrink-0" aria-hidden />
                                 {text}
                             </li>
                         ))}
@@ -132,15 +115,20 @@ function StudioCard({ studio, onAsk, disabled }: { studio: StudioCardItem; onAsk
 
 function StudiosCard({ card, onAsk, disabled }: Props & { card: CardOf<"studios"> }) {
     return (
-        <div className="-mx-5">
-            <ul
-                className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-5 px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                aria-label={`${card.items.length} studios`}
-            >
-                {card.items.map((studio) => (
-                    <StudioCard key={studio.id} studio={studio} onAsk={onAsk} disabled={disabled} />
-                ))}
-            </ul>
+        <div className="space-y-2">
+            {card.notices.map((notice) => (
+                <p key={notice} className="text-sm text-muted-foreground">{notice}</p>
+            ))}
+            <div className="-mx-5">
+                <ul
+                    className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-5 px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                    aria-label={`${card.items.length} studios`}
+                >
+                    {card.items.map((studio) => (
+                        <StudioCard key={studio.id} studio={studio} onAsk={onAsk} disabled={disabled} />
+                    ))}
+                </ul>
+            </div>
         </div>
     );
 }

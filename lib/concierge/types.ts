@@ -21,27 +21,27 @@ export type ConciergeBrief = {
     notes?: string;
 };
 
+/** One search result as the search box shows it; every field comes from lib/search's ResultView. */
 export type StudioCardItem = {
     id: string;
     title: string;
     url: string;
     image: string | null;
-    locality: string | null;
-    /** Rupees per hour; null when the studio only publishes a range. */
-    price: number | null;
-    priceRange: { min: number; max: number } | null;
-    people: number | null;
-    areaSqFt: number | null;
+    location: string;
+    /** The box's price line, e.g. "₹2,500/hr" or a package total. */
+    estimate: string | null;
+    availability: string;
     rating: number | null;
     /** Verified studios can be booked and paid for online; curated ones are enquiry-only. */
     bookable: boolean;
-    lightsIncluded: boolean;
+    /** Shown as a closest alternative, not a full match. */
+    fallback: boolean;
 };
 
 export type StudioRef = { id: string; title: string; url: string };
 
 export type ConciergeCard =
-    | { type: "studios"; items: StudioCardItem[]; relaxed: string[] }
+    | { type: "studios"; items: StudioCardItem[]; notices: string[] }
     | {
           type: "availability";
           studio: StudioRef;

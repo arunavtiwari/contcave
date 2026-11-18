@@ -2,9 +2,11 @@ import "server-only";
 
 import type { Prisma } from "@prisma/client";
 
+import { isObjectId } from "@/lib/db/objectId";
 import prisma from "@/lib/prismadb";
 
 import type { ChatMessage } from "./model";
+import { readTranscript } from "./transcript";
 import type { ConciergeBrief, TranscriptMessage } from "./types";
 
 export type ConversationState = {
@@ -21,7 +23,6 @@ export type ConversationState = {
     crmEnquiryId: string | null;
 };
 
-const OBJECT_ID = /^[a-f\d]{24}$/i;
 const asJson = (value: unknown) => value as Prisma.InputJsonValue;
 
 type Row = NonNullable<Awaited<ReturnType<typeof prisma.conciergeConversation.findFirst>>>;
@@ -34,7 +35,7 @@ const toState = (row: Row): ConversationState => ({
     status: row.status,
     brief: (row.brief ?? {}) as ConciergeBrief,
     history: (row.history ?? []) as unknown as ChatMessage[],
-    transcript: (row.transcript ?? []) as unknown as TranscriptMessage[],
+    transcript: readTranscript(row.transcript),
     turnCount: row.turnCount,
     crmContactId: row.crmContactId,
     crmEnquiryId: row.crmEnquiryId,
@@ -55,7 +56,7 @@ export async function loadConversation(params: {
         : { visitorId: params.visitorId };
 
     if (params.conversationId) {
-        if (!OBJECT_ID.test(params.conversationId)) return null;
+        if (!isObjectId(params.conversationId)) return null;
         const row = await prisma.conciergeConversation.findFirst({ where: { id: params.conversationId, ...owner } });
         return row ? toState(row) : null;
     }

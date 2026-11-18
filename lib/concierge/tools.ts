@@ -15,15 +15,14 @@ import {
     type MinuteRange,
     minutesToLabel,
 } from "@/lib/booking/dayAvailability";
-import { regionOfCity, REGIONS } from "@/lib/listing/regions";
+import { OBJECT_ID_PATTERN } from "@/lib/db/objectId";
 import { listingPath } from "@/lib/listing/seo";
-import { ListingService } from "@/lib/listing/service";
 import { addGst } from "@/lib/pricing";
 import prisma from "@/lib/prismadb";
-import { AESTHETICS, USE_CASE_LEGACY_MAP, USE_CASES, VENUE_TYPES } from "@/lib/taxonomy";
+import { searchWithParsedQuery } from "@/lib/search/service";
+import type { ResultView } from "@/lib/search/types";
 import { buildWhatsAppUrl } from "@/lib/whatsapp/urls";
-import type { StudioFeedFilters } from "@/schemas/listing";
-import type { StudioFeedItem } from "@/types/listing";
+import { EMPTY_QUERY, type ParsedQuery, parsedQuerySchema } from "@/schemas/search";
 
 import { briefPatchSchema, mergeBrief } from "./brief";
 import { MAX_PLANS_PER_CONVERSATION, SHORTLIST_TTL_DAYS } from "./config";
@@ -54,6 +53,8 @@ export type ToolContext = {
     /** e.g. https://contcave.com — for links that leave the site (shortlist, WhatsApp). */
     baseUrl: string;
     channel: "web" | "whatsapp";
+    /** The customer's latest message, used for keyword matching exactly as the search box uses its query. */
+    customerText: string;
 };
 
 export type ToolOutcome = {
@@ -66,13 +67,10 @@ type Handler = (input: unknown, ctx: ToolContext) => Promise<ToolOutcome>;
 
 class ToolInputError extends Error {}
 
-const OBJECT_ID = /^[a-f\d]{24}$/i;
-const objectId = z.string().regex(OBJECT_ID, "Use the studio id from a search result");
+const objectId = z.string().regex(OBJECT_ID_PATTERN, "Use the studio id from a search result");
 const dateKey = z.string().refine(isDateKey, "Use YYYY-MM-DD");
 const clock = z.string().regex(/^([01]?\d|2[0-3]):[0-5]\d$/, "Use 24-hour HH:MM");
 
-const slugs = (items: { slug: string }[]) => items.map((item) => item.slug) as [string, ...string[]];
-const labelOf = (items: { slug: string; label: string }[], slug: string) => items.find((item) => item.slug === slug)?.label;
 
 /**
  * What the public may see. `archivedAt` has to be matched both ways: in MongoDB
@@ -103,137 +101,95 @@ const studioRef = (listing: { id: string; slug?: string | null; title: string })
     url: listingPath(listing),
 });
 
-function toCard(item: StudioFeedItem): StudioCardItem {
-    return {
-        id: item.id,
-        title: item.title,
-        url: listingPath(item),
-        image: item.imageSrc?.[0] ?? null,
-        locality: item.locality ?? item.locationValue ?? null,
-        price: item.price ?? null,
-        priceRange:
-            item.priceRangeMin && item.priceRangeMax ? { min: item.priceRangeMin, max: item.priceRangeMax } : null,
-        people: item.maximumPax ?? null,
-        areaSqFt: item.carpetArea ?? null,
-        rating: item.avgReviewRating ? Math.round(item.avgReviewRating * 10) / 10 : null,
-        bookable: item.listingType !== "CURATED",
-        lightsIncluded: Boolean(item.lightsIncluded),
-    };
-}
-
 // ─── search_studios ───────────────────────────────────────────────────────────
 
+const optionalList = <T extends z.ZodType>(item: T) => z.array(item).optional().default([]);
+
 const searchSchema = z.object({
-    city: z.string().trim().min(2).max(60).optional(),
-    shoot_type: z.enum(slugs(USE_CASES)).optional(),
-    venue_type: z.enum(slugs(VENUE_TYPES)).optional(),
-    aesthetics: z.array(z.enum(slugs(AESTHETICS))).max(4).optional(),
-    date: dateKey.optional(),
-    max_price_per_hour: z.number().int().min(100).max(1_000_000).optional(),
-    min_people: z.number().int().min(1).max(500).optional(),
+    city: z.string().optional(),
+    area: z.string().optional(),
+    dates: optionalList(dateKey),
+    start_time: clock.optional(),
+    hours: z.number().optional(),
+    people: z.number().int().optional(),
+    budget_min: z.number().int().optional(),
+    budget_max: z.number().int().optional(),
+    budget_per: z.enum(["hour", "shoot"]).optional(),
+    shoot_types: optionalList(z.string()),
+    needs: optionalList(z.string()),
+    looks: optionalList(z.string()),
+    venue_types: optionalList(z.string()),
     limit: z.number().int().min(1).max(6).optional(),
 });
 
-type SearchInput = z.infer<typeof searchSchema>;
+export type StudioSearchInput = z.input<typeof searchSchema>;
 
-const hourlyFloor = (item: StudioFeedItem) => item.price ?? item.priceRangeMin ?? null;
-
-/** Stored use-case values include older labels; search has to match those too. */
-const termsForUseCase = (label: string) => [
-    label,
-    ...Object.entries(USE_CASE_LEGACY_MAP)
-        .filter(([, mapped]) => mapped === label)
-        .map(([legacy]) => legacy),
-];
-
-async function runSearch(input: SearchInput, drop: Set<string>) {
-    const region = regionOfCity(input.city);
-    const filters: StudioFeedFilters = {};
-    if (input.city) filters.locationValues = region ? region.cities : [input.city];
-    const useCase = input.shoot_type && labelOf(USE_CASES, input.shoot_type);
-    if (useCase) filters.type = termsForUseCase(useCase);
-    const venue = input.venue_type && !drop.has("venue_type") ? labelOf(VENUE_TYPES, input.venue_type) : undefined;
-    if (venue) filters.venueTypes = [venue];
-    const looks = drop.has("aesthetics")
-        ? []
-        : (input.aesthetics ?? []).map((slug) => labelOf(AESTHETICS, slug)).filter((label): label is string => Boolean(label));
-    if (looks.length) filters.aesthetics = looks;
-    if (input.date && !drop.has("date")) filters.date = input.date;
-
-    const page = await ListingService.getListingFeedPage({
-        filters,
-        sort: { region: region?.slug ?? null, origin: null, order: "recommended" },
-        size: 24,
+/** Gemini's search fields as the search box's query. Validated by the box's own schema, so both accept the same values. */
+export function toParsedQuery(raw: unknown): { parsed: ParsedQuery; limit: number } {
+    const input = searchSchema.parse(raw);
+    for (const date of input.dates) assertBookableDate(date);
+    const parsed = parsedQuerySchema.parse({
+        ...EMPTY_QUERY,
+        city: input.city ?? null,
+        area: input.area ?? null,
+        dates: input.dates,
+        startTime: input.start_time ?? null,
+        hours: input.hours ?? null,
+        crew: input.people ?? null,
+        budgetMin: input.budget_min ?? null,
+        budgetMax: input.budget_max ?? null,
+        budgetBasis: input.budget_per === "hour" ? "hourly" : "total",
+        shootTypes: input.shoot_types,
+        needs: input.needs,
+        vibes: input.looks,
+        venueTypes: input.venue_types,
     });
-
-    const budget = drop.has("budget") ? undefined : input.max_price_per_hour;
-    const items = page.items.filter((item) => {
-        const floor = hourlyFloor(item);
-        if (budget !== undefined && (floor === null || floor > budget)) return false;
-        if (input.min_people && item.maximumPax && item.maximumPax < input.min_people) return false;
-        return true;
-    });
-    return { items, total: page.total ?? items.length };
+    return { parsed, limit: input.limit ?? 4 };
 }
 
+const toCard = (view: ResultView): StudioCardItem => ({
+    id: view.id,
+    title: view.title,
+    url: view.href,
+    image: view.image,
+    location: view.location,
+    estimate: view.estimate,
+    availability: view.availability,
+    rating: view.rating,
+    bookable: view.listingType !== "CURATED",
+    fallback: view.fallback,
+});
+
 const searchStudios: Handler = async (raw, ctx) => {
-    const input = searchSchema.parse(raw);
-    if (input.date) assertBookableDate(input.date);
-    const limit = input.limit ?? 4;
+    const { parsed, limit } = toParsedQuery(raw);
+    const { view } = await searchWithParsedQuery(parsed, ctx.customerText, { now: new Date(), allowAi: false, visitor: null });
 
-    // If the full ask finds nothing, loosen one thing at a time and say which,
-    // so the reply can be honest about what changed.
-    const ladder: string[][] = [[], ["aesthetics"], ["aesthetics", "venue_type"], ["aesthetics", "venue_type", "date"], ["aesthetics", "venue_type", "date", "budget"]];
-    let found: StudioFeedItem[] = [];
-    let total = 0;
-    let relaxed: string[] = [];
-    for (const step of ladder) {
-        const applicable = step.filter((key) =>
-            key === "budget" ? input.max_price_per_hour !== undefined : key === "date" ? Boolean(input.date) : key === "venue_type" ? Boolean(input.venue_type) : Boolean(input.aesthetics?.length)
-        );
-        if (step.length > 0 && applicable.length === relaxed.length) continue;
-        const outcome = await runSearch(input, new Set(applicable));
-        if (outcome.items.length > 0) {
-            found = outcome.items;
-            total = outcome.items.length;
-            relaxed = applicable;
-            break;
-        }
-        relaxed = applicable;
+    if (view.state === "needCity") {
+        return { result: { studios: [], note: "Ask which city. ContCave covers: " + view.cityOptions.join(", ") + "." } };
     }
-
-    if (found.length === 0) {
-        const served = input.city && !regionOfCity(input.city);
-        return {
-            result: {
-                studios: [],
-                note: served
-                    ? `No studios listed in ${input.city} yet. ContCave currently covers: ${REGIONS.map((region) => region.name).join(", ")}.`
-                    : "Nothing matches, even after loosening the look, venue type, date and budget. Suggest a different city or shoot type.",
-            },
-        };
+    if (view.state === "notCovered") {
+        return { result: { studios: [], note: `No studios in ${view.city} yet. ContCave covers: ${view.cityOptions.join(", ")}.` } };
     }
+    if (view.state !== "results") return { result: { studios: [], note: "Not a studio search. Ask what they are shooting and where." } };
 
-    const shown = found.slice(0, limit);
-    const cards = shown.map(toCard);
-    ctx.emit({ type: "card", card: { type: "studios", items: cards, relaxed } });
+    const cards = view.results.slice(0, limit).map(toCard);
+    ctx.emit({ type: "card", card: { type: "studios", items: cards, notices: view.notices } });
 
     return {
         result: {
-            matching: total,
-            relaxed_filters: relaxed,
-            studios: cards.map((card) => ({
-                id: card.id,
-                name: card.title,
-                area: card.locality,
-                price_per_hour: card.price,
-                price_range: card.priceRange,
-                online_booking: card.bookable,
-                max_people: card.people,
-                area_sqft: card.areaSqFt,
-                rating: card.rating,
-                lights_included: card.lightsIncluded,
-                ...(ctx.channel === "whatsapp" ? { link: `${ctx.baseUrl}${card.url}` } : {}),
+            city: view.cityLabel,
+            notices: view.notices,
+            studios: view.results.slice(0, limit).map((result) => ({
+                id: result.id,
+                name: result.title,
+                location: result.location,
+                price: result.estimate,
+                availability: result.availability,
+                online_booking: result.listingType !== "CURATED",
+                closest_alternative: result.fallback,
+                why: result.reasons,
+                caveats: result.caveats,
+                ...(ctx.channel === "whatsapp" ? { link: `${ctx.baseUrl}${result.href}` } : {}),
             })),
         },
     };

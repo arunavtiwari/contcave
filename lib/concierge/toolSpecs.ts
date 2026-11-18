@@ -1,4 +1,5 @@
-import { AESTHETICS, USE_CASES, VENUE_TYPES } from "@/lib/taxonomy";
+import { AESTHETIC_LABELS, USE_CASE_LABELS, VENUE_TYPE_LABELS } from "@/lib/taxonomy";
+import { NEED_LABELS } from "@/schemas/search";
 
 import type { ToolSpec } from "./model";
 
@@ -7,8 +8,6 @@ import type { ToolSpec } from "./model";
  * (lib/concierge/tools.ts) so it can be read, tested and served over MCP
  * without loading the database layer.
  */
-
-const slugs = (items: { slug: string }[]) => items.map((item) => item.slug);
 
 /** What the customer sees while a tool runs. */
 export const TOOL_STATUS: Record<string, string> = {
@@ -55,17 +54,23 @@ export const TOOL_DEFINITIONS: ToolSpec[] = [
     {
         name: "search_studios",
         description:
-            "Find studios on ContCave. Returns up to `limit` studios with their live hourly price, area, capacity and whether they can be booked online, and shows them to the customer as cards. If nothing matches, filters are loosened one at a time and `relaxed_filters` lists which ones; tell the customer what was loosened. Passing a date only returns studios with a free slot that day.",
+            "Find studios on ContCave with the same search, ranking and area handling as the website's search box, and show them to the customer as cards. Pass the city and the neighbourhood separately: 'studio in Pitampura' is city 'Delhi', area 'Pitampura'. Returns each studio's price estimate, availability, why it fits and caveats, plus `notices` the customer must be told (an area that couldn't be placed, nearby results, closest alternatives).",
         parameters: {
             type: "object",
             properties: {
-                city: { type: "string", description: "City as the customer said it, e.g. 'Delhi', 'Gurgaon', 'Mumbai'." },
-                shoot_type: { type: "string", enum: slugs(USE_CASES) },
-                venue_type: { type: "string", enum: slugs(VENUE_TYPES) },
-                aesthetics: { type: "array", items: { type: "string", enum: slugs(AESTHETICS) }, description: "Up to four looks." },
-                date,
-                max_price_per_hour: { type: "integer", description: "Upper limit for the studio's hourly price, in rupees." },
-                min_people: { type: "integer" },
+                city: { type: "string", description: "City, e.g. 'Delhi', 'Noida', 'Gurgaon', 'Mumbai'. Leave out if only an area was named." },
+                area: { type: "string", description: "Neighbourhood or landmark inside the city, e.g. 'Pitampura', 'Sector 62'." },
+                dates: { type: "array", items: date, description: "Shoot dates; only studios free on them rank first." },
+                start_time: { type: "string", description: "24-hour HH:MM, if known." },
+                hours: { type: "number" },
+                people: { type: "integer", description: "People on set, including crew." },
+                budget_min: { type: "integer", description: "Rupees." },
+                budget_max: { type: "integer", description: "Rupees." },
+                budget_per: { type: "string", enum: ["hour", "shoot"], description: "Whether the budget is per hour or for the whole shoot." },
+                shoot_types: { type: "array", items: { type: "string", enum: USE_CASE_LABELS } },
+                needs: { type: "array", items: { type: "string", enum: NEED_LABELS }, description: "Must-have features, e.g. a cyclorama or makeup room." },
+                looks: { type: "array", items: { type: "string", enum: AESTHETIC_LABELS } },
+                venue_types: { type: "array", items: { type: "string", enum: VENUE_TYPE_LABELS } },
                 limit: { type: "integer", description: "How many to show, 1 to 6. Default 4." },
             },
         },

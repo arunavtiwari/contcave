@@ -98,6 +98,7 @@ export async function runTurn(input: TurnInput): Promise<TurnResult> {
         state,
         baseUrl: input.baseUrl,
         channel: "web",
+        customerText: input.text,
         emit: (event) => {
             if (event.type === "card") cards.push(event.card);
             emit(event);

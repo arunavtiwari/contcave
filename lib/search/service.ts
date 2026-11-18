@@ -232,6 +232,16 @@ export async function resolveQuery(request: SearchRequest, context: SearchContex
     };
 }
 
+/**
+ * Searches with a query that is already worked out, such as the fields Spot's model reads from a
+ * chat. Runs the same ranking, area lookup, notices and fallbacks as the search box; `text` is the
+ * customer's own words, used for keyword matching exactly as the box uses its query.
+ */
+export function searchWithParsedQuery(parsed: ParsedQuery, text: string, context: SearchContext): Promise<AiSearchOutcome> {
+    const query = prepareQueryText(text);
+    return runAiSearch({ parsed, source: "ai", text: query, parseMs: 0 }, { query, overrides: {}, areaPoint: null }, context);
+}
+
 export async function runAiSearch(
     resolved: ResolvedQuery,
     request: SearchRequest,
