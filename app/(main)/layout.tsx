@@ -10,10 +10,8 @@ import getAmenities from "@/app/actions/getAmenities";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import ConsentAwareTracking from "@/components/analytics/ConsentAwareTracking";
 import JourneyEventTracker from "@/components/analytics/JourneyEventTracker";
-import ConciergeWidget from "@/components/concierge/ConciergeWidget";
 import CookieConsent from "@/components/layout/CookieConsentBanner";
 import GlobalScrollFix from "@/components/layout/GlobalScrollFix";
-import WhatsAppFloatingButton from "@/components/layout/WhatsAppFloatingButton";
 import LoginModal from "@/components/modals/LoginModal";
 import OwnerRegisterModal from "@/components/modals/OwnerRegisterModal";
 import RegisterModal from "@/components/modals/RegisterModal";
@@ -23,7 +21,6 @@ import GlobalProviders from "@/components/providers/GlobalProviders";
 import SpotlightSearch from "@/components/search/SpotlightSearch";
 import JsonLd from "@/components/seo/JsonLd";
 import ClientOnly from "@/components/ui/ClientOnly";
-import ScrollToTop from "@/components/ui/ScrollToTop";
 import { Toaster } from "@/components/ui/Toast";
 import { GTM_ID } from "@/constants/googleTagManager";
 import { CONSENT_COOKIE_NAME } from "@/lib/consent";
@@ -215,11 +212,6 @@ j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefo
                         <CookieConsent />
                     </ClientOnly>
                     {children}
-                    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
-                        {process.env.CONCIERGE_ENABLED !== "false" && <ConciergeWidget />}
-                        <WhatsAppFloatingButton />
-                        <ScrollToTop />
-                    </div>
                 </GlobalProviders>
             </body>
         </html>
