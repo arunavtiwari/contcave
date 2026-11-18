@@ -22,6 +22,7 @@ import { findShootPurpose } from "@/lib/listing/shootPurposes";
 import prisma from "@/lib/prismadb";
 import { parseReservationEndTimeForDate } from "@/lib/reservation/time";
 import { isRichTextEmpty } from "@/lib/richText";
+import { shuffleCopy } from "@/lib/shuffle";
 import { generateUniqueSlug } from "@/lib/slug";
 import { dispatchMediaDeletion } from "@/lib/storage/mediaDeletion";
 import { slugify } from "@/lib/strings";
@@ -372,14 +373,6 @@ function isSetEqual(a: SetCompare, b: SetCompare): boolean {
     );
 }
 
-function shuffleCopy<T>(items: readonly T[]): T[] {
-    const shuffled = [...items];
-    for (let index = shuffled.length - 1; index > 0; index--) {
-        const swapIndex = Math.floor(Math.random() * (index + 1));
-        [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
-    }
-    return shuffled;
-}
 
 function sanitizePublicLocation(value: unknown): ActualLocation | null {
     if (!value || typeof value !== "object" || Array.isArray(value)) return null;

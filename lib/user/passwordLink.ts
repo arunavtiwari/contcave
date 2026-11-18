@@ -23,8 +23,8 @@ export async function sendPasswordLink(
     const token = crypto.randomBytes(32).toString("hex");
     await UserService.createResetToken(user.id, token, new Date(Date.now() + LINK_TTL_MS[purpose]));
 
-    const linkUrl = `${getValidatedBaseUrl()}/reset-password?token=${token}`;
     try {
+        const linkUrl = `${getValidatedBaseUrl()}/reset-password?token=${token}`;
         await sendEmail({
             toEmail: user.email,
             toName: user.name || "User",

@@ -35,7 +35,14 @@ const emptyCreated: Record<CreatedRecordType, string[]> = {
   r2PrivateRef: [],
 };
 
-export const runStatePath = path.join(process.cwd(), "test-results", "e2e-run-state.json");
+/** Every run's record of what it created, kept outside test-results (Playwright empties that folder per run). */
+export const runStateDir = path.join(process.cwd(), ".e2e-runs");
+
+/**
+ * One file per run, so two runs in the same checkout never clear each other's records. Global setup
+ * publishes the runner's path in E2E_RUN_STATE_PATH, which the test workers inherit.
+ */
+export const runStatePath = process.env.E2E_RUN_STATE_PATH ?? path.join(runStateDir, `run-${process.pid}.json`);
 
 function ensureDir() {
   fs.mkdirSync(path.dirname(runStatePath), { recursive: true });

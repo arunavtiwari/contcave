@@ -2,6 +2,7 @@
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { isListingPublic, previewTokenStatus } from "@/lib/listing/preview";
+import { getPublicListing } from "@/lib/listing/publicListing";
 import { ListingService } from "@/lib/listing/service";
 import { FullListing } from "@/types/listing";
 
@@ -22,10 +23,12 @@ export async function getListingAccess(params: IParams): Promise<ListingAccess |
       return null;
     }
 
-    const currentUser = await getCurrentUser();
-    const listing = await ListingService.findById(listingId, currentUser
-      ? { id: currentUser.id, role: currentUser.role }
-      : undefined);
+    const [currentUser, publicListing] = await Promise.all([getCurrentUser(), getPublicListing(listingId)]);
+    // Owners and admins see the private location (and admins archived studios), so they skip the cache.
+    const isPrivilegedViewer = Boolean(currentUser && (currentUser.role === "ADMIN" || publicListing?.userId === currentUser.id));
+    const listing = currentUser && isPrivilegedViewer
+      ? await ListingService.findById(listingId, { id: currentUser.id, role: currentUser.role })
+      : publicListing;
     if (!listing) return null;
 
     if (isListingPublic(listing)) return { status: "granted", listing };

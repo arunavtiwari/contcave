@@ -5,7 +5,6 @@ import { cache } from "react";
 import getAmenities from "@/app/actions/getAmenities";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { getListingAccess } from "@/app/actions/getListingById";
-import getListings from "@/app/actions/getListings";
 import getReviewCount from "@/app/actions/getReviewCount";
 import getReviews from "@/app/actions/getReviews";
 import { getPublicDayStatuses, getReservations } from "@/app/actions/reservationActions";
@@ -16,7 +15,6 @@ import JsonLd from "@/components/seo/JsonLd";
 import { istDateKey } from "@/lib/booking/dayAvailability";
 import { fetchListingCalendarEvents } from "@/lib/calendar/fetchEvents";
 import { parseBookingPrefill } from "@/lib/listing/bookingPrefill";
-import { categoriesOf } from "@/lib/listing/categories";
 import {
   cityTrail,
   landingPlaceFor,
@@ -24,18 +22,17 @@ import {
 } from "@/lib/listing/cities";
 import { cityPath } from "@/lib/listing/cityPaths";
 import { isListingPublic, LISTING_PREVIEW_PARAM } from "@/lib/listing/preview";
+import { getRelatedStudios } from "@/lib/listing/related";
 import { buildListingJsonLd, buildListingMetadata, listingPath } from "@/lib/listing/seo";
 import { type SearchParams, toQueryString } from "@/lib/pagination";
 import { getPlainTextFromHTML } from "@/lib/richText";
 import type { BreadcrumbItem } from "@/lib/seo";
-import type { FullListing, safeListing } from "@/types/listing";
+import type { FullListing } from "@/types/listing";
 import type { ListingAvailability } from "@/types/reservation";
 
 export const dynamic = "force-dynamic";
 
 type RouteParams = { listingId?: string };
-
-const RELATED_LIMIT = 4;
 
 const loadListingAccess = cache((listingId?: string, previewToken?: string) => getListingAccess({ listingId, previewToken }));
 
@@ -69,6 +66,16 @@ export async function generateMetadata({
   return buildListingMetadata(access.listing);
 }
 
+/** Only the fields related studios are matched on, so the cache key stays small and stable. */
+const relatedSubjectOf = ({ id, locationValue, category, type, venueTypes, setFeatures }: FullListing) => ({
+  id,
+  locationValue,
+  category,
+  type,
+  venueTypes,
+  setFeatures,
+});
+
 async function loadAvailability(listing: FullListing): Promise<ListingAvailability> {
   const [reservations, dayStatuses, googleCalendarEvents] = await Promise.all([
     getReservations({ listingId: listing.id }).catch(() => []),
@@ -82,33 +89,6 @@ async function loadAvailability(listing: FullListing): Promise<ListingAvailabili
   ]);
 
   return { reservations, dayStatuses, googleCalendarEvents };
-}
-
-async function loadRelated(listing: FullListing): Promise<FullListing[]> {
-  const ownCategories = categoriesOf(listing);
-  const own = new Set(ownCategories.map((category) => category.slug));
-  const useCases = [...new Set(ownCategories.flatMap((category) => category.useCases ?? []))];
-  const venueTypes = [...new Set(ownCategories.flatMap((category) => category.venueTypes ?? []))];
-
-  const pools = await Promise.all([
-    listing.locationValue ? getListings({ locationValue: listing.locationValue }) : [],
-    useCases.length ? getListings({ type: useCases.join(",") }) : [],
-    venueTypes.length ? getListings({ venueTypes: venueTypes.join(",") }) : [],
-  ]);
-  const all = Array.from(new Map(pools.flat().map((candidate) => [candidate.id, candidate])).values());
-  const score = (candidate: FullListing) => {
-    const sameCity = Boolean(listing.locationValue) && candidate.locationValue === listing.locationValue;
-    const shared = categoriesOf(candidate).filter((category) => own.has(category.slug)).length;
-    return (sameCity ? 10 : 0) + Math.min(shared, 3);
-  };
-
-  return all
-    .filter((candidate) => candidate.id !== listing.id)
-    .map((candidate, index) => ({ candidate, index, score: score(candidate) }))
-    .filter((item) => item.score > 0)
-    .sort((a, b) => b.score - a.score || a.index - b.index)
-    .slice(0, RELATED_LIMIT)
-    .map((item) => item.candidate);
 }
 
 export default async function ListingPage(props: {
@@ -136,7 +116,7 @@ export default async function ListingPage(props: {
     getReviewCount(listing.id),
     getAmenities(),
     landingPlaceFor(listing.locationValue ?? "").catch(() => undefined),
-    loadRelated(listing).catch(() => []),
+    getRelatedStudios(relatedSubjectOf(listing)).catch(() => []),
   ]);
 
   const breadcrumbs: BreadcrumbItem[] = [...(city ? cityTrail(city.city) : STUDIOS_TRAIL), { name: listing.title }];
@@ -174,7 +154,7 @@ export default async function ListingPage(props: {
       />
       <MoreStudios
         heading={city ? `More studios in ${city.city}` : "More studios you may like"}
-        listings={related as unknown as safeListing[]}
+        listings={related}
         currentUser={currentUser}
         moreHref={city ? cityPath(city.city) : "/studios"}
         moreLabel={city ? `All studios in ${city.city}` : "Browse all studios"}

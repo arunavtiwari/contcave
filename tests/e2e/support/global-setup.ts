@@ -1,18 +1,30 @@
 import fs from "node:fs";
+import path from "node:path";
 
 import { cleanupE2ERun } from "./cleanup";
 import { getE2EEnv } from "./env";
-import { clearRunState, createRunState, readRunState, runStatePath } from "./run-state";
+import { createRunState, type RunState, runStateDir, runStatePath } from "./run-state";
+
+const ABANDONED_RUN_MS = 6 * 60 * 60 * 1000;
+
+/** Cleans up after runs that crashed before teardown; recent files may belong to a run still going. */
+async function recoverAbandonedRuns() {
+  if (!fs.existsSync(runStateDir)) return;
+  for (const name of fs.readdirSync(runStateDir)) {
+    const file = path.join(runStateDir, name);
+    if (file === runStatePath || Date.now() - fs.statSync(file).mtimeMs < ABANDONED_RUN_MS) continue;
+    const stale = JSON.parse(fs.readFileSync(file, "utf8")) as RunState;
+    console.warn(`[e2e] Recovering abandoned run ${stale.runId} before starting a new run.`);
+    await cleanupE2ERun(stale);
+    fs.unlinkSync(file);
+  }
+}
 
 export default async function globalSetup() {
   const env = getE2EEnv();
 
-  if (fs.existsSync(runStatePath)) {
-    const staleState = readRunState();
-    console.warn(`[e2e] Recovering interrupted run ${staleState.runId} before starting a new run.`);
-    await cleanupE2ERun(staleState);
-    clearRunState();
-  }
+  process.env.E2E_RUN_STATE_PATH = runStatePath;
+  await recoverAbandonedRuns();
 
   if (process.env.QSTASH_DEV === "true") {
     const qstashUrl = (process.env.QSTASH_URL || "http://127.0.0.1:8080").replace(/\/$/, "");

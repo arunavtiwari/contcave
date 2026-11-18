@@ -313,6 +313,16 @@ export async function createGuestDocumentsFixture(guestId: string, suffix: strin
   return { invoice, voucher, pdfUrl };
 }
 
+/**
+ * Real amenity ids for these names, checked the same way the listing form checks them, so fixture
+ * listings never carry values other code reads as ObjectIds.
+ */
+async function fixtureAmenityIds(names: string[]) {
+  const amenities = await prisma.amenities.findMany({ where: { name: { in: names } }, select: { id: true } });
+  const { assertDefaultAmenitiesExist } = require("../../../lib/listing/service") as typeof import("../../../lib/listing/service");
+  return assertDefaultAmenitiesExist(amenities.map((amenity) => amenity.id));
+}
+
 export async function createReviewListingFixture(params: {
   ownerId: string;
   suffix: string;
@@ -355,7 +365,7 @@ export async function createReviewListingFixture(params: {
       locationPoint: toGeoPoint(CONNAUGHT_PLACE),
       price: 2200,
       userId: params.ownerId,
-      amenities: ["WiFi", "Changing Room"],
+      amenities: await fixtureAmenityIds(["WiFi", "Changing Room"]),
       otherAmenities: ["QA cyclorama"],
       addons: [{ name: "Continuous LED Light", price: 250, qty: 2 }],
       carpetArea: 1400,

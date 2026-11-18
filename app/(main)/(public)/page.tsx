@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import getRandomListings from "@/app/actions/getRandomListings";
 import CTA from "@/components/landing/CTA";
 import FAQ from "@/components/landing/FAQ";
 import { homeFaqs } from "@/components/landing/faqData";
@@ -13,6 +12,7 @@ import StudioShowcase from "@/components/landing/StudioShowcase";
 import JsonLd from "@/components/seo/JsonLd";
 import { coveredCityNames } from "@/lib/listing/cities";
 import { coverageArea } from "@/lib/listing/cityPaths";
+import { getFeaturedStudios } from "@/lib/listing/studioCards";
 import { truncateText } from "@/lib/richText";
 import {
   absoluteUrl,
@@ -118,10 +118,12 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+const FEATURED_STUDIOS = 3;
+
 export default async function Home() {
   const [currentUser, listings, liveIn] = await Promise.all([
     getCurrentUser(),
-    getRandomListings(3),
+    getFeaturedStudios(FEATURED_STUDIOS).catch(() => []),
     coveredCityNames(),
   ]);
 

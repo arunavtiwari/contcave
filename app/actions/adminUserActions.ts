@@ -106,12 +106,13 @@ export const inviteStaffUserAction = createAction(inviteStaffSchema, MANAGE_USER
         ? await prisma.user.update({ where: { id: existing.id }, data: { role }, select: { id: true, name: true, email: true, hashedPassword: true } })
         : await prisma.user.create({ data: { name, email, role }, select: { id: true, name: true, email: true, hashedPassword: true } });
 
-    const emailSent = staff.hashedPassword || !staff.email
-        ? false
-        : await sendPasswordLink({ id: staff.id, name: staff.name, email: staff.email }, "invite");
+    const needsPassword = !staff.hashedPassword;
+    const emailSent = needsPassword && staff.email
+        ? await sendPasswordLink({ id: staff.id, name: staff.name, email: staff.email }, "invite")
+        : false;
 
     revalidatePath(USERS_PATH);
-    return { created: !existing, emailSent };
+    return { created: !existing, needsPassword, emailSent };
 });
 
 export const changeUserRoleAction = createAction(changeUserRoleSchema, MANAGE_USERS, async ({ userId, change }, { user: actor }) => {

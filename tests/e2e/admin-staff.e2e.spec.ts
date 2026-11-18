@@ -117,7 +117,7 @@ test.describe("admin user management", () => {
     await dialogName.fill(invitee.name);
     await page.getByLabel("Email").fill(invitee.email);
     await page.getByRole("button", { name: "Add staff" }).last().click();
-    await expect(page.getByText(`Added ${invitee.email}`)).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(`Added ${invitee.email}.`, { exact: false })).toBeVisible({ timeout: 30_000 });
     const invited = await waitForUserByEmail(invitee.email);
     expect((await prisma.user.findUniqueOrThrow({ where: { id: invited.id } })).role).toBe("FINANCE");
 

@@ -2,10 +2,10 @@ import "server-only";
 
 import { unstable_cache } from "next/cache";
 
-import { STUDIO_FEED_TAG } from "@/lib/listing/cacheTags";
+import { STUDIOS_TAG } from "@/lib/listing/cacheTags";
 import { ListingService } from "@/lib/listing/service";
 
-/** Upper bound on staleness for changes that don't go through `studioChanged`. */
+/** Ceiling on staleness; any write to studio data drops the cache sooner. */
 const FEED_CACHE_SECONDS = 300;
 
 type FeedPageParams = Parameters<typeof ListingService.getListingFeedPage>[0];
@@ -13,7 +13,7 @@ type FeedPageParams = Parameters<typeof ListingService.getListingFeedPage>[0];
 const cachedFeedPage = unstable_cache(
     (params: FeedPageParams) => ListingService.getListingFeedPage(params),
     ["studio-feed-page-v1"],
-    { revalidate: FEED_CACHE_SECONDS, tags: [STUDIO_FEED_TAG] }
+    { revalidate: FEED_CACHE_SECONDS, tags: [STUDIOS_TAG] }
 );
 
 /**

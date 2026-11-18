@@ -7,13 +7,13 @@ import Container from "@/components/layout/Container";
 import ListingCard from "@/components/listing/ListingCard";
 import Button from "@/components/ui/Button";
 import SectionHeader from "@/components/ui/SectionHeader";
-import { FullListing } from "@/types/listing";
+import type { StudioFeedItem } from "@/types/listing";
 
 interface StudioShowcaseProps {
-  listings: FullListing[];
+  listings: StudioFeedItem[];
 }
 
-const StudioCard = memo(({ studio, index }: { studio: FullListing; index: number }) => {
+const StudioCard = memo(({ studio, index }: { studio: StudioFeedItem; index: number }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}

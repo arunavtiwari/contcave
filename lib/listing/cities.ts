@@ -3,6 +3,7 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import { cache } from "react";
 
+import { STUDIOS_TAG } from "@/lib/listing/cacheTags";
 import { categoriesOf, MIN_CATEGORY_LISTINGS, STUDIO_CATEGORIES, type StudioCategory } from "@/lib/listing/categories";
 import { hourlyPrice } from "@/lib/listing/seo";
 import { ListingService } from "@/lib/listing/service";
@@ -61,7 +62,9 @@ async function queryPublishedListings() {
 
 export type PublishedListing = Awaited<ReturnType<typeof queryPublishedListings>>[number];
 
-const getPublishedListings = cache(unstable_cache(queryPublishedListings, ["published-listings-v1"], { revalidate: 3600 }));
+export const getPublishedListings = cache(
+  unstable_cache(queryPublishedListings, ["published-listings-v1"], { revalidate: 3600, tags: [STUDIOS_TAG] })
+);
 
 export type CityEntry = {
   city: string;

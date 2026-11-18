@@ -133,6 +133,16 @@ The listing card is composed from three sub-components in `components/listing/`:
 | Google OAuth + Calendar | Auth + host calendar sync | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
 | MongoDB Atlas | Database | `DATABASE_URL` |
 
+## Caching studio data
+
+Studio data is read through Next's data cache, all under one tag, `STUDIOS_TAG` (`lib/listing/cacheTags.ts`): ranked feed pages (`lib/listing/feedCache.ts`), the public studio (`lib/listing/publicListing.ts`), related and featured studio cards (`lib/listing/related.ts`, `studioCards.ts`), the published-studios snapshot (`lib/listing/cities.ts`), reviews and amenities.
+
+Invalidation is automatic: the Prisma client in `lib/prismadb.ts` drops `STUDIOS_TAG` after any write to `Listing`, `ListingSet`, `Package`, `ListingBlock`, `Review` or `Amenities` (`lib/listing/studioCacheInvalidation.ts`), so new code paths need nothing extra. Each cache also has a time ceiling for writes made outside a request (scripts, cron).
+
+- New studio-derived caches: tag them with `STUDIOS_TAG`; if they read a model not in that list, add the model there.
+- Never cache viewer-specific data: owners and admins read studios uncached (private location, archived studios), and date searches skip the feed cache because they depend on live bookings.
+- Reservations, day statuses and Google Calendar events are always read live; blocked time slots come with the cached studio and are dropped on every `ListingBlock` write.
+
 ## Things to know
 
 - Prisma's `contains` on MongoDB runs as an unescaped regex: wrap user search terms with `containsText()` from `lib/db/textSearch.ts`, or `+`, `.` and `(` break matches.

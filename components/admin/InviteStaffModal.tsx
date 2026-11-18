@@ -35,12 +35,11 @@ export default function InviteStaffModal({ isOpen, onClose }: { isOpen: boolean;
       toast.error(res.error || "Couldn't add this user");
       return;
     }
-    const { created, emailSent } = res.data;
-    toast.success(
-      emailSent
-        ? `${created ? "Added" : "Updated"} ${values.email}. A setup email is on its way.`
-        : `${created ? "Added" : "Updated"} ${values.email}. They can sign in with their existing password.`
-    );
+    const { created, needsPassword, emailSent } = res.data;
+    const done = `${created ? "Added" : "Updated"} ${values.email}.`;
+    if (!needsPassword) toast.success(`${done} They can sign in with their existing password.`);
+    else if (emailSent) toast.success(`${done} A setup email is on its way.`);
+    else toast.warning(`${done} The setup email couldn't be sent; use Resend invite to try again.`);
     close();
   }));
 
