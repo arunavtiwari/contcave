@@ -21,18 +21,22 @@ const formatKm = (km: number) => (km < 10 ? km.toFixed(1) : String(Math.round(km
 
 const formatHours = (hours: number) => `${Number.isInteger(hours) ? hours : hours.toFixed(1)} hrs`;
 
+export function distanceReason(parsed: ParsedQuery, { distanceKm }: ResultFacts): string | null {
+    return parsed.area && distanceKm !== null && distanceKm <= SEARCH_CONFIG.areaCaveatKm
+        ? `${formatKm(distanceKm)} km from ${parsed.area}`
+        : null;
+}
+
 export function templateReasons(candidate: SearchCandidate, parsed: ParsedQuery, facts: ResultFacts): string[] {
-    const { match, distanceKm, overBudgetBy, crewFits } = facts;
-    const reasons: string[] = [];
+    const { match, overBudgetBy, crewFits } = facts;
+    const distance = distanceReason(parsed, facts);
+    const reasons: string[] = distance ? [distance] : [];
 
     match.matchedNeeds.forEach((need, index) => {
         reasons.push(index === 0 && match.setName ? `${need} in ${match.setName}` : need);
     });
     if (match.shootTypeFit === 1 && parsed.shootTypes[0]) reasons.push(`Listed for ${parsed.shootTypes[0]}`);
     if (crewFits && parsed.crew) reasons.push(`Fits ${parsed.crew}`);
-    if (parsed.area && distanceKm !== null && distanceKm <= SEARCH_CONFIG.areaCaveatKm) {
-        reasons.push(`${formatKm(distanceKm)} km from ${parsed.area}`);
-    }
     if (overBudgetBy === 0) reasons.push("Within budget");
     match.matchedVibes.forEach((vibe) => reasons.push(`${vibe} look`));
     if ((candidate.avgReviewRating ?? 0) >= HIGH_RATING && candidate.reviewCount >= MIN_REVIEWS_FOR_PRAISE) {

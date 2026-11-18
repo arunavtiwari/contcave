@@ -7,10 +7,10 @@ import { BiSearch } from "react-icons/bi";
 import { IoArrowForward, IoSparkles, IoTimeOutline } from "react-icons/io5";
 
 import { logSearchEventAction } from "@/app/actions/searchActions";
-import type { ListingKind } from "@/components/listing/ListingTypeBadge";
+import ListingTypeBadge from "@/components/listing/ListingTypeBadge";
 import AiSearchResults, { type ResultOption, resultOptions } from "@/components/search/AiSearchResults";
 import RefineBar from "@/components/search/RefineBar";
-import SearchGroupHeading, { GROUP_LABELS } from "@/components/search/SearchGroupHeading";
+import SearchGroupHeading from "@/components/search/SearchGroupHeading";
 import StudioThumb from "@/components/search/StudioThumb";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -41,7 +41,6 @@ type OptionGroup = {
     key: string;
     label: string;
     showLabel: boolean;
-    badge?: ListingKind;
     options: SuggestOption[];
     action?: { label: string; onClick: () => void };
 };
@@ -174,13 +173,14 @@ export default function SpotlightSearch() {
                 },
             ].filter((group) => group.options.length > 0);
         }
-        const studios = (curated: boolean) => result.studios
-            .filter((studio) => studio.curated === curated)
-            .map((studio) => ({ kind: "studio" as const, id: `studio-${studio.id}`, studio }));
         return [
             { key: "ai", label: "AI search", showLabel: false, options: [{ kind: "search" as const, id: "search", query: trimmed }] },
-            { key: "verified", label: GROUP_LABELS.bookable, showLabel: true, badge: "STANDARD" as const, options: studios(false) },
-            { key: "curated", label: GROUP_LABELS.curated, showLabel: true, badge: "CURATED" as const, options: studios(true) },
+            {
+                key: "studios",
+                label: "Studios",
+                showLabel: true,
+                options: result.studios.map((studio) => ({ kind: "studio" as const, id: `studio-${studio.id}`, studio })),
+            },
         ].filter((group) => group.options.length > 0);
     }, [hasQuery, recent, clearRecent, result.studios, trimmed]);
 
@@ -266,7 +266,10 @@ export default function SpotlightSearch() {
                 <>
                     <StudioThumb image={studio.image} />
                     <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-foreground">{studio.title}</span>
+                        <span className="flex min-w-0 items-center gap-2">
+                            <span className="truncate text-sm font-medium text-foreground">{studio.title}</span>
+                            <ListingTypeBadge listingType={studio.listingType} />
+                        </span>
                         <span className="block truncate text-xs text-muted-foreground">{studio.subtitle}</span>
                     </span>
                     {studio.price && <span className="shrink-0 text-xs font-medium text-foreground">{studio.price}</span>}
@@ -387,7 +390,6 @@ export default function SpotlightSearch() {
                                         <SearchGroupHeading
                                             id={`${listId}-${group.key}-heading`}
                                             label={group.label}
-                                            badge={group.badge}
                                             action={group.action && (
                                                 <Button
                                                     label={group.action.label}

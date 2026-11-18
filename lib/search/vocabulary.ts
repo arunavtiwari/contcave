@@ -1,5 +1,4 @@
 import { INDIAN_CITIES } from "@/hooks/useCities";
-import { LOCALITIES } from "@/lib/search/localities";
 
 type TermCategory = "shootTypes" | "needs" | "vibes" | "venueTypes";
 
@@ -134,7 +133,7 @@ export function normalizeText(text: string) {
         .trim()} `;
 }
 
-type PhraseCategory = TermCategory | "cities" | "areas";
+type PhraseCategory = TermCategory | "cities";
 
 type Phrase = { phrase: string; category: PhraseCategory; label: string };
 
@@ -148,11 +147,8 @@ const CITY_DICTIONARY: Dictionary = {
     ...Object.entries(CITY_ALIASES).reduce<Dictionary>((acc, [alias, city]) => ({ ...acc, [city]: [...(acc[city] ?? []), alias] }), {}),
 };
 
-const AREA_DICTIONARY: Dictionary = Object.fromEntries(LOCALITIES.map((locality) => [locality.name, locality.aliases ?? []]));
-
 const PHRASES: [string, Phrase[]][] = Object.entries(
     [
-        ...phrasesOf(AREA_DICTIONARY, "areas"),
         ...phrasesOf(CITY_DICTIONARY, "cities"),
         ...phrasesOf(SHOOT_TYPE_TERMS, "shootTypes"),
         ...phrasesOf(NEED_TERMS, "needs"),
@@ -167,7 +163,7 @@ export type ExtractedTerms = Record<PhraseCategory, string[]> & { rest: string }
 
 export function extractTerms(text: string): ExtractedTerms {
     let masked = normalizeText(text);
-    const found: ExtractedTerms = { shootTypes: [], needs: [], vibes: [], venueTypes: [], cities: [], areas: [], rest: "" };
+    const found: ExtractedTerms = { shootTypes: [], needs: [], vibes: [], venueTypes: [], cities: [], rest: "" };
 
     for (const [phrase, entries] of PHRASES) {
         const needle = ` ${phrase} `;

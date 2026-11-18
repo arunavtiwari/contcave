@@ -6,6 +6,7 @@ import React from "react";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import AgreementDocument from "@/components/pdfs/AgreementDocument";
 import { createErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
+import { isObjectId } from "@/lib/db/objectId";
 import { getClientIp } from "@/lib/http/requestMeta";
 import prisma from "@/lib/prismadb";
 import { formatRetryAfterMs, rateLimit } from "@/lib/security/rateLimit";
@@ -141,9 +142,9 @@ export async function POST(request: Request) {
             return createErrorResponse(message, 400);
         }
 
-        const isObjectId = /^[0-9a-fA-F]{24}$/.test(listingId);
+        const byId = isObjectId(listingId);
 
-        const listing = isObjectId
+        const listing = byId
             ? await prisma.listing.findUnique({
                 where: { id: listingId },
                 select: { id: true, userId: true, archivedAt: true },
@@ -158,7 +159,7 @@ export async function POST(request: Request) {
         // New-listing creation generates the signed document before the listing
         // transaction. Only an authenticated owner, an explicit draft request,
         // and a client-generated ObjectId may use that path.
-        if (!listing && (!isObjectId || draft !== true)) {
+        if (!listing && (!byId || draft !== true)) {
             return createErrorResponse("Listing not found", 404);
         }
         const actualListingId = listing?.id || listingId;

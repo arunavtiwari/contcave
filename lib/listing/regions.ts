@@ -62,7 +62,14 @@ const regionsByDistance = (latlng: LatLng) =>
 export const regionOfPoint = (latlng: LatLng): Region | null =>
     regionsByDistance(latlng).find(({ region, km }) => km <= region.radiusKm)?.region ?? null;
 
-export const nearestRegion = (latlng: LatLng): Region | null => regionsByDistance(latlng)[0]?.region ?? null;
+export const ANOTHER_CITY_KM = 60;
+
+export const NEARBY_REGION_KM = 150;
+
+export const nearestRegion = (latlng: LatLng): Region | null => {
+    const [nearest] = regionsByDistance(latlng);
+    return nearest && nearest.km <= NEARBY_REGION_KM ? nearest.region : null;
+};
 
 /** Lower-cased city names per region, for matching Listing.locationValue in the feed query. */
 export const regionCityKeys = (region: Region) => region.cities.map(normalize);

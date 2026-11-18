@@ -17,8 +17,10 @@ const entry = (overrides: Partial<SuggestEntry>): SuggestEntry => ({
     type: [],
     tags: [],
     price: 1000,
-    curated: false,
-    rating: 0,
+    listingType: "STANDARD",
+    reviewCount: 0,
+    photoCount: 0,
+    rating: null,
     ...overrides,
 });
 
@@ -51,7 +53,22 @@ describe("rankSuggestions", () => {
         expect(rank("lucknow")).toEqual(["podcast", "cyc"]);
     });
 
+    it("finds a studio by a name the query parser does not recognise", () => {
+        expect(parseQueryRules(prepareQueryText("white box"), TODAY).intent).toBe("other");
+        expect(rank("white box")).toEqual(["cyc"]);
+    });
+
     it("returns nothing for text that matches no studio", () => {
         expect(rank("zzzz")).toEqual([]);
+    });
+
+    it("breaks equal text matches with the shared order: verified before curated, then quality", () => {
+        const entries = [
+            entry({ id: "curated", title: "Pitampura Loft", locationValue: "Delhi", listingType: "CURATED", photoCount: 20, rating: 5 }),
+            entry({ id: "plain", title: "Pitampura Loft", locationValue: "Delhi", photoCount: 2 }),
+            entry({ id: "loved", title: "Pitampura Loft", locationValue: "Delhi", photoCount: 12, rating: 4.6 }),
+        ];
+        const text = prepareQueryText("pitampura loft");
+        expect(rankSuggestions(entries, text, parseQueryRules(text, TODAY)).map((item) => item.id)).toEqual(["loved", "plain", "curated"]);
     });
 });

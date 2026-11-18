@@ -4,6 +4,7 @@ import { unstable_cache } from "next/cache";
 
 import { istDateKey } from "@/lib/booking/dayAvailability";
 import { citySlug } from "@/lib/listing/cityPaths";
+import { compareStudios, type ListingKind } from "@/lib/listing/ranking";
 import { ListingService } from "@/lib/listing/service";
 import prisma from "@/lib/prismadb";
 import { SEARCH_CONFIG } from "@/lib/search/config";
@@ -28,8 +29,10 @@ export type SuggestEntry = {
     type: string[];
     tags: string[];
     price: number | null;
-    curated: boolean;
-    rating: number;
+    listingType: ListingKind;
+    photoCount: number;
+    rating: number | null;
+    reviewCount: number;
 };
 
 async function loadEntries(): Promise<SuggestEntry[]> {
@@ -51,6 +54,7 @@ async function loadEntries(): Promise<SuggestEntry[]> {
             price: true,
             listingType: true,
             avgReviewRating: true,
+            reviewCount: true,
             mediaPurgedAt: true,
             sets: { select: { aesthetics: true, setFeatures: true } },
         },
@@ -75,8 +79,10 @@ async function loadEntries(): Promise<SuggestEntry[]> {
                 type,
                 tags,
                 price: listing.price,
-                curated: listing.listingType === "CURATED",
-                rating: listing.avgReviewRating ?? 0,
+                listingType: listing.listingType,
+                photoCount: listing.imageSrc.length,
+                rating: listing.avgReviewRating,
+                reviewCount: listing.reviewCount ?? 0,
             };
         });
 }
@@ -109,6 +115,14 @@ function tagCoverage(parsed: ParsedQuery, entry: SuggestEntry) {
     return gained / wanted;
 }
 
+const ranked = (entry: SuggestEntry) => ({
+    distanceKm: null,
+    listingType: entry.listingType,
+    photoCount: entry.photoCount,
+    avgReviewRating: entry.rating,
+    reviewCount: entry.reviewCount,
+});
+
 export function rankSuggestions(entries: SuggestEntry[], text: string, parsed: ParsedQuery): SuggestEntry[] {
     const cityName = parsed.city ? resolveCityName(parsed.city) ?? parsed.city : null;
     const cities = cityName ? new Set(expandCities(cityName).map(citySlug)) : null;
@@ -121,7 +135,7 @@ export function rankSuggestions(entries: SuggestEntry[], text: string, parsed: P
     const matches = fused.size ? pool.filter((entry) => fused.has(entry.id)) : cities ? pool : [];
 
     return matches
-        .sort((a, b) => (fused.get(b.id) ?? 0) - (fused.get(a.id) ?? 0) || b.rating - a.rating)
+        .sort((a, b) => (fused.get(b.id) ?? 0) - (fused.get(a.id) ?? 0) || compareStudios(ranked(a), ranked(b)))
         .slice(0, SEARCH_CONFIG.suggest.limit);
 }
 
@@ -131,14 +145,13 @@ const toSuggestion = (entry: SuggestEntry): StudioSuggestion => ({
     href: `/studio/${entry.slug || entry.id}`,
     image: entry.image,
     subtitle: [entry.locationValue, entry.venueTypes[0] ?? entry.category].filter(Boolean).join(" · "),
-    price: entry.curated ? "Enquire" : entry.price ? `${formatINR(entry.price)} / hr` : null,
-    curated: entry.curated,
+    price: entry.listingType === "CURATED" ? "Enquire" : entry.price ? `${formatINR(entry.price)} / hr` : null,
+    listingType: entry.listingType,
 });
 
 export async function suggestStudios(query: string, now: Date): Promise<SuggestResult> {
     const text = prepareQueryText(query);
     const parsed = parseQueryRules(text, istDateKey(now));
-    if (parsed.intent === "other") return { understood: [], studios: [] };
     return {
         understood: queryChips(parsed).flatMap((chip) => (chip.value ? [chip.value] : [])),
         studios: rankSuggestions(await loadSuggestIndex(), text, parsed).map(toSuggestion),

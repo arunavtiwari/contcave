@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { AiUnavailableError, geminiConfigured, generateGeminiJson, toGeminiSchema } from "@/lib/ai/gemini";
 import { SEARCH_CONFIG } from "@/lib/search/config";
-import { isGroundedReason } from "@/lib/search/explain";
+import { distanceReason, isGroundedReason } from "@/lib/search/explain";
 import type { ExplainableResult } from "@/lib/search/service";
 import type { ParsedQuery } from "@/schemas/search";
 
@@ -66,8 +66,11 @@ export async function writeAiReasons(parsed: ParsedQuery, results: ExplainableRe
     try {
         const written = await cachedReasons(JSON.stringify(results.map((result) => factsFor(parsed, result))));
         return Object.fromEntries(results.flatMap((result) => {
-            const grounded = (written[result.id] ?? []).filter((reason) => isGroundedReason(reason, result.candidate, parsed, result.facts));
-            return grounded.length ? [[result.id, grounded]] : [];
+            const distance = distanceReason(parsed, result.facts);
+            const grounded = (written[result.id] ?? [])
+                .filter((reason) => isGroundedReason(reason, result.candidate, parsed, result.facts))
+                .filter((reason) => !distance || !/\bkm\b/i.test(reason));
+            return grounded.length ? [[result.id, (distance ? [distance, ...grounded] : grounded).slice(0, MAX_REASONS)]] : [];
         }));
     } catch (error) {
         if (!(error instanceof AiUnavailableError)) console.error("[ai-search] AI reasons failed; keeping templates.", error);

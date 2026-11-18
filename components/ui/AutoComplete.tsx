@@ -19,6 +19,7 @@ export interface AutoCompleteValue {
   name: string;
   latlng: LatLngTuple;
   radiusKm: number | null;
+  placeId?: string;
 }
 
 export interface PlaceOption extends SelectOption {
@@ -317,6 +318,7 @@ export default function AutoComplete({
             name: place.name || placeOption.main_text,
             latlng: center,
             radiusKm: corner ? distanceKm(center, [corner.lat(), corner.lng()]) : null,
+            placeId: placeOption.place_id,
           });
         }
       }

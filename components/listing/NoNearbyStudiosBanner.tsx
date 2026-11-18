@@ -5,14 +5,8 @@ import { FiArrowRight } from "react-icons/fi";
 import { useBrowseLocation } from "@/hooks/useBrowseLocation";
 import { trackLead } from "@/lib/analytics/tracking";
 import { formatDistanceKm } from "@/lib/listing/browseLocation";
-import { findRegion } from "@/lib/listing/regions";
+import { ANOTHER_CITY_KM, findRegion } from "@/lib/listing/regions";
 import { buildWhatsAppUrl, cityRequestMessage } from "@/lib/whatsapp/urls";
-
-/**
- * Past this, the nearest studio is in another city rather than across town - no metro region we
- * serve is wider than this (see lib/listing/regions.ts).
- */
-const ANOTHER_CITY_KM = 60;
 
 type Props = {
     nearestKm: number | null;

@@ -17,7 +17,7 @@ import { coveredCityNames, landingPlaceFor } from "@/lib/listing/cities";
 import { cityPath, coverageArea } from "@/lib/listing/cityPaths";
 import { toStudioFeedItem } from "@/lib/listing/feedQuery";
 import { collectionMetadata, listingPath } from "@/lib/listing/seo";
-import { feedFiltersOf, loadStudioFeed, pickedBrowseLocation, placeLabelOf } from "@/lib/listing/studioFeed";
+import { feedFiltersOf, loadStudioFeed, loadStudiosNearCity, pickedBrowseLocation, placeLabelOf } from "@/lib/listing/studioFeed";
 import { pageFromParams, pagePath, pageTitle, redirectPastLastPage, type SearchParams } from "@/lib/pagination";
 import { truncateText } from "@/lib/richText";
 import { absoluteUrl, META_DESCRIPTION_LENGTH } from "@/lib/seo";
@@ -41,6 +41,8 @@ const LISTINGS_KEYWORDS = [
 interface StudiosProps {
   searchParams: Promise<SearchParams>;
 }
+
+const FALLBACK_STUDIOS = 6;
 
 const hasActiveFilters = (searchParams: SearchParams) =>
   Object.values(feedFiltersOf(searchParams)).some((value) => value !== undefined)
@@ -118,7 +120,11 @@ async function StudiosFeed(props: StudiosProps) {
   ]);
   const { items } = feed.page;
   redirectPastLastPage(items.length === 0, page, pagePath(STUDIOS_PATH, 1, searchParams));
-  const fallbackItems = items.length === 0 ? (await getRandomListings(6)).map(toStudioFeedItem) : [];
+  const cityFilter = typeof searchParams.locationValue === "string" ? searchParams.locationValue : null;
+  const nearCity = items.length === 0 && cityFilter ? await loadStudiosNearCity(cityFilter, FALLBACK_STUDIOS) : null;
+  const fallbackItems = items.length === 0
+    ? nearCity?.items ?? (await getRandomListings(FALLBACK_STUDIOS)).map(toStudioFeedItem)
+    : [];
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -154,10 +160,12 @@ async function StudiosFeed(props: StudiosProps) {
             <div className="border-t border-border pt-8">
               <div className="mb-6 space-y-1">
                 <h2 className="text-xl font-bold tracking-tight text-foreground">
-                  Explore other top studios across India
+                  {nearCity ? `Closest studios to ${nearCity.city}` : "Explore other top studios across India"}
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  Here are some popular, verified spaces available for booking.
+                  {nearCity
+                    ? "The nearest spaces we list, closest first."
+                    : "Here are some popular, verified spaces available for booking."}
                 </p>
               </div>
               <ListingFeed

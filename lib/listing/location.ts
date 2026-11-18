@@ -1,5 +1,6 @@
 import { getGstStateCodeFromStateName } from "@/constants/gstStateCodes";
 import { isLatLng, type LatLng } from "@/lib/geo";
+import type { LocationSchema } from "@/schemas/listing";
 
 import { jitterLatLng } from "./utils";
 
@@ -20,16 +21,46 @@ const storedLatLng = (location: unknown): LatLng | null => {
     return isLatLng(latlng) ? latlng : null;
 };
 
+const addressOf = (location: unknown): string | undefined => {
+    const name = (location as { display_name?: unknown } | null | undefined)?.display_name;
+    return typeof name === "string" ? name : undefined;
+};
+
 const sameLatLng = (a: LatLng, b: LatLng) => a[0] === b[0] && a[1] === b[1];
+
+export type LocationDraft = Omit<Partial<LocationSchema>, "latlng"> & { latlng?: LatLng };
+
+export type CityChoice = { value: string; label: string; state: string; region?: string };
+
+export type PlaceChoice = { display_name: string; latlng?: LatLng; placeId?: string };
+
+export function applyCityChoice(current: LocationDraft | null | undefined, city: CityChoice & { latlng?: unknown }): LocationDraft {
+    const { value, label, state, region } = city;
+    return { ...current, value, label, state, ...(region ? { region } : {}) };
+}
+
+export function applyAddressChoice(current: LocationDraft | null | undefined, place: PlaceChoice): LocationDraft {
+    const { display_name: _address, latlng: _pin, placeId: _placeId, ...rest } = current ?? {};
+    return {
+        ...rest,
+        display_name: place.display_name,
+        ...(place.latlng ? { latlng: place.latlng } : {}),
+        ...(place.placeId ? { placeId: place.placeId } : {}),
+    };
+}
 
 export function resolveListingLocation(incoming: LocationInput | null, stored?: unknown): ResolvedListingLocation {
     if (!incoming) return { actualLocation: null, locationPoint: null };
 
     const requested = storedLatLng(incoming);
     const previous = storedLatLng(stored);
+    const incomingAddress = addressOf(incoming);
+    const storedAddress = addressOf(stored);
+    const keepsPrevious = previous !== null
+        && (incomingAddress === undefined || storedAddress === undefined || incomingAddress === storedAddress);
     const latlng = requested
         ? previous && sameLatLng(requested, previous) ? previous : jitterLatLng(requested)
-        : previous;
+        : keepsPrevious ? previous : null;
     const state = typeof incoming.state === "string" ? incoming.state : undefined;
     const statedCode = typeof incoming.propertyStateCode === "string" ? incoming.propertyStateCode : undefined;
 

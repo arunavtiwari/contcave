@@ -8,11 +8,12 @@ const NOIDA: LatLng = [28.5355, 77.391];
 const KOLKATA: LatLng = [22.5726, 88.3639];
 
 describe("feed location", () => {
-    it("places a point inside a served region, else only reports the nearest one", () => {
+    it("places a point inside a served region, else the nearest one only when it is close", () => {
         expect(regionOfPoint(NOIDA)?.slug).toBe("delhi-ncr");
         expect(nearestRegion(NOIDA)?.slug).toBe("delhi-ncr");
         expect(regionOfPoint(KOLKATA)).toBeNull();
-        expect(nearestRegion(KOLKATA)?.slug).toBe("lucknow");
+        expect(nearestRegion(KOLKATA)).toBeNull();
+        expect(nearestRegion([28.9845, 77.95])?.slug).toBe("meerut");
     });
 
     it("reads Cloudflare's visitor headers behind the proxy and Vercel's otherwise", () => {

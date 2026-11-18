@@ -4,11 +4,8 @@ import { google } from "googleapis";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { getGoogleClientCredentials, isGoogleCalendarAuthError, refreshGoogleCalendarAccessToken } from "@/lib/calendar/oauth";
+import { isObjectId } from "@/lib/db/objectId";
 import prisma from "@/lib/prismadb";
-
-function isObjectId(value: string) {
-    return /^[0-9a-fA-F]{24}$/.test(value);
-}
 
 function toOwnerCalendarEvents(events: Array<{
     id?: string | null;

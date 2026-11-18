@@ -15,9 +15,8 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Textarea from "@/components/ui/Textarea";
-import { listingLocationIssues, listingLocationValue } from "@/lib/listing/location";
+import { listingLocationIssues, listingLocationValue, type LocationDraft } from "@/lib/listing/location";
 import { isRichTextEmpty } from "@/lib/richText";
-import type { LocationSchema } from "@/schemas/listing";
 import type { SafeAmenity } from "@/types/amenity";
 
 const CATEGORIES = [
@@ -64,7 +63,7 @@ export default function CreateCuratedListingForm({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [location, setLocation] = useState<LocationSchema | null>(null);
+  const [location, setLocation] = useState<LocationDraft | null>(null);
   const [locationErrors, setLocationErrors] = useState<ReturnType<typeof listingLocationIssues>>({});
 
   const {
@@ -93,7 +92,8 @@ export default function CreateCuratedListingForm({
 
   const onSubmit = (values: FormValues) => {
     const issues = listingLocationIssues(location);
-    if (!location || issues.city || issues.address) return;
+    const latlng = location?.latlng;
+    if (!location || !latlng || issues.city || issues.address) return;
 
     const imageUrls = values.imageSrc
       .split("\n")
@@ -110,7 +110,7 @@ export default function CreateCuratedListingForm({
         title: values.title,
         description: values.description,
         category: values.category,
-        actualLocation: location,
+        actualLocation: { ...location, latlng },
         imageSrc: imageUrls,
         amenities: values.amenities,
         otherAmenities: values.otherAmenities,

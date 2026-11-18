@@ -7,26 +7,25 @@ import { distanceKm, type LatLng, type Nearby } from "@/lib/geo";
 import { bookingPrefillQuery } from "@/lib/listing/bookingPrefill";
 import { getCityDirectory } from "@/lib/listing/cities";
 import { citySlug } from "@/lib/listing/cityPaths";
+import { ANOTHER_CITY_KM, NEARBY_REGION_KM } from "@/lib/listing/regions";
 import { ListingService, type SearchCandidateRecord } from "@/lib/listing/service";
 import { labelToMinutes } from "@/lib/scheduling";
+import { locateArea } from "@/lib/search/area";
 import { summarizeAvailability } from "@/lib/search/availability";
 import { SEARCH_CONFIG } from "@/lib/search/config";
 import { availabilityLabel, caveats, offerLabel, templateReasons } from "@/lib/search/explain";
-import { findLocality } from "@/lib/search/localities";
 import { matchCandidate } from "@/lib/search/match";
 import { buildOffer } from "@/lib/search/offer";
 import { parseQuery, prepareQueryText } from "@/lib/search/parse";
 import { bm25Scores, rankByScore, reciprocalRankFusion } from "@/lib/search/rank";
-import { budgetTotal, overBudgetBy, scoreResult } from "@/lib/search/score";
+import { type Evaluated, selectResults } from "@/lib/search/results";
+import { budgetTotal, fitScore, overBudgetBy } from "@/lib/search/score";
 import { loadSearchDocs } from "@/lib/search/searchDoc";
 import type { ResultFacts, ResultView, ScoredCandidate, SearchCandidate, SearchView } from "@/lib/search/types";
 import { expandCities, extractTerms, resolveCityName } from "@/lib/search/vocabulary";
 import { normaliseUseCase } from "@/lib/taxonomy";
 import { formatINR } from "@/lib/utils";
 import { OVERRIDE_FIELD_MAP, type ParsedQuery, type QueryField, type QueryOverrides, type SearchRequest } from "@/schemas/search";
-
-const NEARBY_CITY_KM = 150;
-const NEARBY_FALLBACK_KM = 60;
 
 export type ExplainableResult = ScoredCandidate & { id: string };
 
@@ -45,8 +44,6 @@ export type SessionRecord = {
 export type AiSearchOutcome = { view: SearchView; session: SessionRecord; explainable: ExplainableResult[] };
 
 export type SearchContext = { now: Date; allowAi: boolean; visitor: Nearby | null };
-
-type Evaluated = ScoredCandidate & { excludedBy: "crew" | "date" | "budget" | null };
 
 const unique = <T>(values: T[]) => Array.from(new Set(values));
 
@@ -131,6 +128,7 @@ function toView(result: ScoredCandidate, parsed: ParsedQuery, fallback: boolean)
         reasons: templateReasons(candidate, parsed, facts),
         caveats: caveats(candidate, parsed, facts),
         fallback,
+        listingType: candidate.listingType,
     };
 }
 
@@ -186,17 +184,6 @@ function evaluate(
     return { candidate, facts, score: 0, excludedBy };
 }
 
-const byScore = (a: { score: number }, b: { score: number }) => b.score - a.score;
-
-const FALLBACK_ORDER: Record<NonNullable<Evaluated["excludedBy"]>, (a: Evaluated, b: Evaluated) => number> = {
-    budget: (a, b) => (a.facts.offer.total ?? Number.MAX_SAFE_INTEGER) - (b.facts.offer.total ?? Number.MAX_SAFE_INTEGER),
-    crew: (a, b) => (b.candidate.maximumPax ?? 0) - (a.candidate.maximumPax ?? 0),
-    date: byScore,
-};
-
-const fallbackOrder = (pool: Evaluated[]) =>
-    [...pool].sort((a, b) => (a.excludedBy && a.excludedBy === b.excludedBy ? FALLBACK_ORDER[a.excludedBy](a, b) : byScore(a, b)));
-
 function coveredCitiesNear(point: LatLng, covered: string[], maxKm: number) {
     return INDIAN_CITIES
         .filter((city) => covered.includes(city.name))
@@ -207,7 +194,7 @@ function coveredCitiesNear(point: LatLng, covered: string[], maxKm: number) {
 }
 
 const nearestCoveredCity = (visitor: Nearby | null, covered: string[]) =>
-    (visitor ? coveredCitiesNear(visitor.latlng, covered, NEARBY_CITY_KM)[0] ?? null : null);
+    (visitor ? coveredCitiesNear(visitor.latlng, covered, NEARBY_REGION_KM)[0] ?? null : null);
 
 function notices(parsed: ParsedQuery, cityLabel: string, areaPoint: LatLng | null, nearby: boolean) {
     const list: string[] = [];
@@ -272,14 +259,18 @@ export async function runAiSearch(
 
     const directory = await getCityDirectory();
     const cityOptions = directory.map((entry) => entry.city);
-    const cityName = parsed.city ? resolveCityName(parsed.city) ?? parsed.city : null;
+    const namedCity = parsed.city ? resolveCityName(parsed.city) ?? parsed.city : null;
+    const areaAlone = !namedCity && parsed.area && !request.areaPoint ? await locateArea(parsed.area, null, null) : null;
+    const cityName = namedCity ?? (areaAlone ? coveredCitiesNear(areaAlone, cityOptions, ANOTHER_CITY_KM)[0] ?? null : null);
     if (!cityName) {
         return finish({ ...common, state: "needCity", cityOptions, suggestedCity: nearestCoveredCity(context.visitor, cityOptions) });
     }
 
     const cities = expandCities(cityName);
-    const areaPoint = request.areaPoint ?? (parsed.area ? findLocality(parsed.area, cities)?.latlng ?? null : null);
     const cityCentre = INDIAN_CITIES.find((city) => city.name === cities[0])?.latlng as LatLng | undefined;
+    const areaPoint = request.areaPoint
+        ?? areaAlone
+        ?? (parsed.area ? await locateArea(parsed.area, cityName, cityCentre ?? null) : null);
     const candidatesIn = (names: string[]) => ListingService.getSearchCandidates({
         locationValues: unique(names.flatMap((city) => directory.find((entry) => entry.slug === citySlug(city))?.locationValues ?? [city])),
         origin: areaPoint ?? cityCentre ?? null,
@@ -289,7 +280,7 @@ export async function runAiSearch(
     const local = await candidatesIn(cities);
     const nearbyCities = local.length || !cityCentre
         ? []
-        : coveredCitiesNear(cityCentre, cityOptions, NEARBY_FALLBACK_KM).filter((name) => !cities.includes(name));
+        : coveredCitiesNear(cityCentre, cityOptions, ANOTHER_CITY_KM).filter((name) => !cities.includes(name));
     const nearby = nearbyCities.length > 0;
     const records = nearby ? await candidatesIn(nearbyCities) : local;
     if (!records.length) return finish({ ...common, state: "notCovered", city: cityName, cityOptions });
@@ -304,17 +295,9 @@ export async function runAiSearch(
 
     const evaluated = candidates.map((candidate) => evaluate(candidate, parsed, days.get(candidate.id) ?? [], referencePoint));
     const feature = featureScores(evaluated, parsed, text, docs);
-    for (const entry of evaluated) entry.score = scoreResult(entry.candidate, parsed, entry.facts, feature(entry.candidate.id));
+    for (const entry of evaluated) entry.score = fitScore(parsed, entry.facts, feature(entry.candidate.id));
 
-    const standard = evaluated.filter((entry) => entry.candidate.listingType !== "CURATED");
-    const eligible = standard.filter((entry) => !entry.excludedBy).sort(byScore).slice(0, SEARCH_CONFIG.maxResults);
-    const fallback = eligible.length < SEARCH_CONFIG.closestFallbackCount
-        ? fallbackOrder(standard.filter((entry) => entry.excludedBy)).slice(0, SEARCH_CONFIG.closestFallbackCount - eligible.length)
-        : [];
-    const curated = evaluated
-        .filter((entry) => entry.candidate.listingType === "CURATED" && entry.excludedBy !== "crew")
-        .sort(byScore)
-        .slice(0, SEARCH_CONFIG.maxCurated);
+    const { eligible, fallback } = selectResults(evaluated);
 
     const goodCount = eligible.filter((entry) => entry.score >= SEARCH_CONFIG.goodScore).length;
     const cityLabel = cityName;
@@ -328,13 +311,12 @@ export async function runAiSearch(
             nearby,
             cityOptions,
             results: [...eligible.map((entry) => toView(entry, parsed, false)), ...fallback.map((entry) => toView(entry, parsed, true))],
-            curated: curated.map((entry) => toView(entry, parsed, false)),
             offerHandoff: goodCount < SEARCH_CONFIG.minGoodResults,
             notices: notices(parsed, cityLabel, areaPoint, nearby),
         },
         {
             results: sessionResults(shown),
-            curated: curated.map((entry) => entry.candidate.id),
+            curated: shown.filter((entry) => entry.candidate.listingType === "CURATED").map((entry) => entry.candidate.id),
             resultCount: shown.length,
             goodCount,
         },

@@ -102,6 +102,7 @@ export type ResultView = {
     reasons: string[];
     caveats: string[];
     fallback: boolean;
+    listingType: SearchCandidate["listingType"];
 };
 
 type ViewCommon = { parsed: ParsedQuery; source: "ai" | "rules" };
@@ -116,7 +117,6 @@ export type SearchView =
         nearby: boolean;
         cityOptions: string[];
         results: ResultView[];
-        curated: ResultView[];
         offerHandoff: boolean;
         notices: string[];
     });
@@ -132,7 +132,7 @@ export type StudioSuggestion = {
     image: string | null;
     subtitle: string;
     price: string | null;
-    curated: boolean;
+    listingType: SearchCandidate["listingType"];
 };
 
 export type SuggestResult = { understood: string[]; studios: StudioSuggestion[] };

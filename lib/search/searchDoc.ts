@@ -2,6 +2,7 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 
+import { loadAmenityNames } from "@/lib/listing/amenityNames";
 import { ListingService } from "@/lib/listing/service";
 import prisma from "@/lib/prismadb";
 import { getPlainTextFromHTML } from "@/lib/richText";
@@ -30,14 +31,10 @@ type SearchDocSource = Awaited<ReturnType<typeof loadSources>>[number];
 
 async function loadSources(ids: string[]) {
     const listings = await prisma.listing.findMany({ where: { id: { in: ids } }, select: SEARCH_DOC_SELECT });
-    const amenityIds = Array.from(new Set(listings.flatMap((listing) => listing.amenities)));
-    const amenities = amenityIds.length
-        ? await prisma.amenities.findMany({ where: { id: { in: amenityIds } }, select: { id: true, name: true } })
-        : [];
-    const amenityName = new Map(amenities.map((amenity) => [amenity.id, amenity.name]));
+    const amenityNamesOf = await loadAmenityNames(listings);
     return listings.map((listing) => ({
         ...listing,
-        amenityNames: listing.amenities.map((id) => amenityName.get(id)).filter((name): name is string => Boolean(name)),
+        amenityNames: amenityNamesOf(listing.amenities),
     }));
 }
 

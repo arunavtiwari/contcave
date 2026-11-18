@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import { isDateKey } from "@/lib/booking/dayAvailability";
+import { OBJECT_ID_PATTERN } from "@/lib/db/objectId";
 import { type LatLng, parseLatLngParam, searchRadiusKm } from "@/lib/geo";
 import {
     EQUIPMENT_CATEGORIES,
@@ -65,6 +66,7 @@ export const locationSchema = z.object({
     country: z.string().max(100).optional(),
     address: z.string().max(500).optional(),
     display_name: z.string().max(500).optional(),
+    placeId: z.string().max(300).optional(),
     state: z.string().max(100).optional(),
     url: httpUrlSchema(1000).optional(),
     mapsUrl: httpUrlSchema(1000).optional(),
@@ -231,7 +233,7 @@ export const signatureSchema = z.object({
 export const CONTCAVE_NOTE_MAX_LENGTH = 1000;
 
 export const listingBaseSchema = z.object({
-    id: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid listing ID").optional(),
+    id: z.string().regex(OBJECT_ID_PATTERN, "Invalid listing ID").optional(),
     listingType: z.enum(["STANDARD", "CURATED"]).default("STANDARD"),
     category: z.string().min(1, "Category is required").max(100),
     locationValue: z.string().trim().min(1, "Location is required").max(300),

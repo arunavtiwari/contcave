@@ -14,7 +14,7 @@ export type CitySelectValue = {
 };
 
 type Props = {
-  value?: CitySelectValue;
+  value?: Partial<CitySelectValue> | null;
   locationValue?: string;
   onChange: (value: CitySelectValue) => void;
   size?: "sm" | "md";

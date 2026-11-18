@@ -4,8 +4,10 @@ import { formatInTimeZone } from "date-fns-tz";
 import { TIME_SLOTS } from "@/constants/timeSlots";
 import { loadDayAvailabilities } from "@/lib/availability";
 import { addDaysToDateKey, BOOKING_HORIZON_DAYS, isBookable, istDateKey } from "@/lib/booking/dayAvailability";
+import { isObjectId } from "@/lib/db/objectId";
 import { UserFacingError } from "@/lib/errors";
 import type { LatLng } from "@/lib/geo";
+import { loadAmenityNames } from "@/lib/listing/amenityNames";
 import { studioChanged } from "@/lib/listing/changes";
 import {
     type EquipmentItem,
@@ -93,6 +95,7 @@ const SEARCH_CANDIDATE_SELECT = {
     minimumBookingHours: true,
     instantBooking: true,
     avgReviewRating: true,
+    reviewCount: true,
     carpetArea: true,
     locationPoint: true,
     priceRangeMin: true,
@@ -801,6 +804,9 @@ export class ListingService {
                 existingListing.actualLocation
             );
             listingData.actualLocation = location.actualLocation;
+            if (location.actualLocation && !location.locationPoint) {
+                throw new UserFacingError("Please pick the address from the suggestions so we can place it on the map");
+            }
             listingData.locationPoint = location.locationPoint ? { set: location.locationPoint } : { unset: true };
             if (location.actualLocation) {
                 listingData.propertyStateCode = listingData.propertyStateCode || location.propertyStateCode;
@@ -1458,25 +1464,8 @@ export class ListingService {
         const ids = rows.map(readRawId).filter((id): id is string => !!id);
         if (ids.length === 0) return [];
 
-        const [listings, reviewCounts] = await Promise.all([
-            prisma.listing.findMany({ where: { id: { in: ids } }, select: SEARCH_CANDIDATE_SELECT }),
-            prisma.review.aggregateRaw({
-                pipeline: [
-                    { $match: { listingId: { $in: ids.map((id) => ({ $oid: id })) } } },
-                    { $group: { _id: "$listingId", count: { $sum: 1 } } },
-                ],
-            }) as unknown as Promise<{ _id?: RawListingId["_id"]; count?: number | { $numberInt?: string } }[]>,
-        ]);
-        const amenityIds = Array.from(new Set(listings.flatMap((listing) => listing.amenities)));
-        const amenities = amenityIds.length
-            ? await prisma.amenities.findMany({ where: { id: { in: amenityIds } }, select: { id: true, name: true } })
-            : [];
-
-        const amenityName = new Map(amenities.map((amenity) => [amenity.id, amenity.name]));
-        const countOf = new Map(reviewCounts.map((row) => [
-            readRawId(row),
-            Number(typeof row.count === "object" ? row.count?.$numberInt : row.count) || 0,
-        ]));
+        const listings = await prisma.listing.findMany({ where: { id: { in: ids } }, select: SEARCH_CANDIDATE_SELECT });
+        const amenityNamesOf = await loadAmenityNames(listings);
         const byId = new Map(listings.map((listing) => [listing.id, listing]));
 
         return ids
@@ -1485,8 +1474,8 @@ export class ListingService {
             .filter((listing) => !(listing.listingType === "CURATED" && listing.mediaPurgedAt))
             .map((listing) => ({
                 ...listing,
-                amenityNames: listing.amenities.map((id) => amenityName.get(id)).filter((name): name is string => Boolean(name)),
-                reviewCount: countOf.get(listing.id) ?? 0,
+                amenityNames: amenityNamesOf(listing.amenities),
+                reviewCount: listing.reviewCount ?? 0,
             }));
     }
 
@@ -1553,10 +1542,10 @@ export class ListingService {
         listingId: string,
         viewer?: { id: string; role: UserRole }
     ): Promise<FullListing | null> {
-        const isObjectId = /^[0-9a-fA-F]{24}$/.test(listingId);
+        const byId = isObjectId(listingId);
         const include = { user: true, packages: true, sets: { orderBy: [{ price: "asc" as const }, { position: "asc" as const }] }, blocks: true };
 
-        const listing = isObjectId
+        const listing = byId
             ? await prisma.listing.findFirst({ where: { id: listingId }, include })
             : (await prisma.listing.findFirst({ where: { slug: listingId }, include }))
                 ?? (await prisma.listing.findFirst({ where: { previousSlugs: { has: listingId } }, include }));

@@ -3,11 +3,12 @@
 import type { HTMLAttributes } from "react";
 import { IoAlertCircleOutline, IoHelpCircleOutline, IoInformationCircleOutline, IoSparkles } from "react-icons/io5";
 
+import ListingTypeBadge from "@/components/listing/ListingTypeBadge";
 import CityQuestion from "@/components/search/CityQuestion";
 import HandoffCallout from "@/components/search/HandoffCallout";
 import QueryChips from "@/components/search/QueryChips";
 import ReasonList from "@/components/search/ReasonList";
-import SearchGroupHeading, { GROUP_LABELS } from "@/components/search/SearchGroupHeading";
+import SearchGroupHeading from "@/components/search/SearchGroupHeading";
 import StudioThumb from "@/components/search/StudioThumb";
 import Button from "@/components/ui/Button";
 import Callout from "@/components/ui/Callout";
@@ -22,7 +23,7 @@ import { overridesToParams } from "@/schemas/search";
 
 const MAX_REASONS = 2;
 const SKELETON_ROWS = 3;
-const GROUP_ORDER = ["match", "closest", "curated"] as const;
+const GROUP_ORDER = ["match", "closest"] as const;
 
 type ResultGroup = (typeof GROUP_ORDER)[number];
 
@@ -34,7 +35,6 @@ export function resultOptions(state: AiSearchState): ResultOption[] {
     return [
         ...state.view.results.filter((view) => !view.fallback).map(toOption("match")),
         ...state.view.results.filter((view) => view.fallback).map(toOption("closest")),
-        ...state.view.curated.map(toOption("curated")),
     ];
 }
 
@@ -42,7 +42,6 @@ type ResultsView = Extract<SearchView, { state: "results" }>;
 
 const groupTitle = (group: ResultGroup, view: ResultsView, count: number) => {
     if (group === "closest") return "Closest options";
-    if (group === "curated") return GROUP_LABELS.curated;
     const place = `${view.nearby ? "near" : "in"} ${view.cityLabel}`;
     if (!count) return `No exact matches ${place}`;
     return `${count} ${count === 1 ? "studio fits" : "studios fit"} your shoot ${place}`;
@@ -71,7 +70,10 @@ function ResultRow({ view, reasons, props }: { view: ResultView; reasons: string
             <StudioThumb image={view.image} className="size-14 rounded-xl" />
             <div className="min-w-0 flex-1 space-y-1.5">
                 <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-foreground">{view.title}</p>
+                    <div className="flex min-w-0 items-center gap-2">
+                        <p className="truncate text-sm font-medium text-foreground">{view.title}</p>
+                        <ListingTypeBadge listingType={view.listingType} />
+                    </div>
                     <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
                 </div>
                 {(view.estimate || view.availability) && (
@@ -178,7 +180,6 @@ export default function AiSearchResults({ state, options, listId, optionProps, o
                                     <SearchGroupHeading
                                         id={headingId}
                                         label={groupTitle(group, view, items.length)}
-                                        badge={group === "curated" ? "CURATED" : "STANDARD"}
                                     />
                                     {items.map((option) => (
                                         <ResultRow

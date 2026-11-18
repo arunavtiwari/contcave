@@ -5,6 +5,14 @@ import { studioChanged } from "@/lib/listing/changes";
 import prisma from "@/lib/prismadb";
 import { SafeReview } from "@/types/review";
 
+async function refreshListingRating(tx: Prisma.TransactionClient, listingId: string) {
+    const aggregate = await tx.review.aggregate({ where: { listingId }, _avg: { rating: true }, _count: { _all: true } });
+    await tx.listing.update({
+        where: { id: listingId },
+        data: { avgReviewRating: aggregate._avg.rating || 0, reviewCount: aggregate._count._all },
+    });
+}
+
 export class ReviewService {
     /**
      * Create a review and atomically update the listing's average rating.
@@ -45,16 +53,7 @@ export class ReviewService {
                     }
                 });
 
-                // 4. Recalculate Rating
-                const aggregate = await tx.review.aggregate({
-                    where: { listingId },
-                    _avg: { rating: true }
-                });
-
-                await tx.listing.update({
-                    where: { id: listingId },
-                    data: { avgReviewRating: aggregate._avg.rating || 0 }
-                });
+                await refreshListingRating(tx, listingId);
 
                 return review;
             });
@@ -107,15 +106,7 @@ export class ReviewService {
                 }
             });
 
-            const aggregate = await tx.review.aggregate({
-                where: { listingId },
-                _avg: { rating: true }
-            });
-
-            await tx.listing.update({
-                where: { id: listingId },
-                data: { avgReviewRating: aggregate._avg.rating || 0 }
-            });
+            await refreshListingRating(tx, listingId);
 
             return review;
         });
@@ -145,15 +136,7 @@ export class ReviewService {
         await prisma.$transaction(async (tx) => {
             await tx.review.delete({ where: { id: reviewId } });
 
-            const aggregate = await tx.review.aggregate({
-                where: { listingId: review.listingId },
-                _avg: { rating: true }
-            });
-
-            await tx.listing.update({
-                where: { id: review.listingId },
-                data: { avgReviewRating: aggregate._avg.rating || 0 }
-            });
+            await refreshListingRating(tx, review.listingId);
         });
         await studioChanged(review.listingId);
     }

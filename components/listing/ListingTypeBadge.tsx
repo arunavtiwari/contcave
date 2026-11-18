@@ -1,6 +1,5 @@
 import Pill from "@/components/ui/Pill";
-
-export type ListingKind = "STANDARD" | "CURATED";
+import type { ListingKind } from "@/lib/listing/ranking";
 
 const BADGES = {
     STANDARD: { label: "Verified", variant: "verified-button", border: "border-success/30" },

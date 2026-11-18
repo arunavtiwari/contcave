@@ -3,7 +3,8 @@ import "server-only";
 import { cookies, headers } from "next/headers";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import { type LatLng, parsePlaceLabelParam } from "@/lib/geo";
+import { INDIAN_CITIES } from "@/hooks/useCities";
+import { isLatLng, type LatLng, parsePlaceLabelParam } from "@/lib/geo";
 import { getIpLocation, isBotRequest } from "@/lib/http/requestMeta";
 import type { SearchParams } from "@/lib/pagination";
 import { type StudioFeedFilters, studioFeedSearchParamsSchema } from "@/schemas/listing";
@@ -86,4 +87,15 @@ export async function loadStudioFeed(
         page: await getFeedPage({ filters, sort: { ...sort, order: appliedOrder }, page }),
         nearLabel: filters.near ? placeLabel : undefined,
     };
+}
+
+export async function loadStudiosNearCity(city: string, limit: number) {
+    const centre = INDIAN_CITIES.find((entry) => entry.name.toLowerCase() === city.trim().toLowerCase())?.latlng;
+    if (!isLatLng(centre)) return null;
+    const page = await getFeedPage({
+        filters: {},
+        sort: { region: null, origin: centre, order: DEFAULT_BROWSE_SORT },
+        size: limit,
+    });
+    return { city, items: page.items };
 }

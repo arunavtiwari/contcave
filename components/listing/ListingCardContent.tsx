@@ -16,7 +16,7 @@ interface ListingCardContentProps {
     maximumPax?: number;
     lightsIncluded?: boolean;
     ratingValue?: number;
-    reviewCount?: number;
+    reviewCount?: number | null;
     showRating?: boolean;
     reservationDate?: string;
     reservationTime?: string;
@@ -65,7 +65,7 @@ const ListingCardContent: React.FC<ListingCardContentProps> = ({
                                     <span className="text-[11px] font-extrabold flex items-center gap-1">
                                         {ratingValue.toFixed(1)}
 
-                                        {reviewCount !== undefined && reviewCount > 0 && (
+                                        {!!reviewCount && (
                                             <span className="font-medium text-muted-foreground opacity-60 tracking-tighter">
                                                 ({reviewCount})
                                             </span>

@@ -7,7 +7,7 @@ import { availabilityLabel, caveats, isGroundedReason, templateReasons } from "@
 import { matchCandidate } from "@/lib/search/match";
 import { buildOffer } from "@/lib/search/offer";
 import { bm25Scores, rankByScore, reciprocalRankFusion } from "@/lib/search/rank";
-import { bayesianRating, overBudgetBy, scoreResult } from "@/lib/search/score";
+import { fitScore, overBudgetBy } from "@/lib/search/score";
 import type { ResultFacts, SearchCandidate } from "@/lib/search/types";
 import { EMPTY_QUERY,type ParsedQuery } from "@/schemas/search";
 import type { ListingSet } from "@/types/set";
@@ -150,12 +150,7 @@ describe("ranking", () => {
         expect(rankByScore(scores)).toEqual([["x"]]);
     });
 
-    it("shrinks ratings with few reviews toward the prior", () => {
-        expect(bayesianRating(5, 1)).toBeLessThan(bayesianRating(4.7, 40));
-        expect(bayesianRating(null, 0)).toBeCloseTo(4.3);
-    });
-
-    it("renormalises when signals are missing and penalises missing must-haves", () => {
+    it("fits every studio fully when nothing was asked, and penalises missing must-haves", () => {
         const studio = candidate();
         const facts: ResultFacts = {
             match: { setId: null, setName: null, matchedNeeds: [], missingNeeds: [], matchedVibes: [], matchedVenues: [], shootTypeFit: null, coverage: 0 },
@@ -165,10 +160,10 @@ describe("ranking", () => {
             overBudgetBy: null,
             crewFits: null,
         };
-        const plain = scoreResult(studio, parsed(), facts, null);
-        const missing = scoreResult(studio, parsed(), { ...facts, match: { ...facts.match, missingNeeds: ["Green Screen"] } }, null);
-        expect(plain).toBeGreaterThan(0);
-        expect(missing).toBeCloseTo(Math.max(0, plain - 0.1));
+        const plain = fitScore(parsed(), facts, null);
+        const missing = fitScore(parsed(), { ...facts, match: { ...facts.match, missingNeeds: ["Green Screen"] } }, null);
+        expect(plain).toBe(1);
+        expect(missing).toBeCloseTo(0.9);
     });
 });
 
@@ -187,7 +182,7 @@ describe("explanations", () => {
     };
 
     it("builds reasons and caveats from facts only", () => {
-        expect(templateReasons(studio, request, facts)).toEqual(["Infinity White Cyc in Set B", "Fits 6", "1.4 km from Gomti Nagar"]);
+        expect(templateReasons(studio, request, facts)).toEqual(["1.4 km from Gomti Nagar", "Infinity White Cyc in Set B", "Fits 6"]);
         expect(caveats(studio, request, facts)).toEqual(expect.arrayContaining(["No Green Screen listed", expect.stringMatching(/over budget$/)]));
     });
 

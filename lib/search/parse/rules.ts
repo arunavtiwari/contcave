@@ -1,7 +1,6 @@
-import { findLocality } from "@/lib/search/localities";
 import { parseDates } from "@/lib/search/parse/dates";
 import { tokenize } from "@/lib/search/rank";
-import { expandCities, extractTerms } from "@/lib/search/vocabulary";
+import { extractTerms, normalizeText } from "@/lib/search/vocabulary";
 import { EMPTY_QUERY, type ParsedQuery, type QueryField, sanitizeQuery } from "@/schemas/search";
 
 const SUFFIX = "(?:(k|thousand|grand|lakhs|lakh|lacs|lac|l)(?![a-z]))?";
@@ -41,6 +40,39 @@ const UNDERSTOOD_WORDS = new Set([
 ]);
 
 const NON_SEARCH = /\b(refund|cancel|cancellation|invoice|payment failed|login|log in|password|otp|account|support|complaint|help with my booking)\b/;
+const AREA_LEAD = /\b(?:in|near|nearby|around|at|close to|closer to)\s+([a-z][a-z0-9-]*(?:\s+[a-z0-9-]+){0,3})/g;
+const AREA_STOP = new Set([
+    "for", "with", "on", "from", "to", "and", "or", "between", "by", "the", "a", "an", "my", "our", "only",
+    "studio", "studios", "morning", "evening", "afternoon", "night",
+    "need", "needs", "want", "looking", "chahiye", "mein", "ke", "ka", "ki", "liye",
+]);
+
+const NUMBERED_PLACES = new Set(["sector", "phase", "block", "pocket", "plot", "gate", "stage"]);
+
+const titleCase = (text: string) => text.replace(/\b[a-z]/g, (letter) => letter.toUpperCase());
+
+const isCityName = (phrase: string) => {
+    const terms = extractTerms(phrase);
+    return terms.cities.length > 0 && !terms.rest.replace(/[|\s]/g, "");
+};
+
+function parseArea(text: string): string | null {
+    for (const clause of text.toLowerCase().split(/[,;!?]+/)) {
+        for (const [, phrase] of normalizeText(clause).matchAll(AREA_LEAD)) {
+            const words: string[] = [];
+            for (const word of phrase.split(" ")) {
+                if (AREA_STOP.has(word) || UNDERSTOOD_WORDS.has(word)) break;
+                if (/^\d/.test(word) && !NUMBERED_PLACES.has(words.at(-1) ?? "")) break;
+                words.push(word);
+            }
+            const cityAt = words.findIndex((word, index) => isCityName(word) || isCityName(words.slice(index, index + 2).join(" ")));
+            const area = (cityAt === -1 ? words : words.slice(0, cityAt)).join(" ");
+            if (area) return titleCase(area);
+        }
+    }
+    return null;
+}
+
 const SEARCH_HINTS = /\b(studio|studios|shoot|shooting|photoshoot|space|set|venue|location|book|booking|rent|need|looking for|chahiye)\b/;
 
 type Amount = { value: number; hasMarker: boolean };
@@ -130,20 +162,20 @@ function parseHours(text: string) {
     return null;
 }
 
+const withoutArea = (text: string, area: string | null) =>
+    area ? normalizeText(text).replace(` ${area.toLowerCase()} `, " ") : text;
+
 export function unparsedWords(text: string): string[] {
-    return tokenize(withDigits(extractTerms(text).rest)).filter((word) => !UNDERSTOOD_WORDS.has(word));
+    return tokenize(withDigits(extractTerms(withoutArea(text, parseArea(text))).rest)).filter((word) => !UNDERSTOOD_WORDS.has(word));
 }
 
 export function parseQueryRules(text: string, today: string): ParsedQuery {
-    const terms = extractTerms(text);
+    const area = parseArea(text);
+    const terms = extractTerms(withoutArea(text, area));
     const rest = withDigits(terms.rest);
     const inferred: QueryField[] = [];
 
-    const cityName = terms.cities[0] ?? null;
-    const cities = cityName ? expandCities(cityName) : [];
-    const locality = terms.areas.map((name) => findLocality(name, cities)).find(Boolean) ?? null;
-    const city = cityName ?? locality?.city ?? null;
-    if (!cityName && locality) inferred.push("city");
+    const city = terms.cities[0] ?? null;
 
     const dates = parseDates(rest, today);
     if (dates.inferred) inferred.push("dates");
@@ -155,7 +187,7 @@ export function parseQueryRules(text: string, today: string): ParsedQuery {
     const crew = parseCrew(rest);
     const hours = parseHours(rest) ?? times?.hours ?? null;
 
-    const signals = [city, locality, crew, hours, budget, times, ...dates.dates, ...terms.shootTypes, ...terms.needs, ...terms.vibes, ...terms.venueTypes]
+    const signals = [city, area, crew, hours, budget, times, ...dates.dates, ...terms.shootTypes, ...terms.needs, ...terms.vibes, ...terms.venueTypes]
         .filter((value) => value !== null && value !== undefined).length;
     const intent = signals === 0 && (NON_SEARCH.test(rest) || !SEARCH_HINTS.test(rest)) ? "other" : "search";
 
@@ -163,7 +195,7 @@ export function parseQueryRules(text: string, today: string): ParsedQuery {
         ...EMPTY_QUERY,
         intent,
         city,
-        area: locality?.name ?? null,
+        area,
         dates: dates.dates,
         datesFlexible: dates.flexible,
         startTime: times?.startTime ?? null,

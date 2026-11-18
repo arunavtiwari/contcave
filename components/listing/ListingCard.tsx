@@ -34,7 +34,7 @@ export interface ListingCardData {
   tags?: string[];
   avgReviewRating?: number;
   rating?: number;
-  reviewCount?: number;
+  reviewCount?: number | null;
   verified?: boolean;
   status?: string;
   hasSets?: boolean;

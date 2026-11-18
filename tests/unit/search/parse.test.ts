@@ -58,7 +58,7 @@ describe("parseQueryRules", () => {
         );
         expect(parsed).toMatchObject({
             intent: "search",
-            city: "Lucknow",
+            city: null,
             area: "Gomti Nagar",
             dates: ["2026-10-10"],
             crew: 6,
@@ -69,7 +69,7 @@ describe("parseQueryRules", () => {
             shootTypes: ["Product & E-commerce"],
             needs: expect.arrayContaining(["Infinity White Cyc", "Natural Light"]),
         });
-        expect(parsed.inferred).toEqual(expect.arrayContaining(["city", "dates"]));
+        expect(parsed.inferred).toEqual(["dates"]);
         expect(parsed.needs).not.toContain("Cyclorama");
     });
 
@@ -96,6 +96,15 @@ describe("parseQueryRules", () => {
         const parsed = parseQueryRules("reel shoot near film city noida", TODAY);
         expect(parsed.area).toBe("Film City");
         expect(parsed.shootTypes).toEqual(["UGC & Reels"]);
+    });
+
+    it("reads the place after in, near, around or at as the area, leaving the city and the rest of the query", () => {
+        expect(parseQueryRules("studio in pitampura", TODAY)).toMatchObject({ city: null, area: "Pitampura" });
+        expect(parseQueryRules("studio in pritampura", TODAY)).toMatchObject({ city: null, area: "Pritampura" });
+        expect(parseQueryRules("podcast studio near sector 62 noida", TODAY)).toMatchObject({ city: "Noida", area: "Sector 62" });
+        expect(parseQueryRules("studio in delhi", TODAY)).toMatchObject({ city: "Delhi", area: null });
+        expect(parseQueryRules("studio at 5pm in delhi", TODAY).area).toBeNull();
+        expect(parseQueryRules("shoot in the morning", TODAY).area).toBeNull();
     });
 
     it("routes non-search questions to help", () => {

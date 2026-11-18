@@ -310,6 +310,7 @@ model Listing {
   reviews                  Review[]
   DayStatus                DayStatus[]
   avgReviewRating          Float?
+  reviewCount              Int?
   Transaction              Transaction[]
   packages                 Package[]
   status                   ListingStatus             @default(PENDING)

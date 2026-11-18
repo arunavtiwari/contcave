@@ -3,18 +3,19 @@
 import dynamic from "next/dynamic";
 import React from "react";
 
-import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
+import CitySelect from "@/components/inputs/CitySelect";
 import AutoComplete, { AutoCompleteValue } from "@/components/ui/AutoComplete";
 import Input from "@/components/ui/Input";
+import { INDIAN_CITIES } from "@/hooks/useCities";
 import { isLatLng } from "@/lib/geo";
-import type { LocationSchema } from "@/schemas/listing";
+import { applyAddressChoice, applyCityChoice, type LocationDraft } from "@/lib/listing/location";
 
 const Map = dynamic(() => import("@/components/map/Map"), { ssr: false });
 
 type Props = {
-  value: LocationSchema | null;
+  value: LocationDraft | null;
   locationValue?: string;
-  onChange: (location: LocationSchema) => void;
+  onChange: (location: LocationDraft) => void;
   cityError?: string;
   addressError?: string;
   disabled?: boolean;
@@ -33,7 +34,11 @@ export default function ListingLocationFields({
   showMap = true,
 }: Props) {
   const latlng = value?.latlng;
-  const mapCenter = React.useMemo(() => (isLatLng(latlng) ? latlng : undefined), [latlng]);
+  const mapCenter = React.useMemo(() => {
+    if (isLatLng(latlng)) return latlng;
+    const city = INDIAN_CITIES.find((item) => item.value === value?.value);
+    return isLatLng(city?.latlng) ? city.latlng : undefined;
+  }, [latlng, value?.value]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -41,10 +46,10 @@ export default function ListingLocationFields({
         label="City"
         required
         variant={variant}
-        value={value as unknown as CitySelectValue | undefined}
+        value={value}
         locationValue={locationValue}
         error={cityError}
-        onChange={(city) => onChange({ ...value, ...city } as LocationSchema)}
+        onChange={(city) => onChange(applyCityChoice(value, city))}
       />
       <AutoComplete
         label="Address"
@@ -53,7 +58,7 @@ export default function ListingLocationFields({
         value={value?.display_name || ""}
         error={addressError}
         onChange={(place: AutoCompleteValue) =>
-          onChange({ ...value, display_name: place.display_name, latlng: place.latlng } as LocationSchema)
+          onChange(applyAddressChoice(value, place))
         }
       />
       <Input
@@ -64,7 +69,7 @@ export default function ListingLocationFields({
         disabled={disabled}
         placeholder="Apartment, suite, unit, building, floor, etc."
         value={value?.additionalInfo || ""}
-        onChange={(event) => onChange({ ...value, additionalInfo: event.target.value } as LocationSchema)}
+        onChange={(event) => onChange({ ...value, additionalInfo: event.target.value })}
       />
       {showMap && <Map center={mapCenter} animated />}
     </div>

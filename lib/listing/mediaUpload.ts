@@ -1,3 +1,4 @@
+import { isObjectId } from "@/lib/db/objectId";
 import { uploadToR2 } from "@/lib/storage/upload";
 import { Addon } from "@/types/addon";
 
@@ -125,7 +126,7 @@ export async function uploadListingMedia<
         media.sets,
         3,
         async (s, i) => {
-          const existingSetId = s.id && /^[0-9a-fA-F]{24}$/.test(s.id) ? s.id : undefined;
+          const existingSetId = s.id && isObjectId(s.id) ? s.id : undefined;
           const setId = existingSetId || (media.createMissingSetIds === false ? undefined : createObjectId());
           const uploadFolderSetId = setId || `set-${i}`;
           const {

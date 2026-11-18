@@ -6,6 +6,7 @@ import type { StudioFeedItem } from "@/types/listing";
 import type { BrowseSort } from "./browseSort";
 import { categoryMatch, findCategory } from "./categories";
 import { deriveLocality } from "./locality";
+import { DISTANCE_STEP_KM, LISTING_KIND_RANK, NO_POINT_RANK, QUALITY } from "./ranking";
 import { findRegion, regionCityKeys } from "./regions";
 import { findShootPurpose, shootPurposeMatch } from "./shootPurposes";
 import { locationState } from "./utils";
@@ -24,7 +25,6 @@ export type FeedRow = {
     price?: unknown;
     rating?: unknown;
     present?: unknown;
-    createdAt?: unknown;
 };
 
 /**
@@ -47,7 +47,6 @@ type FeedSortField =
     | "distance"
     | "price"
     | "rating"
-    | "createdAt"
     | "_id";
 
 type FeedSortSpec = ReadonlyArray<readonly [FeedSortField, 1 | -1]>;
@@ -59,8 +58,7 @@ const MONGO_EARTH_RADIUS_KM = 6378.1;
 /**
  * Relevance order. Steps that don't apply are projected as a constant, so they're no-ops:
  * no region known → regionMatch is 0 for everyone; no precise location → bucket and distance are 0.
- * Verified sits *inside* the location groups, so a nearby curated studio isn't pushed below
- * verified studios in another city.
+ * Location comes first in 0.5 km steps; verified and quality only order studios within a step.
  */
 const RECOMMENDED_SORT: FeedSortSpec = [
     ["regionMatch", -1],
@@ -68,7 +66,6 @@ const RECOMMENDED_SORT: FeedSortSpec = [
     ["weight", 1],
     ["quality", -1],
     ["distance", 1],
-    ["createdAt", -1],
     ["_id", 1],
 ];
 
@@ -88,21 +85,23 @@ const FEED_SORTS: Record<BrowseSort, FeedSortSpec> = {
     rating: [["present", -1], ["rating", -1], ["_id", 1]],
 };
 
-/** Distance buckets in metres: 0–5 km, 5–15 km, 15–30 km, 30+ km; studios with no map point last. */
-const DISTANCE_BUCKETS_M = [5_000, 15_000, 30_000];
-const NO_POINT_BUCKET = DISTANCE_BUCKETS_M.length + 1;
 const NO_POINT_DISTANCE = 1_000_000_000;
 
-/**
- * Listing quality, higher first. A starting point while there are few reviews: photo count
- * (capped at 20) plus average rating × 4 (up to 20). Tune here; nothing else depends on the scale.
- */
+const REVIEWS = { $cond: [{ $gt: [{ $ifNull: ["$avgReviewRating", 0] }, 0] }, { $ifNull: ["$reviewCount", 0] }, 0] };
+
+const SMOOTHED_RATING = {
+    $divide: [
+        { $add: [QUALITY.priorReviews * QUALITY.priorRating, { $multiply: [REVIEWS, { $ifNull: ["$avgReviewRating", 0] }] }] },
+        { $add: [QUALITY.priorReviews, REVIEWS] },
+    ],
+};
+
 const QUALITY_SCORE = {
     $round: [
         {
             $add: [
-                { $min: [{ $size: { $ifNull: ["$imageSrc", []] } }, 20] },
-                { $multiply: [{ $ifNull: ["$avgReviewRating", 0] }, 4] },
+                { $min: [{ $size: { $ifNull: ["$imageSrc", []] } }, QUALITY.maxPhotos] },
+                { $multiply: [SMOOTHED_RATING, QUALITY.ratingMultiplier] },
             ],
         },
         0,
@@ -124,9 +123,7 @@ const NUMERIC_OR_EMPTY = [{ $exists: false }, null, { $type: "int" }, { $type: "
 
 const TAXONOMY_FILTERS = ["type", "venueTypes", "aesthetics", "setFeatures"] as const;
 
-const EPOCH = { $date: "1970-01-01T00:00:00.000Z" };
-
-const WEIGHT = { $cond: [{ $eq: ["$listingType", "CURATED"] }, 2, 1] };
+const WEIGHT = { $cond: [{ $eq: ["$listingType", "CURATED"] }, LISTING_KIND_RANK.CURATED, LISTING_KIND_RANK.STANDARD] };
 
 export function hydratableListingFilter(
     params: { active?: boolean; status?: string; listingType?: "STANDARD" | "CURATED" } = { active: true }
@@ -209,13 +206,7 @@ function regionMatchExpression(regionSlug: string | null) {
 }
 
 const DISTANCE_BUCKET = {
-    $switch: {
-        branches: [
-            { case: NO_DISTANCE, then: NO_POINT_BUCKET },
-            ...DISTANCE_BUCKETS_M.map((limit, index) => ({ case: { $lt: ["$distance", limit] }, then: index })),
-        ],
-        default: DISTANCE_BUCKETS_M.length,
-    },
+    $cond: [NO_DISTANCE, NO_POINT_RANK, { $floor: { $divide: ["$distance", DISTANCE_STEP_KM * 1000] } }],
 };
 
 /**
@@ -290,7 +281,6 @@ export function buildFeedPipeline({ filters, sort, limit, excludeIds }: FeedPipe
                 price: SORT_PRICE,
                 rating: SORT_RATING,
                 present: presentExpression(order, Boolean(origin)),
-                createdAt: { $ifNull: ["$createdAt", EPOCH] },
             },
         },
         { $sort: Object.fromEntries(spec) },

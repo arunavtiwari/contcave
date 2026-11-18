@@ -2,11 +2,8 @@ import { google } from "googleapis";
 
 import { auth } from "@/auth";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { isObjectId } from "@/lib/db/objectId";
 import prisma from "@/lib/prismadb";
-
-function isObjectId(value: string) {
-  return /^[0-9a-fA-F]{24}$/.test(value);
-}
 
 async function refreshCalendarAccessToken(account: {
   refresh_token: string;
