@@ -1,9 +1,8 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { signOut } from "next-auth/react";
-import { memo, useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { memo } from "react";
 import { AiOutlineMenu } from "react-icons/ai";
 import {
   FiCalendar,
@@ -18,10 +17,13 @@ import {
 import { MdApartment } from "react-icons/md";
 
 import MenuItem from "@/components/navbar/MenuItem";
+import { MENU_OFFSET, MENU_SURFACE } from "@/components/navbar/menuSurface";
 import Avatar from "@/components/ui/Avatar";
 import Button from "@/components/ui/Button";
 import useUIStore from "@/hooks/useUIStore";
-import { SafeUser, UserRole } from "@/types/user";
+import { isOwner } from "@/lib/user/permissions";
+import { cn } from "@/lib/utils";
+import { SafeUser } from "@/types/user";
 
 type Props = {
   currentUser?: SafeUser | null;
@@ -29,132 +31,12 @@ type Props = {
 
 const UserMenu = memo(function UserMenu({ currentUser }: Props) {
   const uiStore = useUIStore();
-  const [isOpen, setIsOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const [mounted, setMounted] = useState(false);
-  const [coords, setCoords] = useState<{ top: number; right: number } | null>(null);
-
-  const getMenuCoords = useCallback(() => {
-    const trigger = triggerRef.current;
-
-    if (!trigger) return null;
-
-    const rect = trigger.getBoundingClientRect();
-
-    return {
-      top: Math.round(rect.bottom + 12),
-      right: Math.max(8, Math.round(window.innerWidth - rect.right)),
-    };
-  }, []);
-
-  const updateMenuCoords = useCallback(() => {
-    const nextCoords = getMenuCoords();
-
-    if (!nextCoords) return;
-
-    setCoords((prevCoords) => {
-      if (prevCoords?.top === nextCoords.top && prevCoords.right === nextCoords.right) {
-        return prevCoords;
-      }
-
-      return nextCoords;
-    });
-  }, [getMenuCoords]);
-
-  const toggleOpen = useCallback(() => {
-    if (isOpen) {
-      setIsOpen(false);
-      return;
-    }
-
-    const nextCoords = getMenuCoords();
-
-    if (nextCoords) {
-      setCoords(nextCoords);
-    }
-
-    setIsOpen(true);
-  }, [getMenuCoords, isOpen]);
-
-  const closeMenu = useCallback(() => {
-    setIsOpen(false);
-  }, []);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    let animationFrameId = 0;
-    const scheduleCoordsUpdate = () => {
-      cancelAnimationFrame(animationFrameId);
-      animationFrameId = requestAnimationFrame(updateMenuCoords);
-    };
-
-    updateMenuCoords();
-
-    const handleClickOutside = (event: PointerEvent) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target as Node) &&
-        !triggerRef.current?.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      setIsOpen(false);
-      triggerRef.current?.focus();
-    };
-
-    document.addEventListener("pointerdown", handleClickOutside);
-    document.addEventListener("keydown", handleEscape);
-    window.addEventListener("resize", scheduleCoordsUpdate);
-    window.addEventListener("scroll", scheduleCoordsUpdate, true);
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      document.removeEventListener("pointerdown", handleClickOutside);
-      document.removeEventListener("keydown", handleEscape);
-      window.removeEventListener("resize", scheduleCoordsUpdate);
-      window.removeEventListener("scroll", scheduleCoordsUpdate, true);
-    };
-  }, [isOpen, updateMenuCoords]);
-
-  const handleRent = useCallback(() => {
-    uiStore.onOpen("rent");
-    closeMenu();
-  }, [uiStore, closeMenu]);
-
-  const handleLogout = useCallback(() => {
-    signOut({ callbackUrl: "/" });
-    closeMenu();
-  }, [closeMenu]);
-
-  const openLogin = useCallback(() => {
-    uiStore.onOpen("login");
-    closeMenu();
-  }, [uiStore, closeMenu]);
-
-  const openRegister = useCallback(() => {
-    uiStore.onOpen("register");
-    closeMenu();
-  }, [uiStore, closeMenu]);
 
   return (
-    <div className="relative">
-      <div className="flex">
+    <DropdownMenu.Root modal={false}>
+      <DropdownMenu.Trigger asChild>
         <Button
-          ref={triggerRef}
-          onClick={toggleOpen}
           aria-label="Open user menu"
-          aria-expanded={isOpen}
-          aria-haspopup="menu"
           variant="ghost"
           size="md"
           outline
@@ -166,56 +48,37 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
             <Avatar src={currentUser?.image} />
           </div>
         </Button>
-      </div>
+      </DropdownMenu.Trigger>
 
-      {mounted && createPortal(
-        <AnimatePresence>
-          {isOpen && coords && (
-            <motion.div
-              ref={menuRef}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.14, ease: "easeOut" }}
-              className="fixed rounded-2xl min-w-72 bg-background/70 backdrop-blur-lg overflow-hidden text-sm p-2 border border-neutral-300! ring-1 ring-neutral-300/70 z-100000 will-change-opacity"
-              style={{
-                top: coords.top,
-                right: coords.right,
-              }}
-            >
-              <div className="flex flex-col gap-1">
-                {currentUser ? (
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content align="end" sideOffset={MENU_OFFSET} className={cn(MENU_SURFACE, "min-w-72 p-2")}>
+          <div className="flex flex-col gap-1">
+            {currentUser ? (
+              <>
+                <MenuItem href="/dashboard/bookings" label="My Bookings" icon={FiCalendar} />
+                <MenuItem href="/dashboard/favorites" label="My Favorites" icon={FiHeart} />
+                {isOwner(currentUser.role) && (
                   <>
-                    <MenuItem onClick={closeMenu} href="/dashboard/bookings" label="My Bookings" icon={FiCalendar} />
-                    <MenuItem onClick={closeMenu} href="/dashboard/favorites" label="My Favorites" icon={FiHeart} />
-                    {(currentUser?.role === UserRole.OWNER || currentUser?.role === UserRole.ADMIN) && (
-                      <>
-                        <MenuItem onClick={closeMenu} href="/dashboard/reservations" label="Guest Reservations" icon={FiUserCheck} />
-                        <MenuItem onClick={closeMenu} href="/dashboard/properties" label="My Properties" icon={MdApartment} />
-                        <MenuItem onClick={handleRent} label="List your space" icon={FiPlusCircle} />
-                      </>
-                    )}
-                    <MenuItem onClick={closeMenu} href="/dashboard/profile" label="My Profile" icon={FiUser} />
-                    <div className="mx-2 my-2 border-t border-neutral-300" role="separator" />
-                    <MenuItem onClick={handleLogout} label="Logout" icon={FiLogOut} />
-                  </>
-                ) : (
-                  <>
-                    <MenuItem onClick={openLogin} label="Login" icon={FiLogIn} />
-                    <MenuItem onClick={openRegister} label="Sign up" icon={FiUserPlus} />
+                    <MenuItem href="/dashboard/reservations" label="Guest Reservations" icon={FiUserCheck} />
+                    <MenuItem href="/dashboard/properties" label="My Properties" icon={MdApartment} />
+                    <MenuItem onSelect={() => uiStore.onOpen("rent")} label="List your space" icon={FiPlusCircle} />
                   </>
                 )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
-    </div>
+                <MenuItem href="/dashboard/profile" label="My Profile" icon={FiUser} />
+                <DropdownMenu.Separator className="mx-2 my-2 border-t border-neutral-300" />
+                <MenuItem onSelect={() => signOut({ callbackUrl: "/" })} label="Logout" icon={FiLogOut} />
+              </>
+            ) : (
+              <>
+                <MenuItem onSelect={() => uiStore.onOpen("login")} label="Login" icon={FiLogIn} />
+                <MenuItem onSelect={() => uiStore.onOpen("register")} label="Sign up" icon={FiUserPlus} />
+              </>
+            )}
+          </div>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   );
 });
 
-UserMenu.displayName = "UserMenu";
-
 export default UserMenu;
-

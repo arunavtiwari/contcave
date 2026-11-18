@@ -4,7 +4,7 @@ import { QAAccount } from "./db";
 import { getE2EConnectionEnv, getE2EEnv } from "./env";
 import { sampleImage, samplePdf, sampleSignature } from "./files";
 
-async function seedCookieConsent(page: Page) {
+export async function seedCookieConsent(page: Page) {
   const consent = { necessary: true, analytics: true, marketing: true };
   await page.context().addCookies([
     {
@@ -108,7 +108,7 @@ export async function loginViaUi(page: Page, account: Pick<QAAccount, "email" | 
   await seedCookieConsent(page);
   await gotoApp(page, "/");
   await openUserMenu(page);
-  await page.getByRole("button", { name: /login/i }).click();
+  await page.getByRole("menuitem", { name: /login/i }).click();
   const modal = await modalByTestIdOrDialog(page, "login-modal", /^login$/i);
   await modal.getByLabel(/email address/i).fill(account.email);
   await modal.getByLabel(/password/i).fill(account.password);
@@ -121,7 +121,7 @@ export async function registerOwnerViaUi(page: Page, account: QAAccount) {
   await seedCookieConsent(page);
   await gotoApp(page, "/");
   await openUserMenu(page);
-  await page.getByRole("button", { name: /sign up/i }).click();
+  await page.getByRole("menuitem", { name: /sign up/i }).click();
   const registerModal = await modalByTestIdOrDialog(page, "register-modal", /^register$/i);
   await page.getByText("Register here").click();
   await expect(registerModal).toBeHidden({ timeout: 15_000 });
@@ -140,7 +140,7 @@ export async function registerCustomerViaUi(page: Page, account: QAAccount) {
   await seedCookieConsent(page);
   await gotoApp(page, "/");
   await openUserMenu(page);
-  await page.getByRole("button", { name: /sign up/i }).click();
+  await page.getByRole("menuitem", { name: /sign up/i }).click();
   const modal = await modalByTestIdOrDialog(page, "register-modal", /^register$/i);
   await modal.getByLabel(/^email$/i).fill(account.email);
   await modal.getByLabel(/user name/i).fill(account.name);
