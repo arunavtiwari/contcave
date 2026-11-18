@@ -31,11 +31,6 @@ const pillVariants = cva(
                 sm: "px-2.5 h-7 text-xs",
                 md: "px-3 h-9 text-sm",
             },
-            tone: {
-                positive: "text-emerald-700 dark:text-emerald-300",
-                pending: "text-amber-700 dark:text-amber-300",
-                negative: "text-rose-700 dark:text-rose-300",
-            },
             clickable: {
                 true: "cursor-pointer hover:opacity-85 button-active",
             },
@@ -56,7 +51,6 @@ const Pill: React.FC<PillProps> = ({
     label,
     variant,
     size,
-    tone,
     icon: Icon,
     className,
     onClick,
@@ -65,7 +59,7 @@ const Pill: React.FC<PillProps> = ({
     return (
         <div
             onClick={onClick}
-            className={cn(pillVariants({ variant, size, tone, clickable: !!onClick, className }))}
+            className={cn(pillVariants({ variant, size, clickable: !!onClick, className }))}
             {...props}
         >
             {Icon && <Icon className="shrink-0" size={size === "xs" ? 10 : 12} />}

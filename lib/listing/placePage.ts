@@ -27,6 +27,7 @@ import { truncateText } from "@/lib/richText";
 import { type BreadcrumbItem, META_DESCRIPTION_LENGTH } from "@/lib/seo";
 import { isAre, joinList, plural, pluralize, pluralWord } from "@/lib/strings";
 import { formatINR, formatNumber } from "@/lib/utils";
+import type { StudioFeedFilters } from "@/schemas/listing";
 import type { Faq } from "@/types/faq";
 
 const HERO_IMAGES = 3;
@@ -262,6 +263,11 @@ function buildPlacePage(places: Places, entry: CityEntry, category?: StudioCateg
 }
 
 export type PlacePage = ReturnType<typeof buildPlacePage>;
+
+export const placeFeedFilters = ({ entry, category }: PlacePage): StudioFeedFilters => ({
+  locationValues: entry.locationValues,
+  studioCategory: category?.slug,
+});
 
 type PlaceRoute = { page: PlacePage } | { redirect: string } | null;
 

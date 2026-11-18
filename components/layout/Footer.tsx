@@ -1,6 +1,7 @@
 import Image from "next/image";
 
 import Container from "@/components/layout/Container";
+import CookieSettingsLink from "@/components/layout/CookieSettingsLink";
 import Logo from "@/components/navbar/Logo";
 import EmailShield from "@/components/ui/EmailShield";
 import TextLink from "@/components/ui/TextLink";
@@ -62,6 +63,7 @@ async function Footer() {
               <TextLink variant="muted" href="/about">About</TextLink>
               <TextLink variant="muted" href="/privacy-policy">Privacy Policy</TextLink>
               <TextLink variant="muted" href="/terms-and-conditions">Terms & Conditions</TextLink>
+              <CookieSettingsLink />
               <TextLink variant="muted" href="/blog">Blogs</TextLink>
             </div>
 

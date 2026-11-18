@@ -3,9 +3,10 @@ import "server-only";
 import { cookies, headers } from "next/headers";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import type { LatLng } from "@/lib/geo";
+import { type LatLng, parsePlaceLabelParam } from "@/lib/geo";
 import { getIpLocation, isBotRequest } from "@/lib/http/requestMeta";
-import type { StudioFeedFilters } from "@/schemas/listing";
+import type { SearchParams } from "@/lib/pagination";
+import { type StudioFeedFilters, studioFeedSearchParamsSchema } from "@/schemas/listing";
 
 import type { BrowseLocation } from "./browseLocation";
 import { type BrowseSort, DEFAULT_BROWSE_SORT } from "./browseSort";
@@ -13,6 +14,11 @@ import type { FeedSortContext } from "./feedQuery";
 import { findRegion, nearestRegion, regionOfPoint } from "./regions";
 import { parseSavedSearchLocation, parseSearchLocationCookie, SEARCH_LOCATION_COOKIE } from "./searchLocation";
 import { ListingService } from "./service";
+
+export const feedFiltersOf = (searchParams: SearchParams) => studioFeedSearchParamsSchema.parse(searchParams);
+
+export const placeLabelOf = (searchParams: SearchParams) =>
+    typeof searchParams.place === "string" ? parsePlaceLabelParam(searchParams.place) : undefined;
 
 /**
  * The location the visitor actually chose: a place searched in the URL (`near`) first, then one

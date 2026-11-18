@@ -37,8 +37,14 @@ interface ListingCardMediaProps {
 
 const POSITIVE_STATUSES = new Set(["CONFIRMED", "CHECKED_IN", "COMPLETED"]);
 
-const reservationTone = (status: string) =>
-    POSITIVE_STATUSES.has(status) ? "positive" : status === "PENDING_APPROVAL" ? "pending" : "negative";
+const STATUS_STYLES = {
+    positive: { variant: "success", className: "text-success border-success/30" },
+    pending: { variant: "warning", className: "text-warning border-warning/30" },
+    negative: { variant: "destructive", className: "text-destructive border-destructive/30" },
+} as const;
+
+const reservationStyle = (status: string) =>
+    STATUS_STYLES[POSITIVE_STATUSES.has(status) ? "positive" : status === "PENDING_APPROVAL" ? "pending" : "negative"];
 
 const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
     images,
@@ -202,10 +208,9 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                 <div className={`absolute left-3 top-3 z-20 transition-transform ${allowScale ? "group-hover:scale-110" : ""}`}>
                     <Pill
                         label={reservationLifecycleStatus.replaceAll("_", " ")}
-                        variant="glass"
-                        size="sm"
-                        tone={reservationTone(reservationLifecycleStatus)}
-                        className="text-xs font-semibold tracking-wide uppercase"
+                        variant={reservationStyle(reservationLifecycleStatus).variant}
+                        size="xs"
+                        className={cn("bg-background/80 backdrop-blur-md font-semibold text-[11px] px-3 border", reservationStyle(reservationLifecycleStatus).className)}
                     />
                 </div>
             )}

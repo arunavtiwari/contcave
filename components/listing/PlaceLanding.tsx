@@ -7,7 +7,7 @@ import PlaceHero from "@/components/listing/PlaceHero";
 import StudioBrowse from "@/components/listing/StudioBrowse";
 import JsonLd from "@/components/seo/JsonLd";
 import { parseBrowseSort } from "@/lib/listing/browseSort";
-import { loadPlaceRoute } from "@/lib/listing/placePage";
+import { loadPlaceRoute, placeFeedFilters } from "@/lib/listing/placePage";
 import { cityCollectionJsonLd } from "@/lib/listing/seo";
 import { loadStudioFeed, pickedBrowseLocation } from "@/lib/listing/studioFeed";
 import { pagePath, pageTitle, redirectPastLastPage, type SearchParams } from "@/lib/pagination";
@@ -26,7 +26,7 @@ export default async function PlaceLanding({ slug, categorySlug, pageNumber, sea
 
   const { page } = route;
   const { entry, category, copy } = page;
-  const filters = { locationValues: entry.locationValues, studioCategory: category?.slug };
+  const filters = placeFeedFilters(page);
   const [feed, currentUser, initialLocation] = await Promise.all([
     loadStudioFeed(filters, { page: pageNumber, order: parseBrowseSort(searchParams.sort) }),
     getCurrentUser(),
@@ -65,6 +65,7 @@ export default async function PlaceLanding({ slug, categorySlug, pageNumber, sea
             page={pageNumber}
             path={page.path}
             searchParams={searchParams}
+            landing={{ place: slug, category: categorySlug }}
           />
         )}
         guide={firstPage ? <PlaceGuide page={page} /> : undefined}

@@ -12,17 +12,15 @@ import StudioBrowse from "@/components/listing/StudioBrowse";
 import JsonLd from "@/components/seo/JsonLd";
 import EmptyState from "@/components/ui/EmptyState";
 import { isHtmlOnlyCrawler } from "@/lib/crawlers";
-import { parsePlaceLabelParam } from "@/lib/geo";
 import { DEFAULT_BROWSE_SORT, parseBrowseSort } from "@/lib/listing/browseSort";
 import { coveredCityNames, landingPlaceFor } from "@/lib/listing/cities";
 import { cityPath, coverageArea } from "@/lib/listing/cityPaths";
 import { toStudioFeedItem } from "@/lib/listing/feedQuery";
 import { collectionMetadata, listingPath } from "@/lib/listing/seo";
-import { loadStudioFeed, pickedBrowseLocation } from "@/lib/listing/studioFeed";
+import { feedFiltersOf, loadStudioFeed, pickedBrowseLocation, placeLabelOf } from "@/lib/listing/studioFeed";
 import { pageFromParams, pagePath, pageTitle, redirectPastLastPage, type SearchParams } from "@/lib/pagination";
 import { truncateText } from "@/lib/richText";
 import { absoluteUrl, META_DESCRIPTION_LENGTH } from "@/lib/seo";
-import { studioFeedSearchParamsSchema } from "@/schemas/listing";
 
 export const dynamic = "force-dynamic";
 
@@ -43,11 +41,6 @@ const LISTINGS_KEYWORDS = [
 interface StudiosProps {
   searchParams: Promise<SearchParams>;
 }
-
-const feedFiltersOf = (searchParams: SearchParams) => studioFeedSearchParamsSchema.parse(searchParams);
-
-const placeLabelOf = (searchParams: SearchParams) =>
-  typeof searchParams.place === "string" ? parsePlaceLabelParam(searchParams.place) : undefined;
 
 const hasActiveFilters = (searchParams: SearchParams) =>
   Object.values(feedFiltersOf(searchParams)).some((value) => value !== undefined)

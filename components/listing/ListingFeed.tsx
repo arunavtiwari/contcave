@@ -40,14 +40,15 @@ function ListingFeed({ page, currentUser, nearLabel, order = DEFAULT_BROWSE_SORT
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 overflow-x-hidden">
         {page.items.map((item, index) => (
-          <ListingCard
-            key={item.id}
-            data={item}
-            currentUser={currentUser}
-            priority={index < PRIORITY_CARDS}
-            showListingBadge
-            showDistance={order === "distance"}
-          />
+          <div key={item.id} data-feed-id={item.id}>
+            <ListingCard
+              data={item}
+              currentUser={currentUser}
+              priority={index < PRIORITY_CARDS}
+              showListingBadge
+              showDistance={order === "distance"}
+            />
+          </div>
         ))}
       </div>
     </div>

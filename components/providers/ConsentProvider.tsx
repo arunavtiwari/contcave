@@ -19,6 +19,9 @@ interface ConsentContextType {
     updateConsent: (newConsent: Partial<ConsentState>) => void;
     acceptAll: () => void;
     declineAll: () => void;
+    isPreferencesOpen: boolean;
+    openPreferences: () => void;
+    closePreferences: () => void;
 }
 
 const COOKIE_NAME = CONSENT_COOKIE_NAME;
@@ -42,6 +45,7 @@ export const useConsent = () => {
 export const ConsentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [consent, setConsent] = useState<ConsentState>(DEFAULT_CONSENT);
     const [isInitialized, setIsInitialized] = useState(false);
+    const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
 
     useEffect(() => {
         const saved = localStorage.getItem(COOKIE_NAME);
@@ -84,7 +88,16 @@ export const ConsentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
 
     return (
-        <ConsentContext.Provider value={{ consent, isInitialized, updateConsent, acceptAll, declineAll }}>
+        <ConsentContext.Provider value={{
+            consent,
+            isInitialized,
+            updateConsent,
+            acceptAll,
+            declineAll,
+            isPreferencesOpen,
+            openPreferences: () => setIsPreferencesOpen(true),
+            closePreferences: () => setIsPreferencesOpen(false),
+        }}>
             {children}
         </ConsentContext.Provider>
     );

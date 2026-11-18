@@ -4,7 +4,7 @@ import type { ComponentProps } from "react";
 
 import { cn } from "@/lib/utils";
 
-const textLinkVariants = cva("transition-colors", {
+export const textLinkVariants = cva("transition-colors", {
   variants: {
     variant: {
       default: "font-semibold text-foreground underline underline-offset-4",

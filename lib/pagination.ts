@@ -7,7 +7,6 @@ export type SearchParams = Record<string, string | string[] | undefined>;
 export const PAGE_PARAM = "page";
 
 const MAX_PAGE = 500;
-const ALL_PAGES_UP_TO = 7;
 
 export function pageFromParams(searchParams: SearchParams) {
     const value = searchParams[PAGE_PARAM];
@@ -25,6 +24,15 @@ export function toQueryString(searchParams: SearchParams) {
     return search ? `?${search}` : "";
 }
 
+export function searchParamsOf(query: URLSearchParams): SearchParams {
+    const params: SearchParams = {};
+    for (const key of new Set(query.keys())) {
+        const values = query.getAll(key);
+        params[key] = values.length > 1 ? values : values[0];
+    }
+    return params;
+}
+
 export function pagePath(path: string, page: number, searchParams: SearchParams = {}) {
     const { [PAGE_PARAM]: _page, ...rest } = searchParams;
     return `${path}${toQueryString({ ...rest, [PAGE_PARAM]: page > 1 ? String(page) : undefined })}`;
@@ -33,20 +41,6 @@ export function pagePath(path: string, page: number, searchParams: SearchParams 
 export function pageTitle(titles: string[], page: number) {
     const options = titles.map((title) => (page > 1 ? `${title} – Page ${page}` : title));
     return options.find((option) => option.length <= TITLE_LENGTH) ?? options[options.length - 1];
-}
-
-export function paginationRange(page: number, totalPages: number): (number | null)[] {
-    if (totalPages <= ALL_PAGES_UP_TO) return Array.from({ length: totalPages }, (_, index) => index + 1);
-
-    const anchors = Array.from(new Set([1, page - 1, page, page + 1, totalPages]))
-        .filter((candidate) => candidate >= 1 && candidate <= totalPages)
-        .sort((a, b) => a - b);
-
-    return anchors.flatMap((current, index) => {
-        const previous = anchors[index - 1];
-        if (previous === undefined || current - previous === 1) return [current];
-        return current - previous === 2 ? [previous + 1, current] : [null, current];
-    });
 }
 
 export function redirectPastLastPage(isEmpty: boolean, page: number, firstPage: string) {

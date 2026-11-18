@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { parseBrowseSort } from "@/lib/listing/browseSort";
-import { pageFromParams, pagePath, pageTitle, paginationRange } from "@/lib/pagination";
+import { pageFromParams, pagePath, pageTitle, searchParamsOf } from "@/lib/pagination";
 import { studioFeedSearchParamsSchema } from "@/schemas/listing";
 
 describe("page numbers", () => {
@@ -33,14 +33,6 @@ describe("page numbers", () => {
         expect(pageTitle([long, "Book Studios in Delhi NCR"], 2)).toBe("Book Studios in Delhi NCR – Page 2");
     });
 
-    it("shows every page when there are few and windows the rest", () => {
-        expect(paginationRange(1, 1)).toEqual([1]);
-        expect(paginationRange(4, 7)).toEqual([1, 2, 3, 4, 5, 6, 7]);
-        expect(paginationRange(1, 20)).toEqual([1, 2, null, 20]);
-        expect(paginationRange(3, 20)).toEqual([1, 2, 3, 4, null, 20]);
-        expect(paginationRange(10, 20)).toEqual([1, null, 9, 10, 11, null, 20]);
-        expect(paginationRange(20, 20)).toEqual([1, null, 19, 20]);
-    });
 });
 
 describe("feed sort", () => {
@@ -57,5 +49,11 @@ describe("feed sort", () => {
         const filters = studioFeedSearchParamsSchema.parse({ sort: "price_desc", page: "2" });
         expect(filters).not.toHaveProperty("sort");
         expect(filters).not.toHaveProperty("page");
+    });
+});
+
+describe("searchParamsOf", () => {
+    it("keeps repeated keys as arrays and single keys as strings", () => {
+        expect(searchParamsOf(new URLSearchParams("a=1&b=2&b=3"))).toEqual({ a: "1", b: ["2", "3"] });
     });
 });

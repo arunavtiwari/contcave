@@ -425,7 +425,7 @@ function ListingClient({
   return (
     <div className="pt-10">
       <Container>
-        <div className="w-full pb-24">
+        <div className="mx-auto w-full max-w-300 pb-24">
           {isPreview && (
             <Callout role="status" icon={FiEye} title="Preview: this studio isn't live yet" className="mb-6">
               This is how guests will see it once it&apos;s approved. It&apos;s hidden from search, and bookings and enquiries are turned off until then.

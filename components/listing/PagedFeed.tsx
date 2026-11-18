@@ -1,8 +1,7 @@
-import ListingFeed from "@/components/listing/ListingFeed";
-import Pagination from "@/components/ui/Pagination";
+import InfiniteFeed from "@/components/listing/InfiniteFeed";
 import type { BrowseSort } from "@/lib/listing/browseSort";
-import { FEED_ANCHOR } from "@/lib/listing/feedPages";
-import type { SearchParams } from "@/lib/pagination";
+import type { FeedLanding } from "@/lib/listing/feedRequest";
+import { pagePath, type SearchParams } from "@/lib/pagination";
 import type { StudioFeedPage } from "@/types/listing";
 import type { SafeUser } from "@/types/user";
 
@@ -13,14 +12,11 @@ type Props = {
   nearLabel?: string;
   page: number;
   path: string;
-  searchParams?: SearchParams;
+  searchParams: SearchParams;
+  landing?: FeedLanding;
 };
 
-export default function PagedFeed({ feed, order, currentUser, nearLabel, page, path, searchParams }: Props) {
-  return (
-    <div className="space-y-12">
-      <ListingFeed page={feed} order={order} currentUser={currentUser} nearLabel={nearLabel} />
-      <Pagination page={page} totalPages={feed.totalPages} path={path} searchParams={searchParams} anchor={FEED_ANCHOR} />
-    </div>
-  );
+export default function PagedFeed(props: Props) {
+  // A new filter, sort or starting page is a new feed: remount so scroll state starts fresh.
+  return <InfiniteFeed key={pagePath(props.path, props.page, props.searchParams)} {...props} />;
 }

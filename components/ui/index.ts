@@ -19,7 +19,6 @@ export { default as Heading } from "./Heading";
 export { default as Input } from "./Input";
 export * from "./Input";
 export { default as Loader } from "./Loader";
-export { default as Pagination } from "./Pagination";
 export { default as Pill } from "./Pill";
 export { default as Select } from "./Select";
 export * from "./Select";
