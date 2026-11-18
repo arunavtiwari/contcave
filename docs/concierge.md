@@ -59,7 +59,8 @@ to move every AI feature. The chat is hidden when the key is not set.
   an edited history is rejected, while dropping all of it is always valid.
 - The long system prompt is prompt-cached.
 - Shoot plans use Claude structured output shaped by the plan's Zod schema; the reply is then
-  validated with that schema. If the call fails, a template plan is used.
+  validated with that schema. If the call fails or the reply is invalid, Spot says it
+  couldn't draft the plan and offers to try again or hand over; there is no template plan.
 - No embeddings are used.
 - If the reply still fails, Spot points to the studios the search already found, or asks the
   customer to try again or use WhatsApp.

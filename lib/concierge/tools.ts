@@ -528,7 +528,7 @@ const draftPlanTool: Handler = async (_raw, ctx) => {
     if (made >= MAX_PLANS_PER_CONVERSATION) {
         return { result: { created: false, note: "Plan limit reached for this conversation. Refine the existing plan in words instead." } };
     }
-    const { card } = await draftPlan(ctx.state.brief);
+    const card = await draftPlan(ctx.state.brief);
     ctx.emit({ type: "card", card });
     return {
         result: {
