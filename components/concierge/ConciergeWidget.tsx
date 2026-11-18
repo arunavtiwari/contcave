@@ -3,10 +3,12 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { FiAlertCircle } from "react-icons/fi";
 import {
     LuArrowUp,
     LuCalendarDays,
     LuCamera,
+    LuChevronRight,
     LuClock,
     LuMapPin,
     LuMic,
@@ -18,9 +20,13 @@ import {
     LuX,
 } from "react-icons/lu";
 
+import Button from "@/components/ui/Button";
+import Callout from "@/components/ui/Callout";
+import Pill from "@/components/ui/Pill";
+import Textarea from "@/components/ui/Textarea";
 import type { ConciergeBrief } from "@/lib/concierge/types";
 import { CONCIERGE_NAME, MAX_USER_MESSAGE_LENGTH } from "@/lib/concierge/types";
-import { cn } from "@/lib/utils";
+import { cn, formatINR } from "@/lib/utils";
 
 import ConciergeCardView, { prettyDate } from "./ConciergeCards";
 import { type PendingReply, useConcierge } from "./useConcierge";
@@ -32,9 +38,9 @@ const STARTERS = [
     { icon: LuWallet, title: "Plan within a budget", prompt: "Help me plan a half-day shoot within a ₹30,000 budget" },
 ];
 
-const inr = (amount: number) => `₹${amount.toLocaleString("en-IN")}`;
+const COMPOSER_MAX_HEIGHT = 140;
+const SPRING = { type: "spring" as const, stiffness: 380, damping: 32 };
 
-/** **bold** and line breaks only. The text is rendered as React nodes, never as HTML. */
 function RichText({ text }: { text: string }) {
     const paragraphs = text.split(/\n{2,}/).filter((paragraph) => paragraph.trim().length > 0);
     return (
@@ -43,7 +49,7 @@ function RichText({ text }: { text: string }) {
                 <p key={index} className="whitespace-pre-line">
                     {paragraph.split(/(\*\*[^*\n]+\*\*)/g).map((part, partIndex) =>
                         part.startsWith("**") && part.endsWith("**") && part.length > 4 ? (
-                            <strong key={partIndex} className="font-semibold text-foreground">
+                            <strong key={partIndex} className="font-semibold">
                                 {part.slice(2, -2)}
                             </strong>
                         ) : (
@@ -56,14 +62,10 @@ function RichText({ text }: { text: string }) {
     );
 }
 
-function Mark({ size = 28 }: { size?: number }) {
+function Mark({ size }: { size: number }) {
     return (
-        <span
-            className="flex shrink-0 items-center justify-center rounded-full bg-foreground text-background"
-            style={{ width: size, height: size }}
-            aria-hidden
-        >
-            <LuSparkles size={Math.round(size * 0.5)} />
+        <span className="flex shrink-0 items-center justify-center rounded-full bg-foreground text-background" style={{ width: size, height: size }} aria-hidden>
+            <LuSparkles size={Math.round(size * 0.48)} />
         </span>
     );
 }
@@ -72,76 +74,79 @@ function TypingDots() {
     return (
         <span className="inline-flex items-center gap-1" aria-hidden>
             {[0, 1, 2].map((dot) => (
-                <span
-                    key={dot}
-                    className="h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-400"
-                    style={{ animationDelay: `${dot * 120}ms`, animationDuration: "900ms" }}
-                />
+                <span key={dot} className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: `${dot * 120}ms`, animationDuration: "900ms" }} />
             ))}
         </span>
     );
 }
 
 function BriefStrip({ brief }: { brief: ConciergeBrief }) {
+    const budget = brief.budgetPerHour ? `${formatINR(brief.budgetPerHour)}/hr` : brief.budgetTotal ? formatINR(brief.budgetTotal) : null;
     const facts = [
         brief.shootType && { icon: LuCamera, label: brief.shootType },
         brief.city && { icon: LuMapPin, label: brief.city },
         brief.date && { icon: LuCalendarDays, label: prettyDate(brief.date) },
         brief.hours && { icon: LuClock, label: `${brief.hours} ${brief.hours === 1 ? "hr" : "hrs"}` },
         brief.people && { icon: LuUsers, label: `${brief.people} people` },
-        brief.budgetPerHour
-            ? { icon: LuWallet, label: `${inr(brief.budgetPerHour)}/hr` }
-            : brief.budgetTotal
-                ? { icon: LuWallet, label: inr(brief.budgetTotal) }
-                : null,
+        budget && { icon: LuWallet, label: budget },
     ].filter((fact): fact is { icon: typeof LuCamera; label: string } => Boolean(fact));
 
     if (facts.length === 0) return null;
     return (
-        <div className="border-b border-border bg-muted/40 px-4 py-2.5">
-            <ul className="flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Your brief so far">
-                {facts.map(({ icon: Icon, label }) => (
-                    <li
-                        key={label}
-                        className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium capitalize text-foreground"
-                    >
-                        <Icon size={11} className="text-muted-foreground" aria-hidden />
-                        {label}
-                    </li>
-                ))}
-            </ul>
+        <ul className="flex gap-1.5 overflow-x-auto border-b border-border px-5 py-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Your brief so far">
+            {facts.map(({ icon, label }) => (
+                <li key={label} className="shrink-0">
+                    <Pill size="sm" variant="outline" icon={icon} label={label} className="rounded-full capitalize tracking-normal text-foreground" />
+                </li>
+            ))}
+        </ul>
+    );
+}
+
+function AssistantReply({ text, cards, status, streaming, onAsk, disabled }: PendingReply & { streaming: boolean; onAsk: (text: string) => void; disabled: boolean }) {
+    const waiting = streaming && !text && cards.length === 0;
+    return (
+        <div className="space-y-3">
+            {text && (
+                <div className="space-y-3 text-base leading-7 text-foreground">
+                    <RichText text={text} />
+                </div>
+            )}
+            {cards.map((card, index) => (
+                <ConciergeCardView key={`${card.type}-${index}`} card={card} onAsk={onAsk} disabled={disabled} />
+            ))}
+            {streaming && (status || waiting) && (
+                <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <TypingDots />
+                    {status ?? "Thinking"}
+                </p>
+            )}
         </div>
     );
 }
 
-function AssistantReply({
-    text,
-    cards,
-    status,
-    streaming,
-    onAsk,
-    disabled,
-}: PendingReply & { streaming: boolean; onAsk: (text: string) => void; disabled: boolean }) {
-    const waiting = streaming && !text && cards.length === 0;
+function Starters({ onPick }: { onPick: (prompt: string) => void }) {
     return (
-        <div className="flex gap-2.5">
-            <Mark size={28} />
-            <div className="min-w-0 flex-1 space-y-3 pt-0.5">
-                {text && (
-                    <div className="space-y-3 text-base leading-7 text-foreground">
-                        <RichText text={text} />
-                    </div>
-                )}
-                {cards.map((card, index) => (
-                    <ConciergeCardView key={`${card.type}-${index}`} card={card} onAsk={onAsk} disabled={disabled} />
-                ))}
-                {streaming && (status || waiting) && (
-                    <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <TypingDots />
-                        {status ?? "Thinking"}
-                    </p>
-                )}
+        <div className="flex min-h-full flex-col justify-end gap-6">
+            <div className="space-y-2">
+                <Mark size={40} />
+                <h3 className="pt-3 text-2xl font-semibold tracking-tight text-foreground">What are you shooting?</h3>
+                <p className="text-base leading-7 text-muted-foreground">I&apos;ll find studios that fit your budget, date and look, check live availability and plan the day.</p>
             </div>
+            <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border">
+                {STARTERS.map(({ icon: Icon, title, prompt }) => (
+                    <li key={title}>
+                        <Button variant="ghost" onClick={() => onPick(prompt)} className="h-auto min-h-14 justify-start gap-3 rounded-none px-4 py-3 text-left font-normal">
+                            <Icon size={18} className="shrink-0 text-muted-foreground" aria-hidden />
+                            <span className="min-w-0 flex-1">
+                                <span className="block text-base font-medium text-foreground">{title}</span>
+                                <span className="block truncate text-sm text-muted-foreground">{prompt}</span>
+                            </span>
+                            <LuChevronRight size={16} className="shrink-0 text-muted-foreground" aria-hidden />
+                        </Button>
+                    </li>
+                ))}
+            </ul>
         </div>
     );
 }
@@ -152,11 +157,11 @@ export default function ConciergeWidget() {
     const chat = useConcierge();
     const { restore, send, restored } = chat;
 
-    // Portals need the document, which only exists after hydration.
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
     const titleId = useId();
+    const inputId = `${titleId}-input`;
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const logRef = useRef<HTMLDivElement>(null);
     const launcherRef = useRef<HTMLButtonElement>(null);
@@ -166,7 +171,6 @@ export default function ConciergeWidget() {
         if (open && !restored) void restore();
     }, [open, restored, restore]);
 
-    // Focus the composer on open; give focus back to the launcher on close.
     useEffect(() => {
         if (!open) return;
         const timer = window.setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 150);
@@ -186,7 +190,6 @@ export default function ConciergeWidget() {
         return () => window.removeEventListener("keydown", onKey);
     }, [open]);
 
-    // On phones the chat is a full-screen sheet: stop the page behind it from scrolling.
     useEffect(() => {
         if (!open || !window.matchMedia("(max-width: 639px)").matches) return;
         const previous = document.body.style.overflow;
@@ -196,7 +199,6 @@ export default function ConciergeWidget() {
         };
     }, [open]);
 
-    // Follow new content, unless the reader has scrolled up to look at something.
     useLayoutEffect(() => {
         const log = logRef.current;
         if (log && stickToBottom.current) log.scrollTop = log.scrollHeight;
@@ -211,7 +213,9 @@ export default function ConciergeWidget() {
         const input = inputRef.current;
         if (!input) return;
         input.style.height = "auto";
-        input.style.height = `${Math.min(input.scrollHeight, 120)}px`;
+        const height = input.scrollHeight + input.offsetHeight - input.clientHeight;
+        input.style.height = `${Math.min(height, COMPOSER_MAX_HEIGHT)}px`;
+        input.style.overflowY = height > COMPOSER_MAX_HEIGHT ? "auto" : "hidden";
     }, []);
     useLayoutEffect(resize, [draft, open, resize]);
 
@@ -226,226 +230,164 @@ export default function ConciergeWidget() {
     );
 
     const empty = chat.messages.length === 0 && !chat.pending;
-    const spring = { type: "spring" as const, stiffness: 380, damping: 32 };
+    const canSend = Boolean(draft.trim()) && !chat.busy;
 
     return (
         <>
             <AnimatePresence initial={false}>
                 {!open && (
-                    <motion.button
-                        ref={launcherRef}
-                        key="launcher"
-                        type="button"
-                        onClick={() => setOpen(true)}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        transition={spring}
-                        aria-haspopup="dialog"
-                        aria-label={`Plan your shoot with ${CONCIERGE_NAME}, ContCave's AI assistant`}
-                        className="group flex h-14 min-w-14 items-center justify-center gap-2.5 rounded-full border border-white/10 bg-foreground px-4 text-background transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50 focus-visible:ring-offset-2 sm:pl-4 sm:pr-5"
-                    >
-                        <LuSparkles size={18} aria-hidden />
-                        <span className="hidden text-[15px] font-medium tracking-tight sm:inline">Plan my shoot</span>
-                    </motion.button>
+                    <motion.div key="launcher" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} transition={SPRING}>
+                        <Button
+                            ref={launcherRef as React.Ref<HTMLButtonElement>}
+                            rounded
+                            fit
+                            size="lg"
+                            icon={LuSparkles}
+                            onClick={() => setOpen(true)}
+                            aria-haspopup="dialog"
+                            aria-label={`Plan your shoot with ${CONCIERGE_NAME}, ContCave's AI assistant`}
+                            className="h-14 min-w-14 px-4 sm:px-5"
+                        >
+                            <span className="hidden sm:inline">Plan my shoot</span>
+                        </Button>
+                    </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* Rendered on <body>: the launcher sits in a fixed, z-indexed stack, and a panel inside it
-                could never rise above the site's navbar on phones, where the chat is a full-screen sheet. */}
-            {mounted && createPortal(
-            <AnimatePresence>
-                {open && (
-                    <motion.div
-                        key="panel"
-                        role="dialog"
-                        aria-modal="false"
-                        aria-labelledby={titleId}
-                        initial={{ opacity: 0, y: 16, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 16, scale: 0.98 }}
-                        transition={spring}
-                        style={{ transformOrigin: "bottom right" }}
-                        className="fixed inset-0 z-[1000] flex flex-col bg-background sm:inset-auto sm:bottom-5 sm:right-5 sm:h-[min(680px,calc(100dvh-2.5rem))] sm:w-[420px] sm:overflow-hidden sm:rounded-[28px] sm:border sm:border-border"
-                    >
-                        {/* Header */}
-                        <header className="flex items-center gap-3 border-b border-border px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
-                            <Mark size={40} />
-                            <div className="min-w-0 flex-1">
-                                <h2 id={titleId} className="text-base font-semibold leading-6 tracking-tight text-foreground">
-                                    {CONCIERGE_NAME}
-                                </h2>
-                                <p className="flex items-center gap-1.5 text-[13px] leading-5 text-muted-foreground">
-                                    <span className="h-2 w-2 rounded-full bg-success" aria-hidden />
-                                    Finds, prices and books studios
-                                </p>
-                            </div>
-                            {!empty && (
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        chat.reset();
-                                        setDraft("");
-                                        inputRef.current?.focus();
-                                    }}
-                                    className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
-                                    aria-label="Start a new chat"
-                                    title="Start a new chat"
+            {mounted &&
+                createPortal(
+                    <AnimatePresence>
+                        {open && (
+                            <motion.div
+                                key="panel"
+                                role="dialog"
+                                aria-modal="false"
+                                aria-labelledby={titleId}
+                                initial={{ opacity: 0, y: 16, scale: 0.98 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 16, scale: 0.98 }}
+                                transition={SPRING}
+                                style={{ transformOrigin: "bottom right" }}
+                                className="fixed inset-0 z-[10000] flex flex-col bg-background sm:inset-auto sm:bottom-5 sm:right-5 sm:h-[min(700px,calc(100dvh-2.5rem))] sm:w-[400px] sm:overflow-hidden sm:rounded-3xl sm:border sm:border-border"
+                            >
+                                <header className="flex items-center gap-3 border-b border-border py-3 pl-5 pr-2 pt-[max(0.75rem,env(safe-area-inset-top))]">
+                                    <Mark size={32} />
+                                    <div className="min-w-0 flex-1">
+                                        <h2 id={titleId} className="text-base font-semibold leading-5 text-foreground">
+                                            {CONCIERGE_NAME}
+                                        </h2>
+                                        <p className="truncate text-sm leading-5 text-muted-foreground">ContCave&apos;s AI booking assistant</p>
+                                    </div>
+                                    {!empty && (
+                                        <Button
+                                            variant="ghost"
+                                            size="md"
+                                            rounded
+                                            icon={LuSquarePen}
+                                            aria-label="Start a new chat"
+                                            onClick={() => {
+                                                chat.reset();
+                                                setDraft("");
+                                                inputRef.current?.focus();
+                                            }}
+                                        />
+                                    )}
+                                    <Button variant="ghost" size="md" rounded icon={LuX} aria-label="Close chat" onClick={() => setOpen(false)} />
+                                </header>
+
+                                <BriefStrip brief={chat.brief} />
+
+                                <div
+                                    ref={logRef}
+                                    onScroll={onScroll}
+                                    role="log"
+                                    aria-live="polite"
+                                    aria-relevant="additions"
+                                    className="flex-1 overflow-y-auto overscroll-contain px-5 py-6 [scrollbar-color:var(--color-border)_transparent] [scrollbar-width:thin]"
                                 >
-                                    <LuSquarePen size={17} aria-hidden />
-                                </button>
-                            )}
-                            <button
-                                type="button"
-                                onClick={() => setOpen(false)}
-                                className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
-                                aria-label="Close chat"
-                            >
-                                <LuX size={18} aria-hidden />
-                            </button>
-                        </header>
-
-                        <BriefStrip brief={chat.brief} />
-
-                        {/* Conversation */}
-                        <div
-                            ref={logRef}
-                            onScroll={onScroll}
-                            role="log"
-                            aria-live="polite"
-                            aria-relevant="additions"
-                            className="flex-1 overflow-y-auto overscroll-contain px-4 py-5"
-                        >
-                            {empty ? (
-                                <div className="flex min-h-full flex-col justify-end">
-                                    <h3 className="text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-foreground">
-                                        Tell me about
-                                        <br />
-                                        your shoot.
-                                    </h3>
-                                    <p className="mt-3 max-w-[32ch] text-base leading-7 text-muted-foreground">
-                                        I&apos;ll find studios that fit your budget, date and look, check live availability, and plan the day.
-                                    </p>
-                                    <ul className="mt-6 grid grid-cols-2 gap-2">
-                                        {STARTERS.map(({ icon: Icon, title, prompt }) => (
-                                            <li key={title}>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => submit(prompt)}
-                                                    className="flex h-full min-h-[112px] w-full flex-col justify-between gap-3 rounded-[20px] border border-border bg-muted/40 p-3.5 text-left transition-colors hover:border-foreground hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
-                                                >
-                                                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-background text-foreground ring-1 ring-border">
-                                                        <Icon size={16} aria-hidden />
-                                                    </span>
-                                                    <span>
-                                                        <span className="block text-[15px] font-semibold leading-5 text-foreground">{title}</span>
-                                                        <span className="mt-1 line-clamp-2 block text-[13px] leading-[18px] text-muted-foreground">{prompt}</span>
-                                                    </span>
-                                                </button>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ) : (
-                                <ol className="space-y-6">
-                                    {chat.messages.map((message) => (
-                                        <li key={message.id}>
-                                            {message.role === "user" ? (
-                                                <div className="flex justify-end">
-                                                    <p className="max-w-[85%] whitespace-pre-line break-words rounded-[22px] rounded-br-md bg-foreground px-4 py-2.5 text-base leading-6 text-background">
-                                                        {message.text}
-                                                    </p>
-                                                </div>
-                                            ) : (
-                                                <AssistantReply
-                                                    text={message.text}
-                                                    cards={message.cards}
-                                                    status={null}
-                                                    streaming={false}
-                                                    onAsk={submit}
-                                                    disabled={chat.busy}
-                                                />
+                                    {empty ? (
+                                        <Starters onPick={submit} />
+                                    ) : (
+                                        <ol className="space-y-6">
+                                            {chat.messages.map((message) => (
+                                                <li key={message.id}>
+                                                    {message.role === "user" ? (
+                                                        <p className="ml-auto w-fit max-w-[85%] whitespace-pre-line break-words rounded-2xl rounded-br-md bg-muted px-4 py-2.5 text-base leading-6 text-foreground">
+                                                            {message.text}
+                                                        </p>
+                                                    ) : (
+                                                        <AssistantReply text={message.text} cards={message.cards} status={null} streaming={false} onAsk={submit} disabled={chat.busy} />
+                                                    )}
+                                                </li>
+                                            ))}
+                                            {chat.pending && (
+                                                <li>
+                                                    <AssistantReply {...chat.pending} streaming onAsk={submit} disabled />
+                                                </li>
                                             )}
-                                        </li>
-                                    ))}
-                                    {chat.pending && (
-                                        <li>
-                                            <AssistantReply {...chat.pending} streaming onAsk={submit} disabled />
-                                        </li>
+                                            {chat.error && (
+                                                <li role="alert">
+                                                    <Callout icon={FiAlertCircle} title={chat.error} />
+                                                </li>
+                                            )}
+                                        </ol>
                                     )}
-                                    {chat.error && (
-                                        <li role="alert" className="rounded-2xl border border-danger/30 bg-danger/5 px-3.5 py-2.5 text-sm leading-5 text-danger">
-                                            {chat.error}
-                                        </li>
-                                    )}
-                                </ol>
-                            )}
-                        </div>
+                                </div>
 
-                        {/* Composer */}
-                        <div className="border-t border-border bg-background px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
-                            {chat.suggestions.length > 0 && !chat.busy && (
-                                <ul className="-mx-4 mb-3 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Suggested replies">
-                                    {chat.suggestions.map((suggestion) => (
-                                        <li key={suggestion} className="shrink-0">
-                                            <button
-                                                type="button"
-                                                onClick={() => submit(suggestion)}
-                                                className="inline-flex h-11 items-center rounded-full border border-border bg-background px-4 text-sm font-medium text-foreground transition-colors hover:border-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
-                                            >
-                                                {suggestion}
-                                            </button>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                            <form
-                                onSubmit={(event) => {
-                                    event.preventDefault();
-                                    submit(draft);
-                                }}
-                                className="flex items-end gap-2 rounded-[24px] border border-border bg-muted/40 py-1.5 pl-4 pr-1.5 transition-colors focus-within:border-foreground focus-within:bg-background"
-                            >
-                                <label htmlFor={`${titleId}-input`} className="sr-only">
-                                    Message {CONCIERGE_NAME}
-                                </label>
-                                <textarea
-                                    id={`${titleId}-input`}
-                                    ref={inputRef}
-                                    rows={1}
-                                    value={draft}
-                                    maxLength={MAX_USER_MESSAGE_LENGTH}
-                                    onChange={(event) => setDraft(event.target.value)}
-                                    onKeyDown={(event) => {
-                                        if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+                                <div className="space-y-2 border-t border-border px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+                                    {chat.suggestions.length > 0 && !chat.busy && (
+                                        <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Suggested replies">
+                                            {chat.suggestions.map((suggestion) => (
+                                                <li key={suggestion} className="shrink-0">
+                                                    <Button outline rounded fit label={suggestion} onClick={() => submit(suggestion)} />
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                    <form
+                                        onSubmit={(event) => {
                                             event.preventDefault();
                                             submit(draft);
-                                        }
-                                    }}
-                                    placeholder={chat.handedOff ? "Add anything else for the team" : "City, what you're shooting, when…"}
-                                    className="max-h-[120px] min-h-[44px] flex-1 resize-none border-0 bg-transparent px-0 py-2.5 text-base leading-6 text-foreground placeholder:text-neutral-400 focus:outline-none focus:ring-0"
-                                />
-                                <button
-                                    type="submit"
-                                    disabled={!draft.trim() || chat.busy}
-                                    aria-label="Send message"
-                                    className={cn(
-                                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:ring-offset-2",
-                                        draft.trim() && !chat.busy ? "bg-foreground text-background hover:opacity-85" : "bg-muted text-neutral-400"
-                                    )}
-                                >
-                                    <LuArrowUp size={19} strokeWidth={2.5} aria-hidden />
-                                </button>
-                            </form>
-                            <p className="mt-2 text-center text-xs leading-4 text-muted-foreground">
-                                AI can make mistakes. Prices and availability are checked live.
-                            </p>
-                        </div>
-                    </motion.div>
+                                        }}
+                                        className="relative"
+                                    >
+                                        <label htmlFor={inputId} className="sr-only">
+                                            Message {CONCIERGE_NAME}
+                                        </label>
+                                        <Textarea
+                                            id={inputId}
+                                            ref={inputRef}
+                                            rows={1}
+                                            value={draft}
+                                            maxLength={MAX_USER_MESSAGE_LENGTH}
+                                            enterKeyHint="send"
+                                            onChange={(event) => setDraft(event.target.value)}
+                                            onKeyDown={(event) => {
+                                                if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+                                                    event.preventDefault();
+                                                    submit(draft);
+                                                }
+                                            }}
+                                            placeholder={chat.handedOff ? "Add anything else for the team" : `Message ${CONCIERGE_NAME}`}
+                                            className="block min-h-12 resize-none rounded-2xl py-3 pl-4 pr-12 text-base leading-6"
+                                            style={{ maxHeight: COMPOSER_MAX_HEIGHT }}
+                                        />
+                                        <Button
+                                            type="submit"
+                                            rounded
+                                            icon={LuArrowUp}
+                                            disabled={!canSend}
+                                            aria-label="Send message"
+                                            className={cn("absolute bottom-1.5 right-1.5", !canSend && "bg-muted border-muted text-muted-foreground opacity-100")}
+                                        />
+                                    </form>
+                                    <p className="text-center text-xs text-muted-foreground">AI can make mistakes. Prices and availability are checked live.</p>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>,
+                    document.body
                 )}
-            </AnimatePresence>,
-            document.body
-            )}
         </>
     );
 }
