@@ -6,6 +6,7 @@ import { z } from "zod";
 import ListingFeed from "@/components/listing/ListingFeed";
 import { type BrowseSort } from "@/lib/listing/browseSort";
 import { type FeedLanding, feedRequestPath, mergeUnique, pageAtLine } from "@/lib/listing/feedRequest";
+import { type FeedAnchor, readFeedSnapshot, writeFeedSnapshot } from "@/lib/listing/feedSnapshot";
 import { pagePath, type SearchParams } from "@/lib/pagination";
 import type { StudioFeedItem, StudioFeedPage } from "@/types/listing";
 import type { SafeUser } from "@/types/user";
@@ -26,6 +27,29 @@ type LoadedPage = { page: number; firstId: string };
 type Status = "idle" | "loading" | "error";
 
 const PREFETCH_MARGIN = "800px 0px";
+const SAVE_EVERY_MS = 250;
+/** Frames to keep re-applying a restored position while images and late layout settle. */
+const RESTORE_FRAMES = 30;
+const RESTORE_GIVE_UP_MS = 2_000;
+
+/** The first card still on screen, and its distance from the top of the viewport. */
+function topCard(grid: HTMLElement | null): FeedAnchor | null {
+  for (const card of grid?.querySelectorAll<HTMLElement>("[data-feed-id]") ?? []) {
+    const { top, bottom } = card.getBoundingClientRect();
+    if (bottom > 0 && card.dataset.feedId) return { id: card.dataset.feedId, offset: top };
+  }
+  return null;
+}
+
+/** Scrolls so the anchor card sits where it was; false while the card isn't rendered yet. */
+function scrollToAnchor(grid: HTMLElement | null, anchor: FeedAnchor) {
+  const card = grid?.querySelector(`[data-feed-id="${CSS.escape(anchor.id)}"]`);
+  if (!card) return false;
+  window.scrollTo(0, card.getBoundingClientRect().top + window.scrollY - anchor.offset);
+  return true;
+}
+
+const currentUrl = () => `${window.location.pathname}${window.location.search}`;
 
 const feedResponseSchema = z.object({
   success: z.literal(true),
@@ -67,6 +91,9 @@ export default function InfiniteFeed({ feed, page, path, searchParams, landing, 
   const loadingRef = useRef(false);
   const gridRef = useRef<HTMLDivElement>(null);
   const heightBeforePrepend = useRef<number | null>(null);
+  const [restoreAnchor, setRestoreAnchor] = useState<FeedAnchor | null>(null);
+  const isRestoring = restoreAnchor !== null;
+  const feedKey = `${pagePath(path, 1, searchParams)}|${landing?.place ?? ""}|${landing?.category ?? ""}`;
 
   const firstPage = loaded[0]?.page ?? page;
   const lastPage = loaded.at(-1)?.page ?? page;
@@ -100,8 +127,49 @@ export default function InfiniteFeed({ feed, page, path, searchParams, landing, 
   const loadLater = useCallback(() => void load("later"), [load]);
   const loadEarlier = useCallback(() => void load("earlier"), [load]);
   // Earlier pages wait for the visitor to scroll, so landing on ?page=3 doesn't pull in pages 1-2 at once.
-  const topRef = useInView(loadEarlier, status === "idle" && hasEarlier && hasScrolled, "200px 0px");
-  const bottomRef = useInView(loadLater, status === "idle" && hasLater);
+  const canLoad = status === "idle" && !isRestoring;
+  const topRef = useInView(loadEarlier, canLoad && hasEarlier && hasScrolled, "200px 0px");
+  const bottomRef = useInView(loadLater, canLoad && hasLater);
+
+  // Coming back from a studio: show the studios that were loaded and return to the same spot, once.
+  useEffect(() => {
+    const snapshot = readFeedSnapshot<StudioFeedItem>(window.sessionStorage, feedKey, currentUrl());
+    if (!snapshot) return;
+    writeFeedSnapshot(window.sessionStorage, feedKey, { ...snapshot, returnPending: false });
+    setRestoreAnchor(snapshot.anchor);
+    setItems(snapshot.items);
+    setLoaded(snapshot.loaded);
+    setTotalPages(snapshot.totalPages);
+    setHasScrolled(true);
+  }, [feedKey]);
+
+  // Studios added above the viewport push the page down; scroll by the same amount so nothing jumps.
+  // Returning to the saved card: wait until it's rendered, then hold it in place for a few frames
+  // (the browser's own scroll restoration and late layout can move the page), and let go the
+  // moment the visitor scrolls.
+  useLayoutEffect(() => {
+    if (!restoreAnchor || !scrollToAnchor(gridRef.current, restoreAnchor)) return;
+    let frames = 0;
+    let frame = requestAnimationFrame(function hold() {
+      scrollToAnchor(gridRef.current, restoreAnchor);
+      if (++frames < RESTORE_FRAMES) frame = requestAnimationFrame(hold);
+      else setRestoreAnchor(null);
+    });
+    const release = () => setRestoreAnchor(null);
+    const events = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
+    events.forEach((name) => window.addEventListener(name, release, { once: true, passive: true }));
+    return () => {
+      cancelAnimationFrame(frame);
+      events.forEach((name) => window.removeEventListener(name, release));
+    };
+  }, [restoreAnchor, items]);
+
+  // If the saved card never renders (it was unpublished meanwhile), stop waiting and carry on.
+  useEffect(() => {
+    if (!restoreAnchor) return;
+    const timer = window.setTimeout(() => setRestoreAnchor(null), RESTORE_GIVE_UP_MS);
+    return () => window.clearTimeout(timer);
+  }, [restoreAnchor]);
 
   // Studios added above the viewport push the page down; scroll by the same amount so nothing jumps.
   useLayoutEffect(() => {
@@ -109,6 +177,42 @@ export default function InfiniteFeed({ feed, page, path, searchParams, landing, 
     window.scrollBy(0, document.documentElement.scrollHeight - heightBeforePrepend.current);
     heightBeforePrepend.current = null;
   }, [items]);
+
+  // The latest feed state and position, kept in refs so the save on leaving doesn't read the next
+  // page's URL or scroll (the feed unmounts after navigation has already moved on).
+  const stateRef = useRef({ items, loaded, totalPages });
+  const positionRef = useRef<{ url: string; anchor: FeedAnchor | null }>({ url: "", anchor: null });
+  const leavingToStudioRef = useRef(false);
+  useEffect(() => {
+    stateRef.current = { items, loaded, totalPages };
+  }, [items, loaded, totalPages]);
+
+  useEffect(() => {
+    let lastSavedAt = 0;
+    positionRef.current = { url: currentUrl(), anchor: topCard(gridRef.current) };
+    const save = () => {
+      lastSavedAt = Date.now();
+      writeFeedSnapshot(window.sessionStorage, feedKey, {
+        ...stateRef.current,
+        ...positionRef.current,
+        returnPending: leavingToStudioRef.current,
+        savedAt: Date.now(),
+      });
+    };
+    const onScroll = () => {
+      // During navigation away, the next page's scrolling can arrive before the feed unmounts.
+      if (window.location.pathname !== path) return;
+      positionRef.current = { url: currentUrl(), anchor: topCard(gridRef.current) };
+      if (Date.now() - lastSavedAt > SAVE_EVERY_MS) save();
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("pagehide", save);
+    return () => {
+      save();
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("pagehide", save);
+    };
+  }, [feedKey, path]);
 
   useEffect(() => {
     let frame = 0;
@@ -124,6 +228,7 @@ export default function InfiniteFeed({ feed, page, path, searchParams, landing, 
       if (current === null || current === shownPage) return;
       shownPage = current;
       window.history.replaceState(null, "", pagePath(path, current, searchParams));
+      positionRef.current = { url: currentUrl(), anchor: topCard(grid) };
     };
     const onScroll = () => {
       setHasScrolled(true);
@@ -148,7 +253,12 @@ export default function InfiniteFeed({ feed, page, path, searchParams, landing, 
         </>
       )}
 
-      <div ref={gridRef}>
+      <div
+        ref={gridRef}
+        onClickCapture={(event) => {
+          if (event.target instanceof Element && event.target.closest("a[href]")) leavingToStudioRef.current = true;
+        }}
+      >
         <ListingFeed page={{ ...feed, items }} order={order} currentUser={currentUser} nearLabel={nearLabel} />
       </div>
 

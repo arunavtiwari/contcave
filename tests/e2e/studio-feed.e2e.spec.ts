@@ -47,6 +47,29 @@ for (const viewport of VIEWPORTS) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     });
 
+    test("returns to the same studios and position after opening a studio and going back", async ({ page }) => {
+      test.skip((await feedPageCount(page)) < 2, "Needs at least two pages of studios in the test database");
+      await gotoApp(page, "/studios");
+      await scrollToBottom(page);
+      await expect.poll(() => cards(page).count(), { timeout: 30_000 }).toBeGreaterThan(PAGE_SIZE);
+
+      const target = cards(page).nth(PAGE_SIZE + 1);
+      await target.scrollIntoViewIfNeeded();
+      const targetId = await target.getAttribute("data-feed-id");
+      const loadedCount = await cards(page).count();
+      const topBefore = await target.evaluate((element) => element.getBoundingClientRect().top);
+
+      await target.locator("a[href*='/studio/']").first().click();
+      await expect(page).toHaveURL(/\/studio\//, { timeout: 60_000 });
+      await page.goBack();
+
+      const returned = page.locator(`[data-feed-id="${targetId}"]`);
+      await expect(returned).toBeVisible({ timeout: 30_000 });
+      expect(await cards(page).count()).toBeGreaterThanOrEqual(loadedCount);
+      await expect.poll(() => returned.evaluate((element) => element.getBoundingClientRect().top)).toBeGreaterThan(topBefore - 120);
+      expect(await returned.evaluate((element) => element.getBoundingClientRect().top)).toBeLessThan(topBefore + 120);
+    });
+
     test("opens partway through and loads earlier studios when scrolling up", async ({ page }) => {
       test.skip((await feedPageCount(page)) < 2, "Needs at least two pages of studios in the test database");
       await gotoApp(page, "/studios?page=2");

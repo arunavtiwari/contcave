@@ -40,7 +40,7 @@ Below is a summary of our active Playwright E2E test inventory:
 | [booking-service.e2e.spec.ts](../tests/e2e/booking-service.e2e.spec.ts) | Payout lifecycles & webhook automations | 6 |
 | [admin-listings.e2e.spec.ts](../tests/e2e/admin-listings.e2e.spec.ts) | Admin listings moderation review flows | 5 |
 | [admin-staff.e2e.spec.ts](../tests/e2e/admin-staff.e2e.spec.ts) | Finance role access, document downloads, staff user management | 6 |
-| [studio-feed.e2e.spec.ts](../tests/e2e/studio-feed.e2e.spec.ts) | Infinite scroll both ways with URL sync, phone and desktop | 4 |
+| [studio-feed.e2e.spec.ts](../tests/e2e/studio-feed.e2e.spec.ts) | Infinite scroll both ways with URL sync and Back restoring position, phone and desktop | 6 |
 | [owner-verification.e2e.spec.ts](../tests/e2e/owner-verification.e2e.spec.ts) | Host onboarding Aadhaar KYC verifications | 2 |
 | [edit-property.e2e.spec.ts](../tests/e2e/edit-property.e2e.spec.ts) | Host editing property details & packages | 1 |
 | [rent-modal.e2e.spec.ts](../tests/e2e/rent-modal.e2e.spec.ts) | Host studio space creation wizard | 2 |
@@ -49,7 +49,7 @@ Below is a summary of our active Playwright E2E test inventory:
 | [filters.e2e.spec.ts](../tests/e2e/filters.e2e.spec.ts) | Studio feed queries & location filters | 1 |
 | [invoice-service.e2e.spec.ts](../tests/e2e/invoice-service.e2e.spec.ts) | Tax invoices & payouts calculations | 7 |
 | [reviews.e2e.spec.ts](../tests/e2e/reviews.e2e.spec.ts) | Customer rating & review submissions | 1 |
-| **Total Suite** | | **40** |
+| **Total Suite** | | **42** |
 
 ---
 
