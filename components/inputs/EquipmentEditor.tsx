@@ -2,7 +2,9 @@
 
 import { IoAdd, IoCopyOutline, IoTrashOutline } from "react-icons/io5";
 
+import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import Select from "@/components/ui/Select";
 import {
     EQUIPMENT_CATEGORIES,
     EQUIPMENT_CATEGORY_LABELS,
@@ -68,7 +70,10 @@ const blankItem = (overrides: Partial<EquipmentItem> = {}): EquipmentItem => ({
     ...overrides,
 });
 
-const fieldClass = "h-10 w-full rounded-lg border border-border bg-background px-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20";
+const CATEGORY_OPTIONS: Array<{ value: EquipmentCategory; label: string }> = EQUIPMENT_CATEGORIES.map((category) => ({
+    value: category,
+    label: EQUIPMENT_CATEGORY_LABELS[category],
+}));
 
 function Segmented<T extends string>({
     options,
@@ -191,18 +196,15 @@ export default function EquipmentEditor({
                                 value={item.name}
                                 onChange={(event) => updateItem(item.id, { name: event.target.value })}
                             />
-                            <label className="flex flex-col gap-1.5 text-sm font-medium text-foreground">
-                                Category
-                                <select
-                                    className={fieldClass}
-                                    value={item.category}
-                                    onChange={(event) => updateItem(item.id, { category: event.target.value })}
-                                >
-                                    {EQUIPMENT_CATEGORIES.map((category) => (
-                                        <option key={category} value={category}>{EQUIPMENT_CATEGORY_LABELS[category]}</option>
-                                    ))}
-                                </select>
-                            </label>
+                            <Select
+                                label="Category"
+                                aria-label="Category"
+                                options={CATEGORY_OPTIONS}
+                                value={CATEGORY_OPTIONS.find((option) => option.value === item.category) ?? null}
+                                onChange={(option) => {
+                                    if (option) updateItem(item.id, { category: option.value });
+                                }}
+                            />
                             <Input
                                 id={`equipment-qty-${item.id}`}
                                 label="Qty"
@@ -249,31 +251,27 @@ export default function EquipmentEditor({
                                 </>
                             )}
                             <div className="ml-auto flex gap-1">
-                                <button
-                                    type="button"
+                                <Button
+                                    variant="ghost"
+                                    fit
+                                    icon={IoCopyOutline}
+                                    label="Duplicate"
                                     onClick={() => setItems([...items.slice(0, index + 1), { ...item, id: newItemId(), legacyAddonId: null }, ...items.slice(index + 1)])}
-                                    className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
-                                >
-                                    <IoCopyOutline size={14} /> Duplicate
-                                </button>
-                                <button
-                                    type="button"
+                                    className="px-3 text-muted-foreground hover:text-foreground"
+                                />
+                                <Button
+                                    variant="ghost"
+                                    fit
+                                    icon={IoTrashOutline}
+                                    label="Remove"
                                     onClick={() => setItems(items.filter((other) => other.id !== item.id))}
-                                    className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs text-destructive hover:bg-destructive/10"
-                                >
-                                    <IoTrashOutline size={14} /> Remove
-                                </button>
+                                    className="px-3 text-destructive hover:bg-destructive/10"
+                                />
                             </div>
                         </div>
                     </div>
                 ))}
-                <button
-                    type="button"
-                    onClick={() => setItems([...items, blankItem()])}
-                    className="inline-flex w-fit items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-muted"
-                >
-                    <IoAdd size={16} /> Add item
-                </button>
+                <Button variant="outline" rounded fit icon={IoAdd} label="Add item" onClick={() => setItems([...items, blankItem()])} />
                 {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
         </div>

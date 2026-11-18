@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { IoClose } from "react-icons/io5";
 
 import SetSelector from "@/components/listing/SetSelector";
-import Button from "@/components/ui/Button";
+import Modal from "@/components/modals/Modal";
 import { pluralize } from "@/lib/strings";
 import { Package } from "@/types/package";
 import { ListingSet } from "@/types/set";
@@ -53,34 +52,24 @@ export default function PackageSetModal({
         }
     };
 
-    if (!isOpen) return null;
-
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 backdrop-blur-sm p-4">
-            <div className="bg-background rounded-xl  w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-
-                <div className="flex items-center justify-between p-4 border-b">
-                    <h3 className="text-lg font-semibold">
-                        Select Sets for {packageItem.title}
-                    </h3>
-                    <button
-                        onClick={onClose}
-                        className="p-1 hover:bg-muted rounded-full transition"
-                    >
-                        <IoClose size={24} />
-                    </button>
-                </div>
-
-
-                <div className="p-6 overflow-y-auto">
-                    <div className="mb-4">
-                        <p className="text-muted-foreground">
-                            {requiredCount > 0
-                                ? `Please select exactly ${pluralize(requiredCount, "set")} for this package.`
-                                : "Please select the sets you want to include in this package."}
-                        </p>
-                    </div>
-
+        <Modal
+            isOpen={isOpen}
+            onCloseAction={onClose}
+            title={`Select sets for ${packageItem.title}`}
+            actionLabel="Confirm"
+            onSubmitAction={handleSubmit}
+            actionDisabled={!isValid}
+            secondaryActionLabel="Cancel"
+            secondaryActionAction={onClose}
+            nestedModal
+            body={(
+                <div className="space-y-4">
+                    <p className="text-muted-foreground">
+                        {requiredCount > 0
+                            ? `Please select exactly ${pluralize(requiredCount, "set")} for this package.`
+                            : "Please select the sets you want to include in this package."}
+                    </p>
                     <SetSelector
                         sets={sets}
                         selectedSetIds={selectedSetIds}
@@ -89,24 +78,9 @@ export default function PackageSetModal({
                         pricingType={null}
                         selectedPackage={packageItem}
                         availableSetIds={availableSetIds}
-
                     />
                 </div>
-
-
-                <div className="p-4 border-t bg-muted flex justify-end gap-3">
-                    <Button
-                        label="Cancel"
-                        onClick={onClose}
-                        outline
-                    />
-                    <Button
-                        label="Confirm"
-                        onClick={handleSubmit}
-                        disabled={!isValid}
-                    />
-                </div>
-            </div>
-        </div>
+            )}
+        />
     );
 }

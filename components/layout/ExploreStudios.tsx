@@ -12,7 +12,7 @@ const LINK_GRID = "grid w-full grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:gri
 
 function PlaceLink({ href, title, detail }: { href: string; title: string; detail: string }) {
   return (
-    <Link href={href} className="group block min-w-0 rounded-lg py-1 outline-none focus-visible:ring-2 focus-visible:ring-foreground/20">
+    <Link href={href} className="border border-transparent group block min-w-0 rounded-lg py-1 outline-none focus-visible:border-foreground">
       <span className="block truncate text-sm font-medium text-foreground group-hover:underline group-hover:underline-offset-4">{title}</span>
       <span className="block truncate text-sm text-muted-foreground">{detail}</span>
     </Link>

@@ -184,7 +184,7 @@ export default function BookingDetailModal({
         isOpen
         onCloseAction={onClose}
         title="Booking Details"
-        customWidth="w-full max-w-5xl"
+        customWidth="max-w-5xl"
         customHeight="h-auto max-h-[92vh]"
         body={<BookingDetailSkeleton booking={booking} />}
       />
@@ -206,7 +206,7 @@ export default function BookingDetailModal({
       isOpen={Boolean(booking)}
       onCloseAction={onClose}
       title="Booking Details"
-      customWidth="w-full max-w-5xl"
+      customWidth="max-w-5xl"
       customHeight="h-auto max-h-[92vh]"
       body={
         <div className="space-y-4">

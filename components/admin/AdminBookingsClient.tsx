@@ -28,6 +28,7 @@ import PayoutsTable from "@/components/admin/bookings/PayoutsTable";
 import VouchersTable from "@/components/admin/bookings/VouchersTable";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 import StatCard from "@/components/ui/StatCard";
 import { TablePagination } from "@/components/ui/Table";
 import { type AdminBookingTab, bookingTabsFor } from "@/lib/admin/bookingTabs";
@@ -413,16 +414,14 @@ export default function AdminBookingsClient({
               <span className="font-mono text-foreground">{manualPayout?.bookingId || manualPayout?.id}</span> ({manualPayout?.studioName}) will be
               recorded as paid and never paid out automatically.
             </p>
-            <label className="flex flex-col gap-1.5 font-medium text-foreground">
-              Transfer reference (optional)
-              <input
-                className="h-10 rounded-lg border border-border bg-background px-3 text-sm font-normal"
-                placeholder="Cashfree transfer ID or UTR"
-                maxLength={120}
-                value={manualPayoutReference}
-                onChange={(event) => setManualPayoutReference(event.target.value)}
-              />
-            </label>
+            <Input
+              id="manual-payout-reference"
+              label="Transfer reference (optional)"
+              placeholder="Cashfree transfer ID or UTR"
+              maxLength={120}
+              value={manualPayoutReference}
+              onChange={(event) => setManualPayoutReference(event.target.value)}
+            />
           </div>
         }
       />

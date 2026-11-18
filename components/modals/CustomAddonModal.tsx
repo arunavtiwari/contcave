@@ -55,7 +55,7 @@ function CustomAddonModal({ save }: Props) {
 
   return (
     <Modal
-      customWidth="w-full max-w-md"
+      customWidth="max-w-md"
       customHeight="h-auto max-h-[600px]"
       nestedModal={true}
       isOpen={uiStore.modals.addon}

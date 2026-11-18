@@ -364,12 +364,7 @@ export default function AdminJobLogsClient({
           </div>
 
           {(optimisticJob !== "ALL" || optimisticStatus !== "ALL") && (
-            <button
-              onClick={() => applyFilters("ALL", "ALL")}
-              className="text-xs font-medium text-muted-foreground underline hover:text-foreground cursor-pointer"
-            >
-              Reset filters
-            </button>
+            <Button variant="link" size="sm" className="text-xs text-muted-foreground hover:text-foreground" onClick={() => applyFilters("ALL", "ALL")} label="Reset filters" />
           )}
         </div>
 
@@ -474,7 +469,7 @@ export default function AdminJobLogsClient({
           isOpen={Boolean(selectedLog)}
           onCloseAction={() => setSelectedLog(null)}
           title={`Job Details: ${selectedLog.jobName}`}
-          customWidth="w-full max-w-2xl"
+          customWidth="max-w-2xl"
           body={
             <div className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-2 rounded-lg bg-muted/40 p-3">

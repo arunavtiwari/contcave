@@ -11,7 +11,6 @@ import {
   FiExternalLink,
   FiEye,
   FiHome,
-  FiSearch,
   FiShield,
   FiX,
 } from "react-icons/fi";
@@ -24,10 +23,12 @@ import {
   getAdminOwnerDetailAction,
   getAdminOwnersOperations,
 } from "@/app/actions/adminOwnerActions";
+import AdminFilterBar from "@/components/admin/AdminFilterBar";
 import AdminTabs from "@/components/admin/AdminTabs";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
+import SearchInput from "@/components/ui/SearchInput";
 import Skeleton from "@/components/ui/Skeleton";
 import StatCard from "@/components/ui/StatCard";
 import {
@@ -237,31 +238,7 @@ export default function AdminOwnersClient(props: AdminOwnersClientProps) {
 
   return (
     <div className="space-y-6">
-      {/* HEADER BAR: SEARCH & EXPORT */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <form onSubmit={handleSearchSubmit} className="relative flex-1 sm:max-w-md">
-          <div className="relative flex items-center">
-            <FiSearch className="absolute left-3.5 text-muted-foreground" size={16} />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by owner name, email, phone, studio…"
-              className="h-9 w-full rounded-xl border border-border bg-background pl-9 pr-8 text-sm text-foreground placeholder:text-muted-foreground focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20"
-            />
-            {search && (
-              <button
-                type="button"
-                onClick={handleSearchClear}
-                className="absolute right-2.5 text-muted-foreground hover:text-foreground"
-              >
-                <FiX size={14} />
-              </button>
-            )}
-          </div>
-        </form>
-
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-end gap-3">
           <Button
             label="Export CSV"
             icon={FiDownload}
@@ -271,7 +248,6 @@ export default function AdminOwnersClient(props: AdminOwnersClientProps) {
             onClick={handleExportCsv}
             disabled={data.owners.length === 0 || isNavigating}
           />
-        </div>
       </div>
 
       {/* STAT CARDS */}
@@ -284,20 +260,34 @@ export default function AdminOwnersClient(props: AdminOwnersClientProps) {
         <StatCard label="Gross Revenue (GMV)" value={formatINR(data.summary.totalRevenue)} />
       </div>
 
-      {/* TABS */}
-      <AdminTabs
-        activeId={optimisticTab}
-        ariaLabel="Space owner views"
-        onSelect={(nextTab) => navigateTab(nextTab as AdminOwnerTab, 1, data.pageSize, search)}
-        items={OWNER_TABS.map((item) => ({
-          id: item.key,
-          label: item.label,
-          count: data.tabCounts[item.key],
-          href: `/admin/dashboard/owners?tab=${item.key}&page=1${
-            search ? `&q=${encodeURIComponent(search)}` : ""
-          }`,
-        }))}
-      />
+      <AdminFilterBar
+        tabs={(
+          <AdminTabs
+            activeId={optimisticTab}
+            ariaLabel="Space owner views"
+            onSelect={(nextTab) => navigateTab(nextTab as AdminOwnerTab, 1, data.pageSize, search)}
+            items={OWNER_TABS.map((item) => ({
+              id: item.key,
+              label: item.label,
+              count: data.tabCounts[item.key],
+              href: `/admin/dashboard/owners?tab=${item.key}&page=1${
+                search ? `&q=${encodeURIComponent(search)}` : ""
+              }`,
+            }))}
+          />
+        )}
+      >
+        <form onSubmit={handleSearchSubmit} role="search" className="sm:w-80">
+          <SearchInput
+            id="admin-owner-search"
+            aria-label="Search space owners"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onClear={handleSearchClear}
+            placeholder="Search by owner name, email, phone, studio…"
+          />
+        </form>
+      </AdminFilterBar>
 
       {/* TABLE */}
       {data.owners.length > 0 || isNavigating ? (

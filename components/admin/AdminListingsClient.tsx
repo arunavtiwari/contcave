@@ -14,7 +14,6 @@ import {
     FiFileText,
     FiLayers,
     FiMapPin,
-    FiSearch,
     FiShield,
     FiStar,
     FiX,
@@ -30,11 +29,13 @@ import {
     markInConversationAction,
     rejectListingAction,
 } from "@/app/actions/listingActions";
+import AdminFilterBar from "@/components/admin/AdminFilterBar";
 import { AdminListingSkeletonRows, CuratedListingSkeletonRows, NAME_COLUMN_WIDTH } from "@/components/admin/AdminListingSkeletonRows";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
 import SafeHtml from "@/components/ui/SafeHtml";
+import SearchInput from "@/components/ui/SearchInput";
 import Select, { type SelectOption } from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import StatCard from "@/components/ui/StatCard";
@@ -49,6 +50,7 @@ import {
     TableRow,
 } from "@/components/ui/Table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import Textarea from "@/components/ui/Textarea";
 import { adminEditListingHref } from "@/constants/adminNav";
 import { usePublicSiteUrl } from "@/hooks/usePublicSiteUrl";
 import { cn, formatINR, formatISTDate, formatISTDateTime } from "@/lib/utils";
@@ -165,7 +167,7 @@ function DocumentLink({
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background p-3 text-sm transition hover:border-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20"
+            className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background p-3 text-sm transition hover:border-foreground/30 focus-visible:outline-none focus-visible:border-foreground"
         >
             <span className="flex min-w-0 items-center gap-3">
                 <FiFileText className="shrink-0 text-muted-foreground" />
@@ -302,7 +304,7 @@ function ReviewModal({
                 isOpen
                 onCloseAction={onClose}
                 title="Listing Review"
-                customWidth="w-full max-w-6xl"
+                customWidth="max-w-6xl"
                 customHeight="max-h-[92vh]"
                 body={<ReviewModalSkeleton />}
             />
@@ -319,7 +321,7 @@ function ReviewModal({
             isOpen={Boolean(listing)}
             onCloseAction={onClose}
             title="Listing Review"
-            customWidth="w-full max-w-6xl"
+            customWidth="max-w-6xl"
             customHeight="max-h-[92vh]"
             body={
                 <div className="space-y-8" data-testid="admin-listing-review-modal">
@@ -921,37 +923,37 @@ export default function AdminListingsClient({
                     <StatCard label="Rejected" value={activeCounts?.REJECTED} icon={FiX} />
                 </div>
 
-                <Tabs
-                    value={status}
-                    onValueChange={(val) => navigate(viewMode, val as "ALL" | ListingStatus)}
-                    className="w-fit gap-0"
+                <AdminFilterBar
+                    tabs={(
+                        <Tabs
+                            value={status}
+                            onValueChange={(val) => navigate(viewMode, val as "ALL" | ListingStatus)}
+                            className="w-fit gap-0"
+                        >
+                            <TabsList aria-label="Listing status filters">
+                                {STATUS_OPTIONS.map((option) => (
+                                    <TabsTrigger
+                                        key={option.value}
+                                        value={option.value}
+                                        count={activeCounts[option.value]}
+                                    >
+                                        {option.label}
+                                    </TabsTrigger>
+                                ))}
+                            </TabsList>
+                        </Tabs>
+                    )}
                 >
-                    <TabsList aria-label="Listing status filters">
-                        {STATUS_OPTIONS.map((option) => (
-                            <TabsTrigger
-                                key={option.value}
-                                value={option.value}
-                                count={activeCounts[option.value]}
-                            >
-                                {option.label}
-                            </TabsTrigger>
-                        ))}
-                    </TabsList>
-                </Tabs>
-
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                    <label className="relative flex-1 sm:max-w-sm">
-                        <span className="sr-only">Search listings</span>
-                        <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={15} />
-                        <input
-                            type="search"
-                            value={searchInput}
-                            onChange={(event) => setSearchInput(event.target.value)}
-                            placeholder="Search by studio name, owner name or email"
-                            className="h-10 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                            data-testid="admin-listing-search"
-                        />
-                    </label>
+                    <SearchInput
+                        id="admin-listing-search"
+                        aria-label="Search listings"
+                        value={searchInput}
+                        onChange={(event) => setSearchInput(event.target.value)}
+                        onClear={() => setSearchInput("")}
+                        placeholder="Search by studio name, owner name or email"
+                        className="sm:w-80"
+                        data-testid="admin-listing-search"
+                    />
                     <div className="sm:w-56">
                         <Select
                             id="admin-listing-city"
@@ -968,18 +970,18 @@ export default function AdminListingsClient({
                         />
                     </div>
                     {hasFilters && (
-                        <button
-                            type="button"
-                            className="text-xs font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground"
+                        <Button
+                            label="Clear filters"
+                            variant="ghost"
+                            size="sm"
+                            fit
                             onClick={() => {
                                 setSearchInput("");
                                 navigate(viewMode, status, 1, pageData.pageSize, { search: "", city: "" });
                             }}
-                        >
-                            Clear filters
-                        </button>
+                        />
                     )}
-                </div>
+                </AdminFilterBar>
 
                 {viewMode === "CURATED" ? (
                     curatedListings.length === 0 && !isNavigating ? (
@@ -1104,7 +1106,7 @@ export default function AdminListingsClient({
                                                             disabled={isPending}
                                                         />
                                                         {!listing.inConversation && (
-                                                            <button type="button" className="text-xs text-success hover:underline cursor-pointer"
+                                                            <Button variant="link" size="sm" className="text-xs text-success hover:text-success/70"
                                                                 onClick={() => startTransition(async () => {
                                                                     const result = await markInConversationAction({ listingId: listing.id, inConversation: true });
                                                                     if (!result.success) {
@@ -1115,7 +1117,7 @@ export default function AdminListingsClient({
                                                                     router.refresh();
                                                                 })}>
                                                                 Mark In Conversation
-                                                            </button>
+                                                            </Button>
                                                         )}
                                                     </div>
                                                 </TableCell>
@@ -1294,10 +1296,9 @@ export default function AdminListingsClient({
                         secondaryActionLabel="Cancel"
                         secondaryActionAction={() => !isPending && resetConfirm()}
                         nestedModal
-                        disableOverlayClose
                         disabled={isPending}
                         isLoading={isPending}
-                        customWidth="w-full max-w-lg"
+                        customWidth="max-w-lg"
                         body={
                             <div className="space-y-4" data-testid="admin-listing-confirm-modal">
                                 <p className="text-sm leading-6 text-muted-foreground">
@@ -1305,17 +1306,15 @@ export default function AdminListingsClient({
                                 </p>
                                 {confirmAction === "reject" && (
                                     <div>
-                                        <label htmlFor="listing-rejection-reason" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                            Rejection reason
-                                        </label>
-                                        <textarea
+                                        <Textarea
                                             id="listing-rejection-reason"
+                                            label="Rejection reason"
                                             value={rejectReason}
                                             onChange={(event) => setRejectReason(event.target.value)}
                                             minLength={10}
                                             maxLength={500}
                                             rows={5}
-                                            className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-foreground/40 focus:ring-2 focus:ring-foreground/10"
+                                            className="resize-none"
                                             placeholder="Explain what needs to be corrected before this listing can be approved."
                                             disabled={isPending}
                                         />

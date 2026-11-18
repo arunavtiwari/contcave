@@ -96,7 +96,7 @@ export default async function ShortlistPage({ params }: { params: Promise<{ toke
                                 <li key={listing.id}>
                                     <Link
                                         href={listingPath(listing)}
-                                        className="group block overflow-hidden rounded-2xl border border-border bg-background transition-colors hover:border-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
+                                        className="group block overflow-hidden rounded-2xl border border-border bg-background transition-colors hover:border-foreground focus-visible:outline-none focus-visible:border-foreground"
                                     >
                                         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                                             {listing.imageSrc[0] ? (

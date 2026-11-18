@@ -5,6 +5,8 @@ import { FiCrosshair, FiMapPin, FiX } from "react-icons/fi";
 import { HiLocationMarker } from "react-icons/hi";
 
 import LocationPickerBody from "@/components/listing/LocationPickerBody";
+import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/Popover";
+import Spinner from "@/components/ui/Spinner";
 import { useBrowseLocation } from "@/hooks/useBrowseLocation";
 import { useLocationPicker } from "@/hooks/useLocationPicker";
 import { MD_BREAKPOINT, useMediaQuery } from "@/hooks/useMediaQuery";
@@ -22,7 +24,7 @@ export default function LocationCombobox() {
     // Below md the phone sheet is the picker; mounting this dropdown as well would put a second
     // combobox in the accessibility tree, hidden to the eye but not to a screen reader.
     const isDesktop = useMediaQuery(MD_BREAKPOINT);
-    const containerRef = useRef<HTMLDivElement | null>(null);
+    const anchorRef = useRef<HTMLDivElement | null>(null);
     const inputRef = useRef<HTMLInputElement | null>(null);
 
     const baseId = useId();
@@ -35,23 +37,15 @@ export default function LocationCombobox() {
         if (pickerOpen) inputRef.current?.focus();
     }, [pickerOpen]);
 
-    useEffect(() => {
-        if (!pickerOpen) return;
-        const onPointerDown = (event: MouseEvent) => {
-            if (!containerRef.current?.contains(event.target as Node)) closePicker();
-        };
-        document.addEventListener("mousedown", onPointerDown);
-        return () => document.removeEventListener("mousedown", onPointerDown);
-    }, [pickerOpen, closePicker]);
-
     return (
-        <div ref={containerRef} className="relative w-full sm:w-[360px]">
-            <div
+        <Popover open={pickerOpen && isDesktop} onOpenChange={(open) => !open && closePicker()}>
+            <PopoverAnchor
+                ref={anchorRef}
                 className={cn(
-                    "flex h-12 items-center gap-2 rounded-full border bg-background pl-4 pr-1.5 transition",
+                    "flex h-12 w-full items-center sm:w-[360px] gap-2 rounded-full border bg-background pl-4 pr-1.5 transition",
                     pickerOpen
-                        ? "border-2 border-foreground pl-[15px] shadow-sm ring-4 ring-foreground/5"
-                        : "border-border hover:shadow-sm"
+                        ? "border-2 border-foreground pl-[15px]"
+                        : "border-border hover:border-foreground/40"
                 )}
             >
                 {/* Solid pin once a location is set, outline while it's still a prompt. */}
@@ -91,10 +85,7 @@ export default function LocationCombobox() {
                         onClick={cancelDetect}
                         className="flex h-9 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
                     >
-                        <span
-                            aria-hidden="true"
-                            className="size-3.5 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground"
-                        />
+                        <Spinner />
                         Cancel
                     </button>
                 ) : location ? (
@@ -126,11 +117,19 @@ export default function LocationCombobox() {
                         Near me
                     </button>
                 )}
-            </div>
+            </PopoverAnchor>
 
-            {pickerOpen && isDesktop && (
-                // Absolute, so opening the picker never moves the grid underneath it.
-                <div className="absolute left-0 top-[58px] z-50 w-[440px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-border bg-background shadow-xl">
+            <PopoverContent
+                surface="solid"
+                align="start"
+                sideOffset={10}
+                className="z-50 w-[440px] max-w-[calc(100vw-2rem)] py-0"
+                onOpenAutoFocus={(event) => event.preventDefault()}
+                onCloseAutoFocus={(event) => event.preventDefault()}
+                onInteractOutside={(event) => {
+                    if (anchorRef.current?.contains(event.target as Node)) event.preventDefault();
+                }}
+            >
                     <LocationPickerBody
                         listboxId={listboxId}
                         optionId={optionId}
@@ -148,8 +147,7 @@ export default function LocationCombobox() {
                     <p className="border-t border-border px-4 py-2.5 text-[11px] text-muted-foreground">
                         ↑ ↓ to move · Enter to pick · Esc to close
                     </p>
-                </div>
-            )}
-        </div>
+            </PopoverContent>
+        </Popover>
     );
 }

@@ -3,10 +3,11 @@
 import { FiAlertCircle } from "react-icons/fi";
 
 import SetsEditor from "@/components/inputs/SetsEditor";
-import { SetEditorItem } from "@/components/inputs/SetsEditor";
+import { SAME_PRICE_OPTIONS, samePriceChoice, SetEditorItem } from "@/components/inputs/SetsEditor";
 import Button from "@/components/ui/Button";
 import FormField from "@/components/ui/FormField";
 import Heading from "@/components/ui/Heading";
+import RadioGroup from "@/components/ui/RadioGroup";
 import { AdditionalSetPricingType } from "@/types/set";
 
 interface SetsStepProps {
@@ -62,38 +63,13 @@ const SetsStep: React.FC<SetsStepProps> = ({
       </FormField>
 
       <FormField label="Will all sets have the same price?" variant="horizontal">
-        <div className="flex gap-4 w-full">
-          <label
-            className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${
-              setsHaveSamePrice === true
-                ? "border-foreground bg-muted ring-1 ring-foreground/10"
-                : "border-border hover:border-border/80"
-            }`}
-          >
-            <input
-              type="radio"
-              checked={setsHaveSamePrice === true}
-              onChange={() => setCustomValue("setsHaveSamePrice", true)}
-              className="hidden"
-            />
-            <div className="font-medium text-center">Yes, same price</div>
-          </label>
-          <label
-            className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${
-              setsHaveSamePrice === false
-                ? "border-foreground bg-muted ring-1 ring-foreground/10"
-                : "border-border hover:border-border/80"
-            }`}
-          >
-            <input
-              type="radio"
-              checked={setsHaveSamePrice === false}
-              onChange={() => setCustomValue("setsHaveSamePrice", false)}
-              className="hidden"
-            />
-            <div className="font-medium text-center">No, different prices</div>
-          </label>
-        </div>
+        <RadioGroup
+          layout="cards"
+          aria-label="Will all sets have the same price?"
+          options={SAME_PRICE_OPTIONS}
+          value={samePriceChoice(setsHaveSamePrice)}
+          onChange={(v) => setCustomValue("setsHaveSamePrice", v === "yes")}
+        />
       </FormField>
 
       <SetsEditor

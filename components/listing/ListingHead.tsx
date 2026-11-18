@@ -14,6 +14,7 @@ import Modal from "@/components/modals/Modal";
 import VideoTourModal from "@/components/modals/VideoTourModal";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import Button from "@/components/ui/Button";
+import Dialog, { DialogTitle } from "@/components/ui/Dialog";
 import type { BreadcrumbItem } from "@/lib/seo";
 
 type Props = {
@@ -254,7 +255,7 @@ function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, breadcrum
         onCloseAction={() => setShowModal(false)}
         title={`All Photos (${imageSrc.length})`}
         body={modalContent}
-        customWidth="w-full md:w-5/6 lg:w-4/5 xl:w-3/4 max-w-6xl"
+        customWidth="md:w-5/6 lg:w-4/5 xl:w-3/4 max-w-6xl"
       />
 
       {videoSrc && (
@@ -268,8 +269,14 @@ function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, breadcrum
         </>
       )}
 
-      {isLightboxOpen && (
-        <div role="dialog" aria-modal="true" aria-label="Photo gallery" className="fixed inset-0 z-9999 bg-foreground/70 backdrop-blur-md flex flex-col items-center justify-center">
+      <Dialog
+        open={isLightboxOpen}
+        onOpenChange={setIsLightboxOpen}
+        modalOnly
+        overlayClassName="bg-foreground/70 backdrop-blur-md"
+        className="inset-0 left-0 top-0 flex translate-x-0 translate-y-0 flex-col items-center justify-center"
+      >
+          <DialogTitle className="sr-only">Photo gallery</DialogTitle>
           <div className="absolute top-0 inset-x-0 h-20 px-6 md:px-10 flex items-center justify-between z-50 bg-linear-to-b from-foreground/80 to-transparent">
             <Button
               onClick={() => setIsLightboxOpen(false)}
@@ -328,8 +335,7 @@ function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, breadcrum
               <HiOutlineChevronRight size={20} />
             </button>
           </div>
-        </div>
-      )}
+      </Dialog>
     </>
   );
 }

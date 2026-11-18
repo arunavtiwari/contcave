@@ -176,7 +176,7 @@ export default function ShareModal({ isOpen, onClose, url, title, location, imag
       onCloseAction={onClose}
       title="Share this space"
       body={body}
-      customWidth="w-full max-w-lg"
+      customWidth="max-w-lg"
     />
   );
 }

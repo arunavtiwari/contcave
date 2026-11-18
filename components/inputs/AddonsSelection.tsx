@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 
 import ImageCheckbox from '@/components/inputs/ImageCheckbox';
+import Button from "@/components/ui/Button";
 import FormField from "@/components/ui/FormField";
 import Heading from '@/components/ui/Heading';
 import useUIStore from '@/hooks/useUIStore';
@@ -181,12 +182,7 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
                             <p className="text-sm font-bold">No Addons Available</p>
                             <p className="text-xs text-muted-foreground">Start by creating your own custom addons</p>
                         </div>
-                        <button
-                            onClick={handleCreateCustomAddon}
-                            className="mt-2 text-xs font-bold uppercase tracking-widest px-6 py-2 bg-foreground text-background rounded-full hover:opacity-90 transition-all"
-                        >
-                            Create Custom Addon
-                        </button>
+                        <Button rounded fit onClick={handleCreateCustomAddon} label="Create Custom Addon" className="mt-2" />
                     </div>
                 )}
             </div>

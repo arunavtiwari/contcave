@@ -5,6 +5,7 @@ import React, { useState } from "react";
 
 import { saveBillingInfo } from "@/app/actions/billingActions";
 import Modal from "@/components/modals/Modal";
+import Button from "@/components/ui/Button";
 import Callout from "@/components/ui/Callout";
 import Checkbox from "@/components/ui/Checkbox";
 import Input from "@/components/ui/Input";
@@ -199,9 +200,7 @@ export default function BookingSummaryModal({
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <p className="text-sm font-semibold text-foreground">Your details</p>
             {onLoginAction && (
-              <button type="button" onClick={onLoginAction} className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground">
-                Have an account? Log in
-              </button>
+              <Button variant="link" size="sm" className="text-xs font-normal text-muted-foreground hover:text-foreground" onClick={onLoginAction} label="Have an account? Log in" />
             )}
           </div>
           <Input
@@ -358,7 +357,7 @@ export default function BookingSummaryModal({
       actionDisabled={!agree}
       disabled={saving}
       isLoading={saving}
-      customWidth="w-full max-w-lg"
+      customWidth="max-w-lg"
       customHeight="h-fit"
     />
   );

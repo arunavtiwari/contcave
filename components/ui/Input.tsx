@@ -19,8 +19,8 @@ const inputVariants = cva(
                 lg: "h-12 text-base rounded-xl",
             },
             error: {
-                true: "border-destructive focus-within:border-destructive focus-within:ring-1 focus-within:ring-destructive/20",
-                false: "border-border hover:border-foreground/40 focus-within:border-foreground focus-within:ring-1 focus-within:ring-foreground/20",
+                true: "border-destructive focus-within:border-destructive",
+                false: "border-border hover:border-foreground/40 focus-within:border-foreground",
             },
         },
         defaultVariants: {

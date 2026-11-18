@@ -6,7 +6,7 @@ import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
 import getListingById from "@/app/actions/getListingById";
 import PropertyClient from "@/components/property/PropertyClient";
-import { NavTabs } from "@/components/ui/Tabs";
+import { NavTabs } from "@/components/ui/NavTabs";
 import { adminEditListingHref } from "@/constants/adminNav";
 import { MAIN_SIDEBAR_ITEMS } from "@/constants/navigation";
 import { requireAdminPage } from "@/lib/admin/guard";

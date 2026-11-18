@@ -21,6 +21,7 @@ import { VerificationDocument, VerificationPayload } from "@/components/inputs/S
 import { SignatureMeta, TermsRef } from "@/components/inputs/TermsAndConditions";
 import Modal from "@/components/modals/Modal";
 import Heading from "@/components/ui/Heading";
+import LoadingOverlay from "@/components/ui/LoadingOverlay";
 import { toast } from "@/components/ui/Toast";
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import useUIStore from "@/hooks/useUIStore";
@@ -1224,7 +1225,6 @@ export default function RentModal({
         disabled={isLoading}
         isOpen={uiStore.modals.rent}
         testId="rent-modal"
-        disableOverlayClose={true}
         title={isCurated ? "List Curated Space" : currentStepDefinition.modalTitle}
         actionLabel={actionLabel}
         onSubmitAction={() => {
@@ -1264,24 +1264,12 @@ export default function RentModal({
         }
 
         bodyRef={bodyRef}
-        customWidth="w-full md:w-5/6 lg:w-4/6 xl:w-3/6"
+        customWidth="md:w-5/6 lg:w-4/6 xl:w-3/6"
         customHeight="h-[90vh]"
       />
 
-      {/* Creating Listing Spinner Overlay */}
       {isSubmitting && (
-        <div className="fixed inset-0 z-1000 flex items-center justify-center bg-foreground/60 backdrop-blur-sm">
-          <div className="bg-background rounded-2xl  ring-1 ring-foreground/5 px-10 py-12 flex flex-col items-center gap-6 max-w-sm w-full mx-4 animate-in fade-in zoom-in duration-300">
-            <div className="relative w-16 h-16">
-              <div className="absolute inset-0 rounded-full border-4 border-muted" />
-              <div className="absolute inset-0 rounded-full border-4 border-t-foreground animate-spin" />
-            </div>
-            <div className="text-center">
-              <h5 className="text-xl font-semibold text-foreground">Creating your listing</h5>
-              <p className="text-sm text-muted-foreground mt-2">Uploading images and setting up your space...</p>
-            </div>
-          </div>
-        </div>
+        <LoadingOverlay title="Creating your listing" description="Uploading images and setting up your space…" />
       )}
 
       <Modal

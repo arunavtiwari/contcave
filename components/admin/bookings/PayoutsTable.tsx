@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import type { AdminPayoutRow } from "@/app/actions/adminBookingActions";
 import { CompactPill, MutedDash } from "@/components/admin/bookings/shared";
+import Button from "@/components/ui/Button";
 import {
   EmptyTable,
   Table,
@@ -61,13 +62,7 @@ export default function PayoutsTable({ rows, footer, isLoading, pageSize, canMan
                   <div className="flex flex-col items-center gap-1.5">
                     <CompactPill label={payout.payoutDoneAt ? "Done" : payout.payoutSplitAt ? "Split" : "Pending"} variant={payout.payoutDoneAt ? "success" : "warning"} />
                     {canManage && !payout.payoutDoneAt && !payout.payoutSplitAt && payout.status === "SUCCESS" && (
-                      <button
-                        type="button"
-                        onClick={() => onMarkPaid(payout)}
-                        className="text-xs font-medium underline underline-offset-4 hover:text-foreground"
-                      >
-                        Mark paid
-                      </button>
+                      <Button variant="link" size="sm" className="text-xs" onClick={() => onMarkPaid(payout)} label="Mark paid" />
                     )}
                   </div>
                 </TableCell>

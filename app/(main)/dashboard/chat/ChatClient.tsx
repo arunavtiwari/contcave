@@ -7,6 +7,7 @@ import { FaWhatsapp } from "react-icons/fa";
 import { IoSend } from "react-icons/io5";
 
 import Heading from "@/components/ui/Heading";
+import Input from "@/components/ui/Input";
 import { markAsRead, sendChatMessage } from "@/lib/chat/actions";
 import {
   calculateDurationHours,
@@ -362,11 +363,11 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
               <span>{initialBooking.readOnly ? "Read-only" : isChannelReady ? "Connected" : "Connecting..."}</span>
               <span>{newMessage.length}/{MAX_MESSAGE_LENGTH}</span>
             </div>
-            <div className="flex items-center w-full bg-background border border-border rounded-xl focus-within:border-foreground transition-all duration-200 h-12 px-2 gap-2">
-              <input
-                type="text"
+            <Input
+                id="chat-message"
+                aria-label="Message"
+                size="lg"
                 placeholder={initialBooking.readOnly ? "This chat is read-only." : "Type a message..."}
-                className="grow bg-transparent border-none outline-none focus:ring-0 text-sm text-foreground px-2 h-full min-w-0"
                 value={newMessage}
                 onChange={(event) => {
                   setNewMessage(event.target.value);
@@ -381,8 +382,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
                 disabled={isSending || initialBooking.readOnly}
                 maxLength={MAX_MESSAGE_LENGTH}
                 data-testid="chat-input"
-              />
-              <button
+                customRightContent={<button
                 className="flex items-center justify-center w-8 h-8 rounded-lg bg-foreground text-background transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground shrink-0 cursor-pointer"
                 onClick={() => {
                   void handleSend();
@@ -392,8 +392,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
                 data-testid="chat-send-button"
               >
                 <IoSend size={14} />
-              </button>
-            </div>
+              </button>} />
           </div>
         </div>
 

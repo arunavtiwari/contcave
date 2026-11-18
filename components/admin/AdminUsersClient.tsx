@@ -2,15 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { FiMail, FiSearch, FiUserPlus } from "react-icons/fi";
+import { FiMail, FiUserPlus } from "react-icons/fi";
 import { toast } from "sonner";
 
 import { type AdminUserRow, type AdminUsersPageData, changeUserRoleAction, resendStaffInviteAction } from "@/app/actions/adminUserActions";
+import AdminFilterBar from "@/components/admin/AdminFilterBar";
 import AdminTabs from "@/components/admin/AdminTabs";
 import InviteStaffModal from "@/components/admin/InviteStaffModal";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
+import SearchInput from "@/components/ui/SearchInput";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TablePagination, TableRow } from "@/components/ui/Table";
 import { ROLE_LABELS, roleAfter, type RoleChange, USER_ROLE_TABS, type UserRoleTab } from "@/lib/admin/userRoles";
 import { USERS_PATH, usersHref } from "@/lib/admin/usersHref";
@@ -72,37 +74,35 @@ export default function AdminUsersClient({ users, total, page, pageSize, tab, ta
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <form action={USERS_PATH} method="get" role="search" className="relative flex-1 sm:max-w-md">
-          {tab !== "all" && <input type="hidden" name="tab" value={tab} />}
-          <FiSearch
-            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-            size={16}
-            aria-hidden="true"
-          />
-          <label htmlFor="user-search" className="sr-only">Search users</label>
-          <input
-            id="user-search"
-            type="search"
-            name="q"
-            defaultValue={search}
-            placeholder="Search by name, email or phone"
-            className="h-11 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-base text-foreground placeholder:text-muted-foreground focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20 sm:h-9 sm:text-sm"
-          />
-        </form>
+      <div className="flex justify-end">
         <Button label="Add staff" icon={FiUserPlus} fit size="sm" onClick={() => setIsInviteOpen(true)} />
       </div>
 
-      <AdminTabs
-        activeId={tab}
-        ariaLabel="Filter users by role"
-        items={USER_ROLE_TABS.map((id) => ({
-          id,
-          label: TAB_LABELS[id],
-          count: tabCounts[id],
-          href: usersHref({ tab: id, q: search }),
-        }))}
-      />
+      <AdminFilterBar
+        tabs={(
+          <AdminTabs
+            activeId={tab}
+            ariaLabel="Filter users by role"
+            items={USER_ROLE_TABS.map((id) => ({
+              id,
+              label: TAB_LABELS[id],
+              count: tabCounts[id],
+              href: usersHref({ tab: id, q: search }),
+            }))}
+          />
+        )}
+      >
+        <form action={USERS_PATH} method="get" role="search" className="sm:w-80">
+          {tab !== "all" && <input type="hidden" name="tab" value={tab} />}
+          <SearchInput
+            id="user-search"
+            name="q"
+            aria-label="Search users"
+            defaultValue={search}
+            placeholder="Search by name, email or phone"
+          />
+        </form>
+      </AdminFilterBar>
 
       <Table
         footer={(

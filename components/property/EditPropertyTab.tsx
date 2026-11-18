@@ -12,7 +12,7 @@ import ImageReorderGrid from "@/components/inputs/ImageReorderGrid";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import PackagesForm from "@/components/inputs/PackagesForm";
 import RichTextEditor from "@/components/inputs/RichTextEditor";
-import SetsEditor from "@/components/inputs/SetsEditor";
+import SetsEditor, { SAME_PRICE_OPTIONS, samePriceChoice } from "@/components/inputs/SetsEditor";
 import TaxonomyPillSelect from "@/components/inputs/TaxonomyPillSelect";
 import ListingLocationFields from "@/components/listing/ListingLocationFields";
 import CustomAddonModal from "@/components/modals/CustomAddonModal";
@@ -21,6 +21,7 @@ import FormField from "@/components/ui/FormField";
 import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 import Pill from "@/components/ui/Pill";
+import RadioGroup from "@/components/ui/RadioGroup";
 import Select, { SelectOption } from "@/components/ui/Select";
 import Switch from "@/components/ui/Switch";
 import Textarea from "@/components/ui/Textarea";
@@ -478,40 +479,14 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
                 </FormField>
 
                 <FormField label="Will all sets have the same price?" variant="horizontal" align="start">
-                  <div className="flex gap-4 w-full">
-                    <label
-                      className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${
-                        setsHaveSamePrice === true
-                          ? "border-foreground bg-muted ring-1 ring-foreground/10"
-                          : "border-border hover:border-border/80"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="priceConsistency"
-                        checked={setsHaveSamePrice === true}
-                        onChange={() => setSetsHaveSamePrice(true)}
-                        className="hidden"
-                      />
-                      <div className="font-medium text-center">Yes, same price</div>
-                    </label>
-                    <label
-                      className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${
-                        setsHaveSamePrice === false
-                          ? "border-foreground bg-muted ring-1 ring-foreground/10"
-                          : "border-border hover:border-border/80"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="priceConsistency"
-                        checked={setsHaveSamePrice === false}
-                        onChange={() => setSetsHaveSamePrice(false)}
-                        className="hidden"
-                      />
-                      <div className="font-medium text-center">No, different prices</div>
-                    </label>
-                  </div>
+                  <RadioGroup
+                    layout="cards"
+                    name="priceConsistency"
+                    aria-label="Will all sets have the same price?"
+                    options={SAME_PRICE_OPTIONS}
+                    value={samePriceChoice(setsHaveSamePrice)}
+                    onChange={(v) => setSetsHaveSamePrice(v === "yes")}
+                  />
                 </FormField>
 
                 <SetsEditor

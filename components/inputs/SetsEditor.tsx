@@ -336,3 +336,14 @@ export default function SetsEditor({
 
 export type { SetEditorItem };
 
+
+export const SAME_PRICE_OPTIONS = [
+  { value: "yes", label: "Yes, same price" },
+  { value: "no", label: "No, different prices" },
+] as const;
+
+export function samePriceChoice(samePrice: boolean | null | undefined): "yes" | "no" | undefined {
+  if (samePrice === true) return "yes";
+  if (samePrice === false) return "no";
+  return undefined;
+}

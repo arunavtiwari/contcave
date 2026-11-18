@@ -21,9 +21,9 @@ export default async function AdminLayout({
     const currentUser = await requireAdminPage();
 
     return (
-        <div className="flex min-h-screen bg-neutral-50/60">
+        <div className="flex min-h-screen flex-col bg-neutral-50/60 md:flex-row">
             <AdminSidebar role={currentUser.role} />
-            <main className="flex-1 min-w-0 p-5 overflow-y-auto">
+            <main className="min-w-0 flex-1 overflow-y-auto p-4 md:p-5">
                 <div className="mx-auto max-w-7xl w-full">
                     {children}
                 </div>

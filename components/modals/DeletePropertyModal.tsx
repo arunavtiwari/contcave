@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { IoWarningOutline } from "react-icons/io5";
 
 import Modal from "@/components/modals/Modal";
+import Input from "@/components/ui/Input";
 
 type Props = {
     isOpen: boolean;
@@ -43,17 +44,16 @@ export default function DeletePropertyModal({
                 </div>
             </div>
             <div className="mt-2">
-                <label className="text-[13px] font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
+                <label htmlFor="delete-property-confirm" className="text-[13px] font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
                     To verify, type the property name:
                 </label>
                 <div className="font-mono text-sm block text-foreground p-3 mb-3 bg-muted rounded-xl select-all border border-border">
                     {propertyName}
                 </div>
-                <input
-                    type="text"
+                <Input
+                    id="delete-property-confirm"
                     value={confirmName}
                     onChange={(e) => setConfirmName(e.target.value)}
-                    className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground transition outline-none focus:border-destructive focus:ring-1 focus:ring-destructive/20"
                     placeholder="Enter property name..."
                     disabled={isLoading}
                 />
@@ -75,7 +75,7 @@ export default function DeletePropertyModal({
             primaryActionVariant="destructive"
             actionDisabled={!isMatch}
             disabled={isLoading}
-            customWidth="w-full md:w-[480px]"
+            customWidth="md:w-[480px]"
             customHeight="h-fit"
             isLoading={isLoading}
         />

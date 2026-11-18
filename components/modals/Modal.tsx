@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import type React from "react";
 import { IoMdCloseCircle } from "react-icons/io";
 
 import Button from "@/components/ui/Button";
+import Dialog, { DialogTitle } from "@/components/ui/Dialog";
 import Heading from "@/components/ui/Heading";
+import { cn } from "@/lib/utils";
 
 type Props = {
   isOpen?: boolean;
@@ -16,197 +18,113 @@ type Props = {
   actionLabel?: string;
   disabled?: boolean;
   customWidth?: string;
-  fixedHeight?: boolean;
+  customHeight?: string;
   secondaryActionAction?: () => void;
   secondaryActionLabel?: string;
   nestedModal?: boolean;
   isLoading?: boolean;
-  disableOverlayClose?: boolean;
   primaryActionVariant?: "default" | "outline" | "success" | "destructive" | "ghost" | "secondary";
   actionDisabled?: boolean;
   testId?: string;
+  bodyRef?: React.RefObject<HTMLDivElement | null>;
 };
 
-let activeLocksCount = 0;
-let savedOriginalOverflow = "";
-
-const lockBodyScroll = () => {
-  if (typeof window === "undefined") return;
-
-  if (activeLocksCount === 0) {
-    savedOriginalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-  }
-  activeLocksCount++;
-};
-
-const unlockBodyScroll = () => {
-  if (typeof window === "undefined") return;
-
-  activeLocksCount = Math.max(0, activeLocksCount - 1);
-
-  if (activeLocksCount === 0) {
-    document.body.style.overflow = savedOriginalOverflow;
-  }
-};
-
+/**
+ * The app's dialog (Radix: focus trap, focus return, Escape, scroll lock, stacking). It never
+ * closes on an outside click, and Escape and the close button do nothing while `disabled`.
+ */
 function Modal({
-  isOpen,
+  isOpen = false,
   onCloseAction,
   onSubmitAction,
   title,
   body,
-  actionLabel = "",
   footer,
+  actionLabel = "",
   disabled,
-  secondaryActionAction,
   customWidth,
+  customHeight,
+  secondaryActionAction,
   secondaryActionLabel,
   nestedModal,
   isLoading,
-  bodyRef,
-  customHeight,
-  disableOverlayClose: _disableOverlayClose = true,
   primaryActionVariant = "default",
   actionDisabled,
   testId,
-}: Props & { bodyRef?: React.RefObject<HTMLDivElement | null>; customHeight?: string }) {
-  const [showModal, setShowModal] = useState(isOpen);
-  const modalRef = useRef<HTMLDivElement>(null);
-
-
-  useEffect(() => {
-    if (isOpen) setShowModal(true);
-    else {
-      const timer = setTimeout(() => setShowModal(false), 300);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen]);
-
-
-  useEffect(() => {
-    if (isOpen) {
-      lockBodyScroll();
-      return () => {
-        unlockBodyScroll();
-      };
-    }
-  }, [isOpen]);
-
-
-
-  const handleClose = useCallback(() => {
-    if (disabled) return;
-    onCloseAction();
-  }, [disabled, onCloseAction]);
-
-  const handleSubmit = useCallback(() => {
-    if (disabled) return;
-    onSubmitAction?.();
-  }, [onSubmitAction, disabled]);
-
+  bodyRef,
+}: Props) {
+  const close = () => {
+    if (!disabled) onCloseAction();
+  };
   const hasPrimary = Boolean(actionLabel);
   const hasSecondary = Boolean(secondaryActionAction && secondaryActionLabel);
 
-  const handleSecondAction = useCallback(() => {
-    if (disabled || !secondaryActionAction) return;
-    secondaryActionAction();
-  }, [disabled, secondaryActionAction]);
-
-
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !disabled) handleClose();
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, [handleClose, disabled]);
-
-
-  const handleBackdropClick = useCallback(() => {
-    // Dialogs should never close when clicked outside
-    return;
-  }, []);
-
-  if (!isOpen && !showModal) return null;
-
   return (
-    <div
-      onClick={handleBackdropClick}
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => !open && close()}
+      modalOnly
       data-testid={testId}
-      className={`fixed inset-0 z-999 flex items-center justify-center backdrop-blur-sm px-4 transition-all duration-500 ${nestedModal ? "bg-foreground/20" : "bg-foreground/60"
-        } ${isOpen ? "opacity-100" : "opacity-0"} ${nestedModal ? "" : isLoading ? "backdrop-blur-md" : "backdrop-blur-[2px]"
-        }`}
+      overlayClassName={cn(
+        nestedModal ? "bg-foreground/20 backdrop-blur-sm" : "bg-foreground/60",
+        !nestedModal && isLoading && "backdrop-blur-md"
+      )}
+      className={cn(
+        "flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-background",
+        "w-[calc(100%-2rem)]",
+        customWidth || "md:w-4/6 md:max-w-2xl lg:w-3/6 xl:w-2/5",
+        customHeight || "h-auto max-h-[90vh]"
+      )}
     >
-      <div
-        ref={modalRef}
-        className={`relative mx-auto transform transition-all duration-500 ease-out ${showModal && isOpen
-          ? "opacity-100 scale-100 translate-y-0"
-          : "opacity-0 scale-[0.98] translate-y-8"
-          } ${customWidth || "w-full md:w-4/6 lg:w-3/6 xl:w-2/5 md:max-w-2xl"}`}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modal-title"
-      >
-        <div className={`flex flex-col w-full bg-background rounded-2xl border border-border/80 overflow-hidden ${customHeight || "h-auto max-h-[90vh]"}`}>
-
-          {/* Header */}
-          <div className="flex items-center justify-between p-5 bg-background relative shrink-0">
-            <Heading
-              id="modal-title"
-              title={title}
-              variant="h5"
-              as="h2"
-            />
-            <Button
-              onClick={handleClose}
-              icon={IoMdCloseCircle}
-              variant="ghost"
-              rounded
-              size="lg"
-              aria-label="Close dialog"
-              className="opacity-80 hover:opacity-100 p-0! w-fit! h-fit!"
-            />
-          </div>
-
-          <div
-            ref={bodyRef}
-            className="flex-1 px-5 pb-5 pt-2 overflow-y-auto"
-          >
-            {body}
-          </div>
-
-          {(hasSecondary || hasPrimary) && (
-            <div className="px-5 py-4 flex flex-col md:flex-row gap-3 justify-end items-center bg-muted/10 shrink-0 border-t border-border/40">
-              {hasSecondary && (
-                <Button
-                  outline
-                  disabled={disabled}
-                  label={secondaryActionLabel}
-                  onClick={handleSecondAction}
-                  rounded
-                  data-testid={testId ? `${testId}-secondary-action` : undefined}
-                />
-              )}
-
-              {hasPrimary && (
-                <Button
-                  disabled={disabled || actionDisabled}
-                  label={actionLabel}
-                  onClick={handleSubmit}
-                  loading={isLoading}
-                  variant={primaryActionVariant}
-                  rounded
-                  data-testid={testId ? `${testId}-primary-action` : undefined}
-                />
-              )}
+            <div className="relative flex shrink-0 items-center justify-between bg-background p-5">
+              <DialogTitle asChild>
+                <div>
+                  <Heading title={title} variant="h5" as="h2" />
+                </div>
+              </DialogTitle>
+              <Button
+                onClick={close}
+                icon={IoMdCloseCircle}
+                variant="ghost"
+                rounded
+                size="lg"
+                aria-label="Close dialog"
+                className="h-fit! w-fit! p-0! opacity-80 hover:opacity-100"
+              />
             </div>
-          )}
 
-          {footer && <div className="px-6 pb-6 shrink-0">{footer}</div>}
-        </div>
-      </div>
-    </div>
+            <div ref={bodyRef} className="flex-1 overflow-y-auto px-5 pb-5 pt-2">
+              {body}
+            </div>
+
+            {(hasSecondary || hasPrimary) && (
+              <div className="flex shrink-0 flex-col items-center justify-end gap-3 border-t border-border/40 bg-muted/10 px-5 py-4 md:flex-row">
+                {hasSecondary && (
+                  <Button
+                    outline
+                    disabled={disabled}
+                    label={secondaryActionLabel}
+                    onClick={() => !disabled && secondaryActionAction?.()}
+                    rounded
+                    data-testid={testId ? `${testId}-secondary-action` : undefined}
+                  />
+                )}
+                {hasPrimary && (
+                  <Button
+                    disabled={disabled || actionDisabled}
+                    label={actionLabel}
+                    onClick={() => !disabled && onSubmitAction?.()}
+                    loading={isLoading}
+                    variant={primaryActionVariant}
+                    rounded
+                    data-testid={testId ? `${testId}-primary-action` : undefined}
+                  />
+                )}
+              </div>
+            )}
+
+      {footer && <div className="shrink-0 px-6 pb-6">{footer}</div>}
+    </Dialog>
   );
 }
 

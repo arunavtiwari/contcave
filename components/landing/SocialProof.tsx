@@ -11,6 +11,7 @@ import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
 import Container from "@/components/layout/Container";
+import Button from "@/components/ui/Button";
 import SectionHeader from "@/components/ui/SectionHeader";
 import StarRating from "@/components/ui/StarRating";
 import { reviews } from "@/constants/testimonials";
@@ -61,13 +62,7 @@ const ReviewCard = ({ review }: ReviewCardProps) => {
         &ldquo;{review.quote}&rdquo;
       </p>
       {isLong && (
-        <button
-          type="button"
-          onClick={() => setExpanded((prev) => !prev)}
-          className="mb-4 w-fit text-xs font-semibold text-foreground underline underline-offset-2 hover:text-foreground/70"
-        >
-          {expanded ? "Show less" : "Read more"}
-        </button>
+        <Button variant="link" size="sm" className="mb-4 text-xs font-semibold" onClick={() => setExpanded((prev) => !prev)} label={expanded ? "Show less" : "Read more"} />
       )}
       {!isLong && <div className="mb-4" />}
       <div className="mt-auto">

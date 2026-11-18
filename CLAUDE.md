@@ -112,6 +112,16 @@ All Cashfree API functions live in `lib/cashfree/cashfree.ts`:
 
 Images/files are stored in Cloudflare R2, accessed via the AWS S3 SDK (`lib/storage/r2.ts`). Presigned URLs are generated server-side for uploads. Public CDN is at `assets.contcave.com`.
 
+## UI components
+
+Every interactive control comes from `components/ui`. Check there before building any UI, and extend a shared component rather than copying it.
+
+- Behaviour comes from Radix (focus, keyboard, ARIA, scroll lock); the look is ours (Tailwind tokens in `styles/globals.css`, `cva` variants, `cn`). `components.json` is set up for shadcn, using `react-icons` instead of lucide.
+- Dialogs: `Dialog` is the one base. `components/modals/Modal.tsx` (title, body, actions) and `Sheet` (phone panel) are built on it, and so is every custom media dialog. Never hand-build a `fixed inset-0` overlay.
+- Also shared: `Tabs` (`keepMounted` keeps hidden panels in the HTML for SEO), `NavTabs` (link tabs), `Popover`, `DropdownMenu`, `Tooltip`, `Switch`, `RadioGroup`, `Checkbox`, `Input`, `SearchInput`, `Textarea`, `Select`, `Spinner`, `LoadingOverlay`, `Button` (including `variant="link"`).
+- Focus is a border colour change only: no `ring-*` focus styles and no shadows.
+- Layers: page chrome stays below `z-100000`; dialogs are `z-100001`; menus, popovers and Select menus `z-100002`; tooltips `z-100003`.
+
 ## Listing cards
 
 The listing card is composed from three sub-components in `components/listing/`:

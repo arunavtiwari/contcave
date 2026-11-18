@@ -12,6 +12,7 @@ import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
 import SetDetailModal from "@/components/listing/SetDetailModal";
+import Button from "@/components/ui/Button";
 import Checkbox from "@/components/ui/Checkbox";
 import Heading from "@/components/ui/Heading";
 import { Package } from "@/types/package";
@@ -92,13 +93,7 @@ export default function SetSelector({
                     variant="h5"
                 />
                 {onBookEntireStudio && !selectedPackage && (
-                    <button
-                        type="button"
-                        onClick={onBookEntireStudio}
-                        className="text-sm font-medium px-4 py-2 rounded-xl transition bg-foreground text-background hover:bg-neutral-800 shadow-sm hover:shadow-md"
-                    >
-                        Book the Entire Studio
-                    </button>
+                    <Button fit onClick={onBookEntireStudio} label="Book the Entire Studio" />
                 )}
             </div>
 
@@ -166,8 +161,8 @@ export default function SetSelector({
                                 <div className="py-2">
                                     <div
                                         className={`
-                                            relative w-full aspect-video rounded-xl overflow-hidden cursor-pointer group transition-all
-                                            ${isSelected ? "ring-2 ring-foreground ring-offset-2" : ""}
+                                            relative w-full aspect-video rounded-xl overflow-hidden cursor-pointer group transition-all border-2
+                                            ${isSelected ? "border-foreground" : "border-transparent"}
                                             ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}
                                         `}
                                     >

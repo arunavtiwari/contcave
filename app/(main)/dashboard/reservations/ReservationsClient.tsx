@@ -20,7 +20,10 @@ import {
 import ListingCard from "@/components/listing/ListingCard";
 import Modal from "@/components/modals/Modal";
 import ReservationDetailModal from "@/components/modals/ReservationDetailModal";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 import Select, { SelectOption } from "@/components/ui/Select";
+import Textarea from "@/components/ui/Textarea";
 import { extraHourRate } from "@/lib/pricing";
 import { SafeReservation } from "@/types/reservation";
 import { SafeUser } from "@/types/user";
@@ -194,11 +197,11 @@ function ReservationsClient({ reservations, currentUser }: Props) {
       {reservations.map((reservation) => <div key={reservation.id} className="space-y-3">
         {(reservation.pendingExtensions || []).map((extension) => <div key={extension.id} className="rounded-lg border border-warning/30 bg-warning/10 p-3 text-sm">
           <div className="font-medium text-foreground">Extension pending payment: Rs. {extension.extraAmount}, until {extension.requestedEndTime}</div>
-          <button className="mt-2 text-xs font-semibold underline" onClick={() => cancelPendingExtension(extension.id)}>Cancel request</button>
+          <Button variant="link" size="sm" className="mt-2 text-xs font-semibold" onClick={() => cancelPendingExtension(extension.id)} label="Cancel request" />
         </div>)}
         {(reservation.pendingCharges || []).map((charge) => <div key={charge.id} className="rounded-lg border border-warning/30 bg-warning/10 p-3 text-sm">
           <div className="font-medium text-foreground">Pending {charge.type === "DAMAGE" ? "damage" : "service"} charge: Rs. {charge.totalAmount}</div>
-          <div className="mt-2 flex gap-3 text-xs font-semibold"><button className="underline" onClick={() => handleEditCharge(reservation, charge.id)}>Edit</button><button className="underline" onClick={() => cancelPendingCharge(charge.id)}>Cancel</button></div>
+          <div className="mt-2 flex gap-3 text-xs font-semibold"><Button variant="link" size="sm" className="text-xs font-semibold" onClick={() => handleEditCharge(reservation, charge.id)} label="Edit" /><Button variant="link" size="sm" className="text-xs font-semibold" onClick={() => cancelPendingCharge(charge.id)} label="Cancel" /></div>
         </div>)}
         <ListingCard data={reservation.listing} reservation={reservation} actionId={reservation.id} onDelete={handleDeleteModal} onApprove={onApprove} onReject={onReject} onCheckIn={(id) => runReservationAction(id, checkInReservationAction, "Reservation checked in")} onComplete={(id) => runReservationAction(id, completeReservationAction, "Reservation completed")} onNoShow={(id) => runReservationAction(id, markNoShowReservationAction, "Reservation marked no-show")} onExtend={handleExtend} onAddCharge={handleAddCharge} onChat={onChat} onShowInfo={handleShowInfo} disabled={deletingId === reservation.id} currentUser={currentUser} allowScale={false} isHost />
       </div>)}
@@ -206,23 +209,23 @@ function ReservationsClient({ reservations, currentUser }: Props) {
 
     <ReservationDetailModal isOpen={isInfoModalOpen} onCloseAction={() => setInfoModalOpen(false)} reservation={infoReservation} showClient />
 
-    {isModalOpen && <Modal isOpen={isModalOpen} onCloseAction={() => !deletingId && setModalOpen(false)} onSubmitAction={handleConfirmAction} title={modalAction === "reject" ? "Reason for Rejecting This Booking" : "Delete Reservation"} body={modalAction === "reject" ? <div className="space-y-4"><p>Please select or specify a reason. This will be shared with the customer.</p><Select options={rejectReasonOptions} value={rejectReasonOptions.find((option) => option.value === rejectReasonOption) || null} onChange={(selection) => setRejectReasonOption((selection as SelectOption | null)?.value || "")} isDisabled={!!deletingId} placeholder="Select a reason" />{rejectReasonOption === "Other (please specify)" && <textarea className="w-full border rounded-md p-2" rows={4} placeholder="Enter a short reason (min. 10 characters)" value={rejectReasonText} onChange={(event) => setRejectReasonText(event.target.value)} disabled={!!deletingId} />}</div> : <p className="text-center">Are you sure you want to delete this reservation?</p>} actionLabel={modalAction === "reject" ? "Reject Booking" : "Delete Reservation"} />}
+    {isModalOpen && <Modal isOpen={isModalOpen} onCloseAction={() => !deletingId && setModalOpen(false)} onSubmitAction={handleConfirmAction} title={modalAction === "reject" ? "Reason for Rejecting This Booking" : "Delete Reservation"} body={modalAction === "reject" ? <div className="space-y-4"><p>Please select or specify a reason. This will be shared with the customer.</p><Select options={rejectReasonOptions} value={rejectReasonOptions.find((option) => option.value === rejectReasonOption) || null} onChange={(selection) => setRejectReasonOption((selection as SelectOption | null)?.value || "")} isDisabled={!!deletingId} placeholder="Select a reason" />{rejectReasonOption === "Other (please specify)" && <Textarea id="reject-reason-text" aria-label="Rejection reason" rows={4} placeholder="Enter a short reason (min. 10 characters)" value={rejectReasonText} onChange={(event) => setRejectReasonText(event.target.value)} disabled={!!deletingId} />}</div> : <p className="text-center">Are you sure you want to delete this reservation?</p>} actionLabel={modalAction === "reject" ? "Reject Booking" : "Delete Reservation"} />}
 
     {extensionReservation && <Modal isOpen onCloseAction={() => !deletingId && setExtensionReservation(null)} onSubmitAction={submitExtension} title="Extend Session" body={<div className="space-y-4">
       {extensionAvailability && <p className="text-sm text-muted-foreground">{extensionAvailability.maxDurationMinutes > 0 ? `Available until ${extensionAvailability.maxEndTime} (${extensionAvailability.maxDurationMinutes} minutes)` : extensionAvailability.reason || "No extension slot is available"}</p>}
-      <label className="block text-sm font-medium">Duration (minutes)<input className="mt-1 w-full rounded-md border border-border bg-background p-2" type="number" min={1} max={extensionAvailability?.maxDurationMinutes || undefined} value={extensionDuration} onChange={(event) => {
+      <Input id="extension-duration" label="Duration (minutes)" type="number" min={1} max={extensionAvailability?.maxDurationMinutes || undefined} value={extensionDuration} onChange={(event) => {
         const minutes = Number(event.target.value);
         setExtensionDuration(minutes);
         if (extensionReservation?.listing) setExtensionAmount(extensionPriceFor(extraHourRate(extensionReservation.listing), minutes));
-      }} disabled={!!deletingId} /></label>
-      <label className="block text-sm font-medium">Amount<input className="mt-1 w-full rounded-md border border-border bg-background p-2" type="number" min={1} value={extensionAmount} onChange={(event) => setExtensionAmount(Number(event.target.value))} disabled={!!deletingId} /></label>
+      }} disabled={!!deletingId} />
+      <Input id="extension-amount" label="Amount" type="number" min={1} value={extensionAmount} onChange={(event) => setExtensionAmount(Number(event.target.value))} disabled={!!deletingId} />
     </div>} actionLabel="Send Payment Link" actionDisabled={Boolean(extensionAvailability && (extensionAvailability.maxDurationMinutes <= 0 || extensionDuration > extensionAvailability.maxDurationMinutes)) || extensionDuration < 1 || extensionAmount < 1} />}
 
     {chargeReservation && <Modal isOpen onCloseAction={() => { if (!deletingId) { setChargeReservation(null); setEditingChargeId(null); } }} onSubmitAction={submitCharge} title={editingChargeId ? "Edit Charge" : chargeType === "DAMAGE" ? "Damage Charge" : "Add Services"} body={<div className="space-y-4">
       {listingAddonItems.length > 0 && <div><div className="mb-2 text-sm font-medium">Listing services</div><div className="flex flex-wrap gap-2">{listingAddonItems.map((addon) => <button key={addon.id} type="button" className="rounded-md border border-border px-3 py-2 text-left text-sm hover:bg-muted" onClick={() => { setChargeName(addon.name); setChargeQty(addon.qty); setChargeUnitPrice(addon.price); }} disabled={!!deletingId}><span className="block font-medium">{addon.name}</span><span className="block text-xs text-muted-foreground">Rs. {addon.price}</span></button>)}</div></div>}
-      <label className="block text-sm font-medium">Item name<input className="mt-1 w-full rounded-md border border-border bg-background p-2" value={chargeName} onChange={(event) => setChargeName(event.target.value)} disabled={!!deletingId} /></label>
-      <div className="grid grid-cols-2 gap-3"><label className="block text-sm font-medium">Qty<input className="mt-1 w-full rounded-md border border-border bg-background p-2" type="number" min={1} value={chargeQty} onChange={(event) => setChargeQty(Number(event.target.value))} disabled={!!deletingId} /></label><label className="block text-sm font-medium">Unit price<input className="mt-1 w-full rounded-md border border-border bg-background p-2" type="number" min={1} value={chargeUnitPrice} onChange={(event) => setChargeUnitPrice(Number(event.target.value))} disabled={!!deletingId} /></label></div>
-      <label className="block text-sm font-medium">Note<textarea className="mt-1 w-full rounded-md border border-border bg-background p-2" rows={3} value={chargeNote} onChange={(event) => setChargeNote(event.target.value)} disabled={!!deletingId} /></label>
+      <Input id="charge-name" label="Item name" value={chargeName} onChange={(event) => setChargeName(event.target.value)} disabled={!!deletingId} />
+      <div className="grid grid-cols-2 gap-3"><Input id="charge-qty" label="Qty" type="number" min={1} value={chargeQty} onChange={(event) => setChargeQty(Number(event.target.value))} disabled={!!deletingId} /><Input id="charge-unit-price" label="Unit price" type="number" min={1} value={chargeUnitPrice} onChange={(event) => setChargeUnitPrice(Number(event.target.value))} disabled={!!deletingId} /></div>
+      <Textarea id="charge-note" label="Note" rows={3} value={chargeNote} onChange={(event) => setChargeNote(event.target.value)} disabled={!!deletingId} />
     </div>} actionLabel={editingChargeId ? "Update Charge" : "Send Payment Link"} actionDisabled={!chargeName.trim() || chargeQty < 1 || chargeUnitPrice < 1 || (chargeType === "DAMAGE" && !chargeNote.trim())} />}
   </>;
 }

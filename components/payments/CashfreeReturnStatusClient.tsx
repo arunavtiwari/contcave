@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import getTransaction from "@/app/actions/getTransaction";
 import PaymentAnimation from "@/components/payments/PaymentSuccessAnimation";
 import Button from "@/components/ui/Button";
+import Spinner from "@/components/ui/Spinner";
 import { GST_RATE } from "@/constants/gst";
 import { trackPurchase } from "@/lib/analytics/tracking";
 import { formatINR } from "@/lib/utils";
@@ -171,9 +172,7 @@ export default function CashfreeReturnStatusClient({
     return (
       <main className="min-h-[calc(100vh-5rem)] w-full max-w-3xl mx-auto px-4 py-8 sm:px-6 sm:py-10 flex items-center justify-center">
         <div className="w-full rounded-xl border border-border bg-card p-8 flex flex-col items-center space-y-6 text-center">
-          <div className="relative w-16 h-16">
-            <div className="absolute inset-0 rounded-full border-4 border-muted border-t-foreground animate-spin" />
-          </div>
+          <Spinner size="lg" />
           <h2 className="text-2xl font-bold tracking-tight text-foreground">Verifying your payment...</h2>
           <p className="text-muted-foreground max-w-md">
             Please do not refresh this page, close the browser window, or click the back button. We are confirming your payment details with Cashfree.

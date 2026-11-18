@@ -10,17 +10,18 @@ import Tooltip from "@/components/ui/Tooltip";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "relative flex cursor-pointer items-center justify-center gap-2 border font-medium transition button-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20 disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50",
+  "relative flex cursor-pointer items-center justify-center gap-2 border font-medium transition button-active focus-visible:outline-none focus-visible:border-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-foreground border-foreground text-background",
+        default: "bg-foreground border-foreground text-background focus-visible:border-neutral-500",
         success: "bg-success border-success text-background",
         destructive: "bg-destructive border-destructive text-destructive-foreground",
         ghost: "bg-transparent border-transparent text-foreground hover:bg-muted",
         secondary: "bg-background/10 border-background/20 text-background",
         outline: "bg-background border-border text-foreground hover:bg-muted",
         glass: "glass text-foreground border-border/40 hover:bg-background/80",
+        link: "w-fit! border-transparent bg-transparent font-medium text-foreground underline underline-offset-4 hover:text-foreground/70",
       },
       size: {
         sm: "h-10 px-4 text-sm",
@@ -54,6 +55,7 @@ const buttonVariants = cva(
       { isIconOnly: true, size: "md", className: "w-11 h-11 p-0" },
       { isIconOnly: true, size: "lg", className: "w-12 h-12 p-0" },
       { isIconOnly: true, className: "rounded-xl" },
+      { variant: "link", className: "h-auto px-0" },
     ],
     defaultVariants: {
       variant: "default",

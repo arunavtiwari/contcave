@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 /** Accessible popover (Radix) for panels of content rather than a list of actions. */
 export const Popover = Radix.Root;
 export const PopoverTrigger = Radix.Trigger;
+export const PopoverAnchor = Radix.Anchor;
 
 type ContentProps = ComponentProps<typeof Radix.Content> & MenuSurfaceProps;
 

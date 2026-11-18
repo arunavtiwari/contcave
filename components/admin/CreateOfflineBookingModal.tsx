@@ -126,7 +126,7 @@ function StudioOverviewSkeleton() {
       </div>
 
       {/* Host, phone, email, bank, GSTIN, property state */}
-      <div className="grid gap-3 pt-2 border-t border-border/70 sm:grid-cols-3">
+      <div className="grid gap-3 pt-2 border-t border-border/70 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="space-y-1.5">
             <Skeleton className="h-2.5 w-16 rounded" />
@@ -736,7 +736,7 @@ export default function CreateOfflineBookingModal({
         </div>
 
         <div className="mt-4 space-y-4">
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <Input
               id="customerName"
               label="Customer Name"
@@ -829,7 +829,7 @@ export default function CreateOfflineBookingModal({
         </div>
 
         <div className="mt-4 space-y-4">
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <Controller
               name="bookingDate"
               control={control}
@@ -947,23 +947,9 @@ export default function CreateOfflineBookingModal({
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleSelectAllSets}
-                    className="text-[11px] font-medium text-primary hover:underline transition-colors"
-                    disabled={isPending}
-                  >
-                    Entire Studio (All Sets)
-                  </button>
+                  <Button variant="link" size="sm" className="text-[11px] text-primary hover:text-primary/70" onClick={handleSelectAllSets} disabled={isPending} label="Entire Studio (All Sets)" />
                   <span className="text-muted-foreground text-xs">•</span>
-                  <button
-                    type="button"
-                    onClick={handleClearSets}
-                    className="text-[11px] font-medium text-muted-foreground hover:underline transition-colors"
-                    disabled={isPending}
-                  >
-                    Clear
-                  </button>
+                  <Button variant="link" size="sm" className="text-[11px] text-muted-foreground hover:text-foreground" onClick={handleClearSets} disabled={isPending} label="Clear" />
                 </div>
               </div>
 
@@ -1007,7 +993,7 @@ export default function CreateOfflineBookingModal({
             </div>
           )}
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <Controller
               name="startTime"
               control={control}
@@ -1145,7 +1131,7 @@ export default function CreateOfflineBookingModal({
         </div>
 
         <div className="mt-4 space-y-4">
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <Input
               id="commissionPercent"
               label="Commission %"
@@ -1201,7 +1187,7 @@ export default function CreateOfflineBookingModal({
           </div>
 
           {selectedStudio && !studioHasGstin ? (
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {watchNonGstModel === "principal" ? (
                 <Input
                   id="customStudioPrice"

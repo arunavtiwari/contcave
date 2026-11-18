@@ -2,7 +2,6 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { type KeyboardEvent as ReactKeyboardEvent, type MouseEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { BiSearch } from "react-icons/bi";
 import { IoArrowForward, IoSparkles, IoTimeOutline } from "react-icons/io5";
 
@@ -16,6 +15,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Kbd from "@/components/ui/Kbd";
 import Pill from "@/components/ui/Pill";
+import Spinner from "@/components/ui/Spinner";
 import { useAiSearch } from "@/hooks/useAiSearch";
 import useUIStore from "@/hooks/useUIStore";
 import { SEARCH_CONFIG } from "@/lib/search/config";
@@ -361,7 +361,7 @@ export default function SpotlightSearch() {
                         )}
                         customRightContent={(
                             <span className="flex items-center gap-3">
-                                {busy && <AiOutlineLoading3Quarters className="animate-spin text-muted-foreground" aria-hidden />}
+                                {busy && <Spinner size="md" />}
                                 <Button variant="ghost" fit onClick={close} aria-label="Close search" className="hidden h-auto px-0 pointer-fine:flex">
                                     <Kbd>esc</Kbd>
                                 </Button>

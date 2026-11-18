@@ -9,9 +9,12 @@ import getReviews from "@/app/actions/getReviews";
 import { addWhatsAppReviewAction, deleteReviewAction } from "@/app/actions/reviewActions";
 import Modal from "@/components/modals/Modal";
 import Avatar from "@/components/ui/Avatar";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 import Pill from "@/components/ui/Pill";
 import Skeleton from "@/components/ui/Skeleton";
 import StarRating from "@/components/ui/StarRating";
+import Textarea from "@/components/ui/Textarea";
 import { formatISTDate } from "@/lib/utils";
 
 interface ReviewRow {
@@ -103,7 +106,7 @@ export default function ListingReviewsModal({
             isOpen={Boolean(listing)}
             onCloseAction={onClose}
             title={`Reviews — ${listing.title}`}
-            customWidth="w-full max-w-2xl"
+            customWidth="max-w-2xl"
             customHeight="max-h-[88vh]"
             body={
                 <div className="space-y-6" data-testid="admin-listing-reviews-modal">
@@ -113,25 +116,29 @@ export default function ListingReviewsModal({
                             Add a review from WhatsApp
                         </div>
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            <input
+                            <Input
+                                id="review-guest-name"
+                                aria-label="Guest name"
                                 value={form.guestName}
                                 onChange={(e) => setForm({ ...form, guestName: e.target.value })}
                                 placeholder="Guest name"
-                                className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
                             />
-                            <input
+                            <Input
+                                id="review-guest-role"
+                                aria-label="Role and context (optional)"
                                 value={form.guestRole}
                                 onChange={(e) => setForm({ ...form, guestRole: e.target.value })}
                                 placeholder="Role · context (optional)"
-                                className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
                             />
                         </div>
-                        <textarea
+                        <Textarea
+                            id="review-comment"
+                            aria-label="WhatsApp message"
                             value={form.comment}
                             onChange={(e) => setForm({ ...form, comment: e.target.value })}
                             placeholder="Paste the WhatsApp message"
                             rows={4}
-                            className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40"
+                            className="resize-none"
                         />
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -143,14 +150,7 @@ export default function ListingReviewsModal({
                                     size={18}
                                 />
                             </div>
-                            <button
-                                type="button"
-                                onClick={handleAdd}
-                                disabled={submitting}
-                                className="rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background hover:opacity-90 disabled:opacity-50 cursor-pointer"
-                            >
-                                {submitting ? "Adding…" : "Add review"}
-                            </button>
+                            <Button rounded fit onClick={handleAdd} disabled={submitting} label={submitting ? "Adding…" : "Add review"} />
                         </div>
                     </div>
 
@@ -192,15 +192,14 @@ export default function ListingReviewsModal({
                                         </div>
                                     </div>
                                     {rv.source === "WHATSAPP" && (
-                                        <button
-                                            type="button"
+                                        <Button
+                                            variant="ghost"
+                                            icon={FiTrash2}
                                             onClick={() => handleDelete(rv.id)}
                                             disabled={deletingId === rv.id}
                                             aria-label="Delete review"
-                                            className="shrink-0 text-muted-foreground hover:text-destructive disabled:opacity-50 cursor-pointer"
-                                        >
-                                            <FiTrash2 size={16} />
-                                        </button>
+                                            className="shrink-0 text-muted-foreground hover:text-destructive"
+                                        />
                                     )}
                                 </div>
                             ))

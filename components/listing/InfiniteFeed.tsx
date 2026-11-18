@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { z } from "zod";
 
 import ListingFeed from "@/components/listing/ListingFeed";
+import Button from "@/components/ui/Button";
 import { type BrowseSort } from "@/lib/listing/browseSort";
 import { appendUnique, type FeedLanding, feedRequestPath, pageAtLine } from "@/lib/listing/feedRequest";
 import { type FeedAnchor, readFeedSnapshot, writeFeedSnapshot } from "@/lib/listing/feedSnapshot";
@@ -248,9 +249,7 @@ export default function InfiniteFeed({ feed, page, path, searchParams, landing, 
       {status === "error" && (
         <p className="mt-8 text-center text-sm text-muted-foreground">
           Couldn&apos;t load more studios.{" "}
-          <button type="button" onClick={() => setStatus("idle")} className="min-h-11 font-medium text-foreground underline underline-offset-4">
-            Try again
-          </button>
+          <Button variant="link" size="sm" className="inline-flex min-h-11 text-base" onClick={() => setStatus("idle")} label="Try again" />
         </p>
       )}
     </div>

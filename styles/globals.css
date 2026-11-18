@@ -52,7 +52,19 @@
 	--color-info: #2563EB;
 	--color-info-foreground: var(--color-white);
 
-	--color-accent: var(--color-black);
+	/* shadcn/ui semantic tokens, mapped onto the palette above (components/ui). */
+	--color-accent: var(--color-muted);
+	--color-accent-foreground: var(--color-foreground);
+	--color-primary: var(--color-foreground);
+	--color-primary-foreground: var(--color-background);
+	--color-secondary: var(--color-muted);
+	--color-secondary-foreground: var(--color-foreground);
+	--color-popover: var(--color-background);
+	--color-popover-foreground: var(--color-foreground);
+	--color-card: var(--color-background);
+	--color-card-foreground: var(--color-foreground);
+	--color-input: var(--color-border);
+	--color-ring: var(--color-neutral-400);
 	--tracking-wide: 0.1em;
 	--tracking-widest: 0.25em;
 

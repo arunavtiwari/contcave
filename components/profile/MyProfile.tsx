@@ -13,7 +13,6 @@ import {
     FaMapMarkerAlt,
     FaPhone,
     FaShieldAlt,
-    FaSpinner,
     FaUser
 } from "react-icons/fa";
 import { toast } from "sonner";
@@ -28,6 +27,7 @@ import Avatar from "@/components/ui/Avatar";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
+import LoadingOverlay from "@/components/ui/LoadingOverlay";
 import Pill from "@/components/ui/Pill";
 import Textarea from "@/components/ui/Textarea";
 import { PROFILE_LANGUAGE_OPTIONS, PROFILE_TITLE_OPTIONS } from "@/constants/user";
@@ -635,12 +635,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile, openOwnerOnLoad = fa
 
 
             {showLoadingOverlay && (
-                <div className="fixed inset-0 z-1000 bg-foreground/60 backdrop-blur-md flex items-center justify-center">
-                    <div className="flex flex-col items-center justify-center gap-4">
-                        <FaSpinner className="w-12 h-12 text-background animate-spin" />
-                        <p className="text-xl font-semibold text-background">Starting Verification...</p>
-                    </div>
-                </div>
+                <LoadingOverlay title="Starting verification…" />
             )}
 
             {currentUser && (

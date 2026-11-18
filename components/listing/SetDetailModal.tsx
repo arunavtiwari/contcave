@@ -11,6 +11,7 @@ import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
 import Button from "@/components/ui/Button";
+import Dialog, { DialogTitle } from "@/components/ui/Dialog";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
 import { ListingSet } from "@/types/set";
@@ -52,11 +53,12 @@ export default function SetDetailModal({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 p-4 backdrop-blur-sm transition-opacity duration-300" onClick={onClose}>
-            <div
-                className="relative w-full max-w-4xl bg-background rounded-3xl overflow-hidden  flex flex-col md:flex-row h-[70vh] animate-in fade-in zoom-in-95 duration-200"
-                onClick={(e) => e.stopPropagation()}
-            >
+        <Dialog
+            open={isOpen}
+            onOpenChange={(open) => !open && onClose()}
+            overlayClassName="backdrop-blur-sm"
+            className="flex h-[70vh] w-[calc(100%-2rem)] max-w-4xl flex-col overflow-hidden rounded-3xl bg-background md:flex-row"
+        >
                 <button
                     type="button"
                     aria-label="Close set details"
@@ -138,7 +140,7 @@ export default function SetDetailModal({
                 <div className="w-full md:w-2/5 p-8 flex flex-col overflow-y-auto bg-background gap-6">
                     <div className="flex-1 flex flex-col gap-4">
                         <div className="flex items-start justify-between gap-4">
-                            <Heading title={set.name} variant="h3" />
+                            <DialogTitle asChild><div><Heading title={set.name} variant="h3" /></div></DialogTitle>
                         </div>
 
                         <div>
@@ -187,8 +189,6 @@ export default function SetDetailModal({
                         />
                     </div>
                 </div>
-            </div>
-        </div>
+        </Dialog>
     );
 }
-

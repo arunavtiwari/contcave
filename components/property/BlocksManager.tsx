@@ -236,13 +236,13 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                                         </div>
                                     )}
                                 </div>
-                                <button
+                                <Button
+                                    variant="ghost"
+                                    icon={IoTrashOutline}
                                     onClick={() => handleDeleteBlock(block.id)}
-                                    className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition"
+                                    className="text-destructive hover:bg-destructive/10"
                                     aria-label="Delete block"
-                                >
-                                    <IoTrashOutline size={18} />
-                                </button>
+                                />
                             </div>
                         ))}
                     </div>

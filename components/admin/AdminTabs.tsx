@@ -1,4 +1,4 @@
-import { type NavTabItem,NavTabs } from "@/components/ui/Tabs";
+import { type NavTabItem, NavTabs } from "@/components/ui/NavTabs";
 
 export type AdminTabItem = NavTabItem;
 

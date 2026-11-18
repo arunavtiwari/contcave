@@ -43,8 +43,8 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
                         "w-full font-normal bg-background border rounded-xl transition-all duration-150 outline-none disabled:opacity-50 disabled:cursor-not-allowed text-foreground placeholder:text-muted-foreground/70 focus:ring-0",
                         sizeClasses[size],
                         error
-                            ? "border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive/20"
-                            : "border-border hover:border-foreground/40 focus:border-foreground focus:ring-1 focus:ring-foreground/20",
+                            ? "border-destructive focus:border-destructive"
+                            : "border-border hover:border-foreground/40 focus:border-foreground",
                         className
                     )}
                     ref={ref}

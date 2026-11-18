@@ -1,301 +1,83 @@
 "use client";
 
-import { AnimatePresence, type HTMLMotionProps, motion } from "framer-motion";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import * as Radix from "@radix-ui/react-tabs";
 import * as React from "react";
 
-import { cn, isPlainClick } from "@/lib/utils";
+import { type TabIcon, tabItemClass, tabListClass, TabPill } from "@/components/ui/TabPill";
+import { cn } from "@/lib/utils";
 
-interface TabsContextValue {
-  value: string;
-  onValueChange: (val: string) => void;
-  layoutId: string;
+type TabsState = { value: string; layoutId: string };
+
+const TabsStateContext = React.createContext<TabsState | null>(null);
+
+function useTabsState() {
+  const state = React.useContext(TabsStateContext);
+  if (!state) throw new Error("Tabs parts must be used inside <Tabs>");
+  return state;
 }
 
-const TabsContext = React.createContext<TabsContextValue | null>(null);
-
-function useTabsContext() {
-  const ctx = React.useContext(TabsContext);
-  if (!ctx) {
-    throw new Error("Tabs compound components must be used within a <Tabs> parent");
-  }
-  return ctx;
-}
-
-export interface TabsProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface TabsProps extends Omit<React.ComponentPropsWithoutRef<typeof Radix.Root>, "value" | "defaultValue" | "onValueChange"> {
   value?: string;
   defaultValue?: string;
   onValueChange?: (value: string) => void;
   layoutId?: string;
-  children: React.ReactNode;
 }
 
-export function Tabs({
-  value: controlledValue,
-  defaultValue = "",
-  onValueChange,
-  layoutId,
-  className,
-  children,
-  ...props
-}: TabsProps) {
+/** Accessible tabs (Radix: arrow keys, Home/End, ARIA tabs pattern) with the sliding pill. */
+export function Tabs({ value, defaultValue = "", onValueChange, layoutId, className, ...props }: TabsProps) {
   const [internalValue, setInternalValue] = React.useState(defaultValue);
-  const isControlled = controlledValue !== undefined;
-  const activeValue = isControlled ? controlledValue : internalValue;
+  const activeValue = value ?? internalValue;
+  const generatedId = React.useId();
 
-  const instanceLayoutId = React.useId();
-  const effectiveLayoutId = layoutId || `tabs-indicator-${instanceLayoutId}`;
-
-  const handleValueChange = React.useCallback(
-    (newValue: string) => {
-      if (!isControlled) {
-        setInternalValue(newValue);
-      }
-      onValueChange?.(newValue);
-    },
-    [isControlled, onValueChange]
-  );
+  const handleChange = (next: string) => {
+    if (value === undefined) setInternalValue(next);
+    onValueChange?.(next);
+  };
 
   return (
-    <TabsContext.Provider
-      value={{
-        value: activeValue,
-        onValueChange: handleValueChange,
-        layoutId: effectiveLayoutId,
-      }}
-    >
-      <div className={cn("w-fit flex flex-col items-start gap-4", className)} {...props}>
-        {children}
-      </div>
-    </TabsContext.Provider>
+    <TabsStateContext.Provider value={{ value: activeValue, layoutId: layoutId ?? `tabs-${generatedId}` }}>
+      <Radix.Root
+        value={activeValue}
+        onValueChange={handleChange}
+        className={cn("flex w-fit max-w-full flex-col items-start gap-4", className)}
+        {...props}
+      />
+    </TabsStateContext.Provider>
   );
 }
 
-export interface TabsListProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode;
+export function TabsList({ className, ...props }: React.ComponentPropsWithoutRef<typeof Radix.List>) {
+  return <Radix.List className={cn(tabListClass, "text-muted-foreground", className)} {...props} />;
 }
 
-export const TabsList = React.forwardRef<HTMLDivElement, TabsListProps>(
-  ({ className, children, ...props }, ref) => {
-    return (
-      <div
-        ref={ref}
-        role="tablist"
-        className={cn(
-          "inline-flex w-fit flex-nowrap items-center gap-1 rounded-xl border border-border bg-muted/40 p-1 text-muted-foreground",
-          className
-        )}
-        {...props}
-      >
-        {children}
-      </div>
-    );
-  }
-);
-TabsList.displayName = "TabsList";
-
-export interface TabsTriggerProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  value: string;
+export interface TabsTriggerProps extends React.ComponentPropsWithoutRef<typeof Radix.Trigger> {
   count?: number;
-  icon?: React.ComponentType<{ className?: string; size?: number }>;
-  children: React.ReactNode;
+  icon?: TabIcon;
 }
 
-export const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(
-  ({ value, count, icon: Icon, className, children, disabled, ...props }, ref) => {
-    const { value: activeValue, onValueChange, layoutId } = useTabsContext();
-    const isActive = activeValue === value;
+export function TabsTrigger({ value, count, icon, className, children, ...props }: TabsTriggerProps) {
+  const { value: activeValue, layoutId } = useTabsState();
+  const isActive = activeValue === value;
+  return (
+    <Radix.Trigger value={value} className={cn(tabItemClass(isActive), className)} {...props}>
+      <TabPill isActive={isActive} layoutId={layoutId} icon={icon} count={count}>
+        {children}
+      </TabPill>
+    </Radix.Trigger>
+  );
+}
 
-    return (
-      <button
-        ref={ref}
-        type="button"
-        role="tab"
-        aria-selected={isActive}
-        disabled={disabled}
-        onClick={() => onValueChange(value)}
-        className={cn(
-          "relative inline-flex shrink-0 whitespace-nowrap items-center justify-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 cursor-pointer active:transform-none!",
-          isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground",
-          className
-        )}
-        {...props}
-      >
-        {isActive && (
-          <motion.div
-            layoutId={layoutId}
-            className="absolute inset-0 rounded-lg border border-border/80 bg-background"
-            transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
-          />
-        )}
-        <span className="relative z-10 inline-flex items-center gap-1.5">
-          {Icon && <Icon size={14} className="shrink-0" />}
-          <span>{children}</span>
-          {typeof count === "number" && (
-            <span
-              className={cn(
-                "rounded-full px-1.5 py-0.2 text-[10px] tabular-nums font-medium transition-colors",
-                isActive
-                  ? "bg-muted text-foreground"
-                  : "bg-background/80 text-muted-foreground"
-              )}
-            >
-              {count}
-            </span>
-          )}
-        </span>
-      </button>
-    );
-  }
-);
-TabsTrigger.displayName = "TabsTrigger";
-
-export interface TabsContentProps extends HTMLMotionProps<"div"> {
-  value: string;
-  children: React.ReactNode;
+export interface TabsContentProps extends Omit<React.ComponentPropsWithoutRef<typeof Radix.Content>, "forceMount"> {
   /** Keep inactive panels in the HTML (hidden), e.g. so crawlers can follow every panel's links. */
   keepMounted?: boolean;
 }
 
-export const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
-  ({ value, className, children, keepMounted = false, ...props }, ref) => {
-    const { value: activeValue } = useTabsContext();
-    const isSelected = activeValue === value;
-
-    if (keepMounted && !isSelected) {
-      return (
-        <div ref={ref} role="tabpanel" hidden className={className}>
-          {children}
-        </div>
-      );
-    }
-
-    return (
-      <AnimatePresence mode="wait">
-        {isSelected && (
-          <motion.div
-            key={value}
-            ref={ref}
-            role="tabpanel"
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.18, ease: "easeInOut" }}
-            className={cn("focus-visible:outline-none", className)}
-            {...props}
-          >
-            {children}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    );
-  }
-);
-TabsContent.displayName = "TabsContent";
-
-export interface NavTabItem {
-  id: string;
-  label: string;
-  count?: number;
-  href: string;
-  icon?: React.ComponentType<{ className?: string; size?: number }>;
-}
-
-export interface NavTabsProps extends Omit<React.HTMLAttributes<HTMLElement>, "onSelect"> {
-  activeId: string;
-  items: NavTabItem[];
-  ariaLabel?: string;
-  layoutId?: string;
-  onSelect?: (id: string) => void;
-}
-
-export function NavTabs({
-  activeId,
-  items,
-  ariaLabel = "Navigation tabs",
-  layoutId,
-  className,
-  onSelect,
-  ...props
-}: NavTabsProps) {
-  const router = useRouter();
-  const [, startTransition] = React.useTransition();
-  const [optimisticActiveId, setOptimisticActiveId] = React.useState(activeId);
-  const [prevActiveId, setPrevActiveId] = React.useState(activeId);
-
-  if (activeId !== prevActiveId) {
-    setPrevActiveId(activeId);
-    setOptimisticActiveId(activeId);
-  }
-
-  const instanceLayoutId = React.useId();
-  const effectiveLayoutId = layoutId || `nav-tabs-indicator-${instanceLayoutId}`;
-
+export function TabsContent({ keepMounted = false, className, ...props }: TabsContentProps) {
   return (
-    <nav
-      className={cn(
-        "inline-flex flex-nowrap items-center gap-1 rounded-xl border border-border bg-muted/40 p-1 select-none",
-        className
-      )}
-      aria-label={ariaLabel}
+    <Radix.Content
+      forceMount={keepMounted ? true : undefined}
+      className={cn("focus-visible:outline-none data-[state=active]:animate-menu-in data-[state=inactive]:hidden", className)}
       {...props}
-    >
-      {items.map((item) => {
-        const isActive = item.id === optimisticActiveId;
-        const Icon = item.icon;
-
-        return (
-          <Link
-            key={item.id}
-            href={item.href}
-            aria-current={isActive ? "page" : undefined}
-            onClick={(e) => {
-              if (!isPlainClick(e)) return;
-              e.preventDefault();
-              setOptimisticActiveId(item.id);
-              if (onSelect) {
-                onSelect(item.id);
-              } else {
-                startTransition(() => {
-                  router.push(item.href);
-                });
-              }
-            }}
-            className={cn(
-              "relative inline-flex shrink-0 whitespace-nowrap min-h-8 items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer active:transform-none!",
-              isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {isActive && (
-              <motion.div
-                layoutId={effectiveLayoutId}
-                className="absolute inset-0 rounded-lg border border-border/80 bg-background"
-                transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
-              />
-            )}
-            <span className="relative z-10 inline-flex items-center gap-1.5">
-              {Icon && <Icon size={14} className="shrink-0" />}
-              <span>{item.label}</span>
-              {typeof item.count === "number" && (
-                <span
-                  className={cn(
-                    "rounded-full px-1.5 py-0.2 text-[10px] tabular-nums font-medium transition-colors",
-                    isActive
-                      ? "bg-muted text-foreground"
-                      : "bg-background/80 text-muted-foreground"
-                  )}
-                >
-                  {item.count}
-                </span>
-              )}
-            </span>
-          </Link>
-        );
-      })}
-    </nav>
+    />
   );
 }
-
-export default Tabs;

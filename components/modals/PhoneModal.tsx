@@ -66,7 +66,7 @@ export default function PhoneModal({
             secondaryActionAction={onCloseAction}
             disabled={phoneSaving}
             isLoading={phoneSaving}
-            customWidth="w-full max-w-md"
+            customWidth="max-w-md"
             customHeight="h-fit"
         />
     );

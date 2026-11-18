@@ -22,6 +22,7 @@ import PackageSuggestion from "@/components/listing/PackageSuggestion";
 import SetSelector from "@/components/listing/SetSelector";
 import Modal from "@/components/modals/Modal";
 import Avatar from "@/components/ui/Avatar";
+import Button from "@/components/ui/Button";
 import Divider from "@/components/ui/Divider";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
@@ -317,7 +318,7 @@ function ListingInfo({
             disabled={!hasHostAbout}
             aria-label={hasHostAbout ? `About ${user?.name ?? "the host"}` : undefined}
             className={hasHostAbout
-              ? "rounded-full ring-2 ring-foreground/70 ring-offset-2 ring-offset-background transition hover:ring-foreground cursor-pointer"
+              ? "rounded-full border-2 border-foreground/70 p-0.5 transition hover:border-foreground focus-visible:outline-none focus-visible:border-foreground cursor-pointer"
               : "rounded-full cursor-default"}
           >
             <Avatar src={hostAvatar} size={40} />
@@ -360,14 +361,10 @@ function ListingInfo({
         </div>
 
         {shouldTruncate && (
-          <button
-            onClick={toggleExpand}
-            className="inline-flex items-center gap-1 font-medium text-sm mt-2 text-foreground hover:underline cursor-pointer"
-            type="button"
-          >
+          <Button variant="link" size="sm" className="mt-2 gap-1" onClick={toggleExpand}>
             <span>{isExpanded ? "Show less" : "Show more"}</span>
             {isExpanded ? <FiChevronUp className="size-4" /> : <FiChevronDown className="size-4" />}
-          </button>
+          </Button>
         )}
       </div>
 
@@ -599,9 +596,7 @@ function ListingInfo({
                     inactiveColor="text-muted-foreground"
                   />
                 </div>
-                <button type="button" onClick={handleReviewSubmit} disabled={isReviewSubmitting} data-testid="review-submit-button" className="rounded-full bg-foreground w-full py-2.5 text-background hover:opacity-90 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60">
-                  Submit
-                </button>
+                <Button rounded size="md" onClick={handleReviewSubmit} disabled={isReviewSubmitting} data-testid="review-submit-button" label="Submit" />
               </div>
               <Divider />
             </>
@@ -616,13 +611,7 @@ function ListingInfo({
             <div className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
               <SafeHtml html={termsHtml} />
             </div>
-            <button
-              type="button"
-              onClick={() => setIsTermsModalOpen(true)}
-              className="text-sm font-medium underline text-foreground hover:opacity-80 cursor-pointer w-fit"
-            >
-              Show all host rules
-            </button>
+            <Button variant="link" size="sm" onClick={() => setIsTermsModalOpen(true)} label="Show all host rules" />
 
             <Modal
               isOpen={isTermsModalOpen}
@@ -633,7 +622,7 @@ function ListingInfo({
                   <SafeHtml html={termsHtml} />
                 </div>
               }
-              customWidth="w-full max-w-2xl"
+              customWidth="max-w-2xl"
             />
           </div>
           <Divider />
@@ -651,7 +640,7 @@ function ListingInfo({
         <Modal
           isOpen={isHostAboutOpen}
           onCloseAction={() => setIsHostAboutOpen(false)}
-          customWidth="w-full md:w-4/6 lg:w-3/6 xl:w-2/6"
+          customWidth="md:w-4/6 lg:w-3/6 xl:w-2/6"
           body={
             <div className="flex flex-col items-center gap-4 text-center">
               <p className="text-lg font-semibold text-foreground">About the host</p>

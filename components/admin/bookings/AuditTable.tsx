@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { FiFileText } from "react-icons/fi";
 
 import type { AdminAuditRow } from "@/app/actions/adminBookingActions";
+import Skeleton from "@/components/ui/Skeleton";
 import { EmptyTable } from "@/components/ui/Table";
 import { formatISTDateTime } from "@/lib/utils";
 
@@ -19,11 +20,11 @@ export default function AuditTable({ rows, footer, isLoading, pageSize }: Props)
         <div className="space-y-2">
           {isLoading ? (
             Array.from({ length: Math.min(pageSize, 6) }).map((_, i) => (
-              <div key={i} className="flex items-start gap-3 rounded-lg border border-border bg-background p-4 animate-pulse">
-                <div className="h-9 w-9 rounded-lg bg-muted shrink-0" />
+              <div key={i} className="flex items-start gap-3 rounded-lg border border-border bg-background p-4">
+                <Skeleton className="h-9 w-9 shrink-0 rounded-lg" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 w-48 rounded bg-muted" />
-                  <div className="h-3 w-64 rounded bg-muted" />
+                  <Skeleton className="h-4 w-48 rounded" />
+                  <Skeleton className="h-3 w-64 rounded" />
                 </div>
               </div>
             ))

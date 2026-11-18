@@ -177,7 +177,7 @@ const FilterModalContent = ({ city }: Props) => {
         actionLabel="Apply"
         secondaryActionAction={handleResetFilters}
         secondaryActionLabel="Reset"
-        customWidth="w-full max-w-lg"
+        customWidth="max-w-lg"
       />
     </div>
   );

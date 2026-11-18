@@ -153,16 +153,12 @@ export function getSelectStyles<
         : "var(--color-border)",
       borderRadius: dims.radius,
       padding: "0",
-      boxShadow: state.isFocused
-        ? error
-          ? "0 0 0 1px var(--color-destructive)"
-          : "0 0 0 1px var(--color-foreground)"
-        : "none",
+      boxShadow: "none",
       minHeight: dims.height,
       height: dims.height,
       fontSize: dims.fontSize,
       cursor: "pointer",
-      transition: "border-color 0.15s ease, box-shadow 0.15s ease",
+      transition: "border-color 0.15s ease",
       "&:hover": {
         borderColor: error
           ? "var(--color-destructive)"
@@ -233,7 +229,7 @@ export function getSelectStyles<
     flexDirection: "column",
     gap: "1px",
   }),
-  menuPortal: (base) => ({ ...base, zIndex: 99999 }),
+  menuPortal: (base) => ({ ...base, zIndex: 100002, pointerEvents: "auto" }),
   indicatorSeparator: () => ({ display: "none" }),
   dropdownIndicator: (provided) => ({
     ...provided,

@@ -20,7 +20,7 @@ export default function WhatsAppLinkButton({ href, label, disabled = false, clas
             aria-disabled={disabled}
             tabIndex={disabled ? -1 : undefined}
             className={cn(
-                "flex items-center justify-center gap-2.5 w-full rounded-xl bg-[#25D366] hover:bg-[#1ebe5d] transition-colors px-4 py-3.5 text-white font-semibold text-sm shadow-sm",
+                "flex items-center justify-center gap-2.5 w-full rounded-xl bg-[#25D366] hover:bg-[#1ebe5d] transition-colors px-4 py-3.5 text-white font-semibold text-sm",
                 disabled && "pointer-events-none opacity-50",
                 className
             )}

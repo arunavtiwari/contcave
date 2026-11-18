@@ -1,14 +1,48 @@
 "use client";
 
-import React from "react";
+import * as Radix from "@radix-ui/react-switch";
+import { cva } from "class-variance-authority";
 import { FaBolt } from "react-icons/fa";
-import ReactSwitch, { ReactSwitchProps } from "react-switch";
 
 import FormField from "@/components/ui/FormField";
+import { cn } from "@/lib/utils";
 
-export interface SwitchProps extends Partial<ReactSwitchProps> {
-    styleVariant?: "default" | "bolt";
+const track = cva(
+    "peer inline-flex shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent bg-neutral-200 transition-colors outline-none focus-visible:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-50",
+    {
+        variants: {
+            size: { default: "h-[26px] w-12", sm: "h-[22px] w-10" },
+            tone: { default: "data-[state=checked]:bg-neutral-900", success: "data-[state=checked]:bg-success" },
+        },
+        defaultVariants: { size: "default", tone: "default" },
+    }
+);
+
+const thumb = cva(
+    "pointer-events-none flex items-center justify-center rounded-full bg-white transition-transform",
+    {
+        variants: {
+            size: {
+                default: "size-5 translate-x-px data-[state=checked]:translate-x-[23px]",
+                sm: "size-4 translate-x-px data-[state=checked]:translate-x-[19px]",
+            },
+        },
+        defaultVariants: { size: "default" },
+    }
+);
+
+export interface SwitchProps {
+    checked?: boolean;
+    onChange?: (checked: boolean) => void;
+    disabled?: boolean;
+    id?: string;
+    "aria-label"?: string;
+    className?: string;
     size?: "default" | "sm";
+    /** "success" colours the on state green. */
+    tone?: "default" | "success";
+    /** "bolt" shows a lightning icon on the thumb while on (instant booking). */
+    styleVariant?: "default" | "bolt";
     label?: string;
     description?: string;
     required?: boolean;
@@ -18,9 +52,17 @@ export interface SwitchProps extends Partial<ReactSwitchProps> {
     childWidth?: "full" | "auto";
 }
 
-const Switch: React.FC<SwitchProps> = ({
-    styleVariant = "default",
+/** Accessible on/off switch (Radix: role="switch", Space/Enter, aria-checked) inside the shared FormField. */
+export default function Switch({
+    checked = false,
+    onChange,
+    disabled,
+    id,
+    "aria-label": ariaLabel,
+    className,
     size = "default",
+    tone = "default",
+    styleVariant = "default",
     label,
     description,
     required,
@@ -28,13 +70,10 @@ const Switch: React.FC<SwitchProps> = ({
     error,
     labelWidth,
     childWidth,
-    ...props
-}) => {
-    const isBolt = styleVariant === "bolt";
-    const isSmall = size === "sm";
-
+}: SwitchProps) {
     return (
         <FormField
+            id={id}
             label={label}
             description={description}
             required={required}
@@ -43,31 +82,20 @@ const Switch: React.FC<SwitchProps> = ({
             labelWidth={labelWidth}
             childWidth={childWidth}
         >
-            <ReactSwitch
-                onChange={props.onChange ?? (() => { })}
-                checked={props.checked ?? false}
-                offColor="#E5E5E5"
-                onColor="#171717"
-                uncheckedIcon={false}
-                checkedIcon={false}
-                height={isSmall ? 22 : 26}
-                width={isSmall ? 40 : 48}
-                handleDiameter={isSmall ? 16 : 20}
-                offHandleColor="#FFFFFF"
-                onHandleColor="#FFFFFF"
-                boxShadow="0 1px 2px rgba(0, 0, 0, 0.08)"
-                activeBoxShadow="0 0 0 3px rgba(0, 0, 0, 0.08)"
-                checkedHandleIcon={
-                    isBolt ? (
-                        <div className="flex items-center justify-center h-full">
-                            <FaBolt className={isSmall ? "text-warning w-2.5 h-2.5" : "text-warning w-3.5 h-3.5"} />
-                        </div>
-                    ) : undefined
-                }
-                {...props}
-            />
+            <Radix.Root
+                id={id}
+                checked={checked}
+                onCheckedChange={onChange}
+                disabled={disabled}
+                aria-label={ariaLabel ?? label}
+                className={cn(track({ size, tone }), className)}
+            >
+                <Radix.Thumb className={thumb({ size })}>
+                    {styleVariant === "bolt" && checked && (
+                        <FaBolt aria-hidden="true" className={cn("text-warning", size === "sm" ? "size-2.5" : "size-3.5")} />
+                    )}
+                </Radix.Thumb>
+            </Radix.Root>
         </FormField>
     );
-};
-
-export default Switch;
+}

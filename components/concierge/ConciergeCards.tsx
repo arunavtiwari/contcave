@@ -68,7 +68,7 @@ function StudioCard({ studio, onAsk, disabled }: { studio: StudioCardItem; onAsk
                 href={studio.url}
                 target="_blank"
                 rel="noopener"
-                className="relative block aspect-[4/3] overflow-hidden bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground/40"
+                className="border border-transparent relative block aspect-[4/3] overflow-hidden bg-muted focus-visible:outline-none focus-visible:border-foreground"
                 aria-label={`Open ${studio.title} in a new tab`}
             >
                 {studio.image ? (
@@ -220,7 +220,7 @@ function BookCard({ card }: { card: CardOf<"book"> }) {
 function PlanSection({ title, count, children, defaultOpen = false }: { title: string; count: number; children: React.ReactNode; defaultOpen?: boolean }) {
     return (
         <details className="group border-t border-border" open={defaultOpen}>
-            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 text-base font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground/30 [&::-webkit-details-marker]:hidden">
+            <summary className="border border-transparent flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 text-base font-medium text-foreground focus-visible:outline-none [&::-webkit-details-marker]:hidden focus-visible:border-foreground">
                 <span>
                     {title} <span className="font-normal text-muted-foreground">· {count}</span>
                 </span>
