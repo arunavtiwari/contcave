@@ -9,12 +9,12 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import { getGstStateCodeFromStateName } from "@/constants/gstStateCodes";
 import { createAction } from "@/lib/actions-utils";
 import { UserFacingError } from "@/lib/errors";
+import { studioChanged } from "@/lib/listing/changes";
 import { listingLocationIssues, listingLocationValue, resolveListingLocation } from "@/lib/listing/location";
 import { type ListingShareLink, listingShareLink } from "@/lib/listing/preview";
 import { assertDefaultAmenitiesExist, ListingService } from "@/lib/listing/service";
 import { decryptAndSanitizePaymentDetails } from "@/lib/payment-details";
 import prisma from "@/lib/prismadb";
-import { queueSearchReindex } from "@/lib/search/reindex";
 import { rateLimitRequest } from "@/lib/security/rateLimit";
 import { sanitizeStringList } from "@/lib/strings";
 import { objectIdSchema } from "@/schemas/common";
@@ -682,7 +682,7 @@ export const createCuratedListingAction = createAction(
                 type: [],
             },
         });
-        await queueSearchReindex(listing.id);
+        await studioChanged(listing.id);
 
         if (data.contactEmail) {
             try {

@@ -10,10 +10,10 @@ import { type StudioFeedFilters, studioFeedSearchParamsSchema } from "@/schemas/
 
 import type { BrowseLocation } from "./browseLocation";
 import { type BrowseSort, DEFAULT_BROWSE_SORT } from "./browseSort";
+import { getFeedPage } from "./feedCache";
 import type { FeedSortContext } from "./feedQuery";
 import { findRegion, nearestRegion, regionOfPoint } from "./regions";
 import { parseSavedSearchLocation, parseSearchLocationCookie, SEARCH_LOCATION_COOKIE } from "./searchLocation";
-import { ListingService } from "./service";
 
 export const feedFiltersOf = (searchParams: SearchParams) => studioFeedSearchParamsSchema.parse(searchParams);
 
@@ -83,7 +83,7 @@ export async function loadStudioFeed(
     return {
         filters,
         order: appliedOrder,
-        page: await ListingService.getListingFeedPage({ filters, sort: { ...sort, order: appliedOrder }, page }),
+        page: await getFeedPage({ filters, sort: { ...sort, order: appliedOrder }, page }),
         nearLabel: filters.near ? placeLabel : undefined,
     };
 }

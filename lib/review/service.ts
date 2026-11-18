@@ -1,8 +1,8 @@
 import { Prisma } from "@prisma/client";
 
 import { UserFacingError } from "@/lib/errors";
+import { studioChanged } from "@/lib/listing/changes";
 import prisma from "@/lib/prismadb";
-import { queueSearchReindex } from "@/lib/search/reindex";
 import { SafeReview } from "@/types/review";
 
 export class ReviewService {
@@ -59,7 +59,7 @@ export class ReviewService {
                 return review;
             });
 
-            await queueSearchReindex(listingId);
+            await studioChanged(listingId);
             return { ...review, createdAt: review.createdAt.toISOString() };
         } catch (error) {
             if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
@@ -119,7 +119,7 @@ export class ReviewService {
 
             return review;
         });
-        await queueSearchReindex(listingId);
+        await studioChanged(listingId);
         return review;
     }
 
@@ -155,6 +155,6 @@ export class ReviewService {
                 data: { avgReviewRating: aggregate._avg.rating || 0 }
             });
         });
-        await queueSearchReindex(review.listingId);
+        await studioChanged(review.listingId);
     }
 }

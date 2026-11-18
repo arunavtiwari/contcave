@@ -6,6 +6,7 @@ import {
   createUserFixture,
   prisma,
 } from "./support/db";
+import { getE2EConnectionEnv } from "./support/env";
 import { installServerOnlyStub } from "./support/server-only-stub";
 import { expect, test } from "./support/test";
 import { loginAdmin } from "./support/ui";
@@ -18,6 +19,18 @@ function previewLinks() {
   return require("../../lib/listing/preview") as typeof import("../../lib/listing/preview");
 }
 
+
+/** Whether the Delhi studio feed (as served to visitors, through its cache) lists this studio. */
+async function feedIncludes(page: Page, listingId: string) {
+  const feedUrl = (pageNumber: number) =>
+    `${getE2EConnectionEnv().baseUrl}/api/listings/feed?locationValue=Delhi&page=${pageNumber}`;
+  for (let pageNumber = 1; ; pageNumber++) {
+    const response = await page.request.get(feedUrl(pageNumber));
+    const { data } = (await response.json()) as { data: { items: { id: string }[]; totalPages: number } };
+    if (data.items.some((item) => item.id === listingId)) return true;
+    if (pageNumber >= data.totalPages) return false;
+  }
+}
 
 function reviewButtonFor(page: Page, listingTitle: string) {
   return page.locator(`button[aria-label="Open listing details: ${listingTitle}"]`).first();
@@ -148,6 +161,9 @@ test.describe("admin listing moderation", () => {
       status: "PENDING",
     });
 
+    // Warm the cached studio feed first, so the check below proves approval drops the cache.
+    expect(await feedIncludes(page, listing.id)).toBe(false);
+
     await loginAdmin(page, account.email, account.password);
     await openReviewModal(page, listing.title);
     await page.getByTestId("admin-review-approve").click();
@@ -164,6 +180,7 @@ test.describe("admin listing moderation", () => {
     expect(updated?.reviewedAt).toBeTruthy();
     expect(updated?.reviewedById).toBeTruthy();
     expect(updated?.rejectionReason).toBeNull();
+    expect(await feedIncludes(page, listing.id)).toBe(true);
   });
 
   test("requires a reason before rejecting a pending listing", async ({ page }, testInfo) => {

@@ -6,6 +6,7 @@ import { loadDayAvailabilities } from "@/lib/availability";
 import { addDaysToDateKey, BOOKING_HORIZON_DAYS, isBookable, istDateKey } from "@/lib/booking/dayAvailability";
 import { UserFacingError } from "@/lib/errors";
 import type { LatLng } from "@/lib/geo";
+import { studioChanged } from "@/lib/listing/changes";
 import {
     type EquipmentItem,
     hasLightsIncluded,
@@ -19,7 +20,6 @@ import { findShootPurpose } from "@/lib/listing/shootPurposes";
 import prisma from "@/lib/prismadb";
 import { parseReservationEndTimeForDate } from "@/lib/reservation/time";
 import { isRichTextEmpty } from "@/lib/richText";
-import { queueSearchReindex } from "@/lib/search/reindex";
 import { generateUniqueSlug } from "@/lib/slug";
 import { dispatchMediaDeletion } from "@/lib/storage/mediaDeletion";
 import { slugify } from "@/lib/strings";
@@ -1102,7 +1102,7 @@ export class ListingService {
             });
         }
 
-        if (hasChanges) await queueSearchReindex(listingId);
+        if (hasChanges) await studioChanged(listingId);
 
         const updatedListing = await ListingService.findById(listingId, { id: userId, role: allowAdmin ? "ADMIN" : "OWNER" });
         if (!updatedListing) {
@@ -1210,7 +1210,7 @@ export class ListingService {
         if (updated.count !== 1) {
             throw new UserFacingError("Archived listings cannot be reviewed", 409);
         }
-        await queueSearchReindex(listingId);
+        await studioChanged(listingId);
     }
 
     /**
