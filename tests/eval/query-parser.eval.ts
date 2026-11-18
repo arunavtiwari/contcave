@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { geminiConfigured } from "@/lib/ai/gemini";
+import { claudeConfigured } from "@/lib/ai/claude";
 import { parseQueryWithAi, prepareQueryText } from "@/lib/search/parse";
 import { parseQueryRules, unparsedWords } from "@/lib/search/parse/rules";
 import type { ParsedQuery } from "@/schemas/search";
@@ -76,7 +76,7 @@ describe("query parser evaluation", () => {
         expect(headline).toBeGreaterThan(0);
     });
 
-    it.skipIf(!geminiConfigured())("scores the Gemini reader", async () => {
+    it.skipIf(!claudeConfigured())("scores the Claude reader", async () => {
         const results: { fixture: QueryFixture; parsed: ParsedQuery }[] = [];
         const latencies: number[] = [];
         let fallbacks = 0;
@@ -91,7 +91,7 @@ describe("query parser evaluation", () => {
             results.push({ fixture, parsed });
             await sleep(AI_SPACING_MS);
         }
-        const label = `Gemini reader on ${results.length} queries (${latencySummary(latencies)}; ${fallbacks} fell back to rules)`;
+        const label = `Claude reader on ${results.length} queries (${latencySummary(latencies)}; ${fallbacks} fell back to rules)`;
         const headline = report(label, evaluate(results));
         expect(headline).toBeGreaterThan(0);
     });

@@ -1,54 +1,70 @@
-import assert from "node:assert/strict";
+import { describe, expect, it } from "vitest";
 
-import { describe, it } from "vitest";
+import { type ChatMessage, toClaudeMessages } from "@/lib/concierge/model";
 
-import { type ChatMessage, toGeminiContents } from "@/lib/concierge/model";
-
-const call = (id: string, name: string, signature?: string) => ({
+const call = (id: string, name: string, args: Record<string, unknown>) => ({
     id,
     type: "function" as const,
-    function: { name, arguments: JSON.stringify({ city: "Delhi" }) },
-    ...(signature ? { signature } : {}),
+    function: { name, arguments: JSON.stringify(args) },
 });
 
-describe("gemini contents", () => {
-    it("moves system text into the system instruction", () => {
-        const { system, contents } = toGeminiContents([
-            { role: "system", content: "rules" },
-            { role: "user", content: "hi" },
+describe("toClaudeMessages", () => {
+    it("moves system text into the system prompt", () => {
+        const { system, messages } = toClaudeMessages([
+            { role: "system", content: "Be brief." },
+            { role: "system", content: "Use rupees." },
+            { role: "user", content: "Hi" },
         ]);
-        assert.equal(system, "rules");
-        assert.deepEqual(contents, [{ role: "user", parts: [{ text: "hi" }] }]);
+        expect(system).toBe("Be brief.\n\nUse rupees.");
+        expect(messages).toEqual([{ role: "user", content: "Hi" }]);
     });
 
-    it("replays function calls with their thought signatures and groups their responses", () => {
-        const messages: ChatMessage[] = [
-            { role: "user", content: "studios in Delhi" },
-            { role: "assistant", content: "", tool_calls: [call("a", "update_brief", "sig-1"), call("b", "search_studios")] },
-            { role: "tool", tool_call_id: "a", content: "{\"ok\":true}" },
-            { role: "tool", tool_call_id: "b", content: "not json" },
-            { role: "assistant", content: "Here they are." },
+    it("replays tool calls as tool_use blocks and groups their results in one user message", () => {
+        const history: ChatMessage[] = [
+            { role: "user", content: "Podcast studio in Delhi" },
+            { role: "assistant", content: "Searching.", tool_calls: [call("a1", "search_studios", { city: "Delhi" }), call("a2", "check_date", { day: "2026-11-19" })] },
+            { role: "tool", tool_call_id: "a1", content: '{"count":3}' },
+            { role: "tool", tool_call_id: "a2", content: '{"free":true}' },
         ];
-        const { contents } = toGeminiContents(messages);
-        assert.equal(contents.length, 4);
-        const model = contents[1].parts ?? [];
-        assert.equal(model[0].thoughtSignature, "sig-1");
-        assert.equal(model[1].thoughtSignature, undefined);
-        assert.deepEqual(model[0].functionCall, { id: "a", name: "update_brief", args: { city: "Delhi" } });
-        const responses = contents[2].parts ?? [];
-        assert.equal(contents[2].role, "user");
-        assert.deepEqual(responses.map((part) => part.functionResponse?.name), ["update_brief", "search_studios"]);
-        assert.deepEqual(responses[1].functionResponse?.response, { output: "not json" });
-        assert.equal(contents[3].role, "model");
+        const { messages } = toClaudeMessages(history);
+
+        expect(messages[1]).toEqual({
+            role: "assistant",
+            content: [
+                { type: "text", text: "Searching." },
+                { type: "tool_use", id: "a1", name: "search_studios", input: { city: "Delhi" } },
+                { type: "tool_use", id: "a2", name: "check_date", input: { day: "2026-11-19" } },
+            ],
+        });
+        expect(messages[2]).toEqual({
+            role: "user",
+            content: [
+                { type: "tool_result", tool_use_id: "a1", content: '{"count":3}' },
+                { type: "tool_result", tool_use_id: "a2", content: '{"free":true}' },
+            ],
+        });
+        expect(messages).toHaveLength(3);
     });
 
-    it("marks unsigned calls from older history so Gemini accepts them", () => {
-        const { contents } = toGeminiContents([
+    it("keeps tool-call ids from older conversations valid", () => {
+        const { messages } = toClaudeMessages([
             { role: "user", content: "x" },
-            { role: "assistant", content: "", tool_calls: [call("a", "search_studios"), call("b", "get_studio")] },
+            { role: "assistant", content: "", tool_calls: [call("call:1/x", "search_studios", {})] },
+            { role: "tool", tool_call_id: "call:1/x", content: "{}" },
         ]);
-        const parts = contents[1].parts ?? [];
-        assert.equal(parts[0].thoughtSignature, "skip_thought_signature_validator");
-        assert.equal(parts[1].thoughtSignature, undefined);
+        expect(messages[1]).toMatchObject({ content: [{ type: "tool_use", id: "call_1_x" }] });
+        expect(messages[2]).toMatchObject({ content: [{ type: "tool_result", tool_use_id: "call_1_x" }] });
+    });
+
+    it("drops empty assistant turns and survives malformed stored arguments", () => {
+        const { messages } = toClaudeMessages([
+            { role: "user", content: "x" },
+            { role: "assistant", content: "" },
+            { role: "assistant", content: "", tool_calls: [{ id: "b", type: "function", function: { name: "t", arguments: "{oops" } }] },
+        ]);
+        expect(messages).toEqual([
+            { role: "user", content: "x" },
+            { role: "assistant", content: [{ type: "tool_use", id: "b", name: "t", input: {} }] },
+        ]);
     });
 });

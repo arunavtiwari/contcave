@@ -2,7 +2,7 @@ import "server-only";
 
 import { unstable_cache } from "next/cache";
 
-import { AiUnavailableError, geminiConfigured, generateGeminiJson, toGeminiSchema } from "@/lib/ai/gemini";
+import { AiUnavailableError, claudeConfigured, generateClaudeJson } from "@/lib/ai/claude";
 import { SEARCH_CONFIG } from "@/lib/search/config";
 import { formatDateKey } from "@/lib/search/explain";
 import { parseQueryRules, unparsedWords } from "@/lib/search/parse/rules";
@@ -10,8 +10,6 @@ import { redactPersonalData } from "@/lib/search/redact";
 import { normalizeText } from "@/lib/search/vocabulary";
 import { OVERRIDE_FIELD_MAP, type ParsedQuery, parsedQuerySchema, QUERY_FIELDS, type QueryField, sanitizeQuery, TAG_FIELDS } from "@/schemas/search";
 
-
-const PARSE_SCHEMA = toGeminiSchema(parsedQuerySchema);
 
 const PARSE_INSTRUCTIONS = [
     "You turn a customer's free-text studio search from India into JSON that matches the schema exactly.",
@@ -29,12 +27,12 @@ const PARSE_INSTRUCTIONS = [
 const parseInput = (text: string, today: string) => `Today: ${formatDateKey(today)} (${today}), IST.\nSearch: ${text}`;
 
 export async function parseQueryWithAi(text: string, today: string): Promise<ParsedQuery> {
-    const raw = await generateGeminiJson({
+    const raw = await generateClaudeJson({
         label: "search parse",
-        policy: SEARCH_CONFIG.ai.gemini,
+        maxTokens: SEARCH_CONFIG.ai.maxTokens.parse,
         system: PARSE_INSTRUCTIONS,
         input: parseInput(text, today),
-        schema: PARSE_SCHEMA,
+        schema: parsedQuerySchema,
         timeoutMs: SEARCH_CONFIG.timeoutsMs.parse,
     });
     return sanitizeQuery(raw);
@@ -66,7 +64,7 @@ type ParseContext = { today: string; allowAi: boolean };
 export const prepareQueryText = (query: string) => normalizeText(redactPersonalData(query)).trim();
 
 async function withAiFallback(rules: ParsedQuery, context: ParseContext, run: () => Promise<ParsedQuery>): Promise<ParseResult> {
-    if (!context.allowAi || !geminiConfigured()) return { parsed: rules, source: "rules" };
+    if (!context.allowAi || !claudeConfigured()) return { parsed: rules, source: "rules" };
     try {
         return { parsed: mergeQueries(await run(), rules), source: "ai" };
     } catch (error) {
@@ -110,12 +108,12 @@ export function refineWithRules(current: ParsedQuery, text: string, today: strin
 export async function refineQuery(current: ParsedQuery, followUp: string, context: ParseContext): Promise<ParsedQuery> {
     const text = prepareQueryText(followUp);
     const rules = refineWithRules(current, text, context.today);
-    const refined = await withAiFallback(rules, context, async () => sanitizeQuery(await generateGeminiJson({
+    const refined = await withAiFallback(rules, context, async () => sanitizeQuery(await generateClaudeJson({
         label: "search parse",
-        policy: SEARCH_CONFIG.ai.gemini,
+        maxTokens: SEARCH_CONFIG.ai.maxTokens.parse,
         system: REFINE_INSTRUCTIONS,
         input: `${parseInput(text, context.today)}\nCurrent search: ${JSON.stringify(current)}`,
-        schema: PARSE_SCHEMA,
+        schema: parsedQuerySchema,
         timeoutMs: SEARCH_CONFIG.timeoutsMs.parse,
     })));
     return refined.parsed;

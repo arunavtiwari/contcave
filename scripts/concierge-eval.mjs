@@ -16,7 +16,7 @@ const flag = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 
 const base = (args.find((arg) => arg.startsWith("http")) ?? "http://localhost:3000").replace(/\/+$/, "");
 const only = flag("--only")?.split(",");
 const out = flag("--out");
-/** Seconds to wait between turns, to stay inside Gemini per-minute limits. */
+/** Seconds to wait between turns, to stay inside the model provider's per-minute limits. */
 const pause = Number(flag("--pause") ?? 0) * 1000;
 const cases = JSON.parse(readFileSync(new URL("../evals/concierge/cases.json", import.meta.url), "utf8")).filter((c) => !only || only.includes(c.id));
 

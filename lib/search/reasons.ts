@@ -3,7 +3,7 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import { z } from "zod";
 
-import { AiUnavailableError, geminiConfigured, generateGeminiJson, toGeminiSchema } from "@/lib/ai/gemini";
+import { AiUnavailableError, claudeConfigured, generateClaudeJson } from "@/lib/ai/claude";
 import { SEARCH_CONFIG } from "@/lib/search/config";
 import { distanceReason, isGroundedReason } from "@/lib/search/explain";
 import type { ExplainableResult } from "@/lib/search/service";
@@ -19,7 +19,6 @@ const reasonsSchema = z.object({
     })),
 });
 
-const REASONS_SCHEMA = toGeminiSchema(reasonsSchema);
 
 const REASONS_INSTRUCTIONS = [
     "You write one or two short reasons (at most eight words each) why each studio suits a customer's shoot.",
@@ -46,12 +45,12 @@ function factsFor(parsed: ParsedQuery, { candidate, facts }: ExplainableResult):
 }
 
 async function writeWithAi(payload: string): Promise<Record<string, string[]>> {
-    const raw = await generateGeminiJson({
+    const raw = await generateClaudeJson({
         label: "search reasons",
-        policy: SEARCH_CONFIG.ai.gemini,
+        maxTokens: SEARCH_CONFIG.ai.maxTokens.reasons,
         system: REASONS_INSTRUCTIONS,
         input: payload,
-        schema: REASONS_SCHEMA,
+        schema: reasonsSchema,
         timeoutMs: SEARCH_CONFIG.timeoutsMs.reasons,
     });
     const parsed = reasonsSchema.safeParse(raw);
@@ -62,7 +61,7 @@ async function writeWithAi(payload: string): Promise<Record<string, string[]>> {
 const cachedReasons = unstable_cache(writeWithAi, [SEARCH_CONFIG.cacheVersion, "search-reasons"], { revalidate: SEARCH_CONFIG.cacheSeconds });
 
 export async function writeAiReasons(parsed: ParsedQuery, results: ExplainableResult[], allowAi: boolean): Promise<Record<string, string[]>> {
-    if (!allowAi || !results.length || !geminiConfigured()) return {};
+    if (!allowAi || !results.length || !claudeConfigured()) return {};
     try {
         const written = await cachedReasons(JSON.stringify(results.map((result) => factsFor(parsed, result))));
         return Object.fromEntries(results.flatMap((result) => {

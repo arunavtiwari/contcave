@@ -132,6 +132,7 @@ The listing card is composed from three sub-components in `components/listing/`:
 | MailerSend | Transactional email | `MAILERSEND_API_KEY` |
 | Google OAuth + Calendar | Auth + host calendar sync | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
 | MongoDB Atlas | Database | `DATABASE_URL` |
+| Anthropic (Claude) | AI search and Spot, one shared client and model in `lib/ai/claude.ts` | `ANTHROPIC_API_KEY` |
 
 ## Caching studio data
 

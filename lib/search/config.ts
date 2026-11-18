@@ -20,7 +20,7 @@ export const SEARCH_CONFIG = {
     areaCaveatKm: 3,
     timeoutsMs: { parse: 6000, reasons: 9000 },
     ai: {
-        gemini: { models: ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"], perModelPerMinute: 14, order: "fastest" },
+        maxTokens: { parse: 800, reasons: 1200 },
         perClientPerMinute: 6,
         reasonsTopN: 3,
     },

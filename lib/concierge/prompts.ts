@@ -7,8 +7,8 @@ import { CONCIERGE_NAME } from "./types";
  * and run against evals/concierge before it ships.
  *
  * Stable-prefix rule: nothing in these strings may vary between requests — no
- * dates, names, ids or counts. Gemini's implicit cache reuses a prompt prefix
- * it has seen before, so an unchanged system prompt and tool list keeps each
+ * dates, names, ids or counts. The prompt cache reuses a prefix it has seen
+ * before, so an unchanged system prompt and tool list keeps each
  * turn fast and cheap. Anything that varies (today's date, who
  * is signed in, the brief so far) goes into the conversation as a <context>
  * block on the customer's message instead.

@@ -1,15 +1,16 @@
 import "server-only";
 
-import type { Content, FunctionCall, Part } from "@google/genai";
+import type Anthropic from "@anthropic-ai/sdk";
 
-import { geminiClient, GeminiTimeoutError, withGeminiModels } from "@/lib/ai/gemini";
+import { CLAUDE_MODEL, claudeClient } from "@/lib/ai/claude";
 
-import { CONCIERGE_FIRST_CHUNK_MS, CONCIERGE_GEMINI, CONCIERGE_THINKING, CONCIERGE_TIMEOUT_MS } from "./config";
+import { CONCIERGE_FIRST_CHUNK_MS, CONCIERGE_TIMEOUT_MS } from "./config";
 
-export type ToolCall = { id: string; name: string; arguments: string; signature?: string };
+export type ToolCall = { id: string; name: string; arguments: string };
 
-export type StoredToolCall = { id: string; type: "function"; function: { name: string; arguments: string }; signature?: string };
+export type StoredToolCall = { id: string; type: "function"; function: { name: string; arguments: string } };
 
+/** Spot's own transcript format, independent of the model provider; stored with each conversation. */
 export type ChatMessage =
     | { role: "system"; content: string }
     | { role: "user"; content: string }
@@ -38,8 +39,6 @@ type RequestOptions = {
     onText?: (delta: string) => void;
 };
 
-const SKIP_SIGNATURE = "skip_thought_signature_validator";
-
 const parseArgs = (raw: string): Record<string, unknown> => {
     try {
         const value: unknown = raw.trim() ? JSON.parse(raw) : {};
@@ -49,114 +48,93 @@ const parseArgs = (raw: string): Record<string, unknown> => {
     }
 };
 
-const parseResponse = (raw: string): Record<string, unknown> => {
-    const value = parseArgs(raw);
-    return Object.keys(value).length ? value : { output: raw };
-};
+/** Claude tool-use ids allow letters, digits, "_" and "-"; ids stored by earlier providers may not. */
+const toolUseId = (id: string) => id.replace(/[^a-zA-Z0-9_-]/g, "_") || "call";
 
-export function toGeminiContents(messages: ChatMessage[]): { system: string; contents: Content[] } {
+/**
+ * Spot's transcript as Claude messages. Thinking blocks are deliberately never replayed: Spot trims
+ * old turns to a character budget, and replaying thinking alongside an edited history is rejected,
+ * while dropping all of it is always valid. Each request still thinks; text and tool calls carry
+ * the conversation.
+ */
+export function toClaudeMessages(messages: ChatMessage[]): { system: string; messages: Anthropic.MessageParam[] } {
     const system = messages.filter((message) => message.role === "system").map((message) => message.content).join("\n\n");
-    const callNames = new Map<string, string>();
-    const contents: Content[] = [];
+    const converted: Anthropic.MessageParam[] = [];
 
     for (const message of messages) {
         if (message.role === "system") continue;
         if (message.role === "user") {
-            contents.push({ role: "user", parts: [{ text: message.content }] });
+            converted.push({ role: "user", content: message.content });
             continue;
         }
         if (message.role === "assistant") {
-            const parts: Part[] = message.content ? [{ text: message.content }] : [];
-            const calls = message.tool_calls ?? [];
-            const signed = calls.some((call) => call.signature);
-            calls.forEach((call, index) => {
-                callNames.set(call.id, call.function.name);
-                parts.push({
-                    functionCall: { id: call.id, name: call.function.name, args: parseArgs(call.function.arguments) },
-                    ...(call.signature ? { thoughtSignature: call.signature } : !signed && index === 0 ? { thoughtSignature: SKIP_SIGNATURE } : {}),
-                });
-            });
-            if (parts.length) contents.push({ role: "model", parts });
+            const blocks: Anthropic.ContentBlockParam[] = message.content ? [{ type: "text", text: message.content }] : [];
+            for (const call of message.tool_calls ?? []) {
+                blocks.push({ type: "tool_use", id: toolUseId(call.id), name: call.function.name, input: parseArgs(call.function.arguments) });
+            }
+            if (blocks.length) converted.push({ role: "assistant", content: blocks });
             continue;
         }
-        const part: Part = {
-            functionResponse: { id: message.tool_call_id, name: callNames.get(message.tool_call_id) ?? "tool", response: parseResponse(message.content) },
-        };
-        const last = contents[contents.length - 1];
-        if (last?.role === "user" && last.parts?.every((entry) => entry.functionResponse)) last.parts.push(part);
-        else contents.push({ role: "user", parts: [part] });
-    }
-    return { system, contents };
-}
-
-const toUsage = (metadata: { promptTokenCount?: number; candidatesTokenCount?: number; thoughtsTokenCount?: number; cachedContentTokenCount?: number } | undefined, into: ChatUsage) => {
-    if (!metadata) return;
-    into.input = metadata.promptTokenCount ?? into.input;
-    into.output = (metadata.candidatesTokenCount ?? 0) + (metadata.thoughtsTokenCount ?? 0) || into.output;
-    into.cached = metadata.cachedContentTokenCount ?? into.cached;
-};
-
-function toToolCall(call: FunctionCall, index: number, signature: string | undefined): ToolCall {
-    return {
-        id: call.id || `call_${Date.now().toString(36)}_${index}`,
-        name: call.name ?? "",
-        arguments: JSON.stringify(call.args ?? {}),
-        ...(signature ? { signature } : {}),
-    };
-}
-
-async function streamOnce(model: string, options: RequestOptions, signal: AbortSignal, onFirstChunk: () => void): Promise<ChatResult> {
-    const { system, contents } = toGeminiContents(options.messages);
-    const stream = await geminiClient().models.generateContentStream({
-        model,
-        contents,
-        config: {
-            systemInstruction: system,
-            maxOutputTokens: options.maxTokens,
-            thinkingConfig: { thinkingLevel: CONCIERGE_THINKING },
-            abortSignal: signal,
-            ...(options.tools?.length
-                ? { tools: [{ functionDeclarations: options.tools.map(({ name, description, parameters }) => ({ name, description, parametersJsonSchema: parameters })) }] }
-                : {}),
-        },
-    });
-
-    const usage: ChatUsage = { input: 0, output: 0, cached: 0 };
-    const toolCalls: ToolCall[] = [];
-    let text = "";
-    let finishReason: string | null = null;
-
-    for await (const chunk of stream) {
-        onFirstChunk();
-        toUsage(chunk.usageMetadata, usage);
-        const candidate = chunk.candidates?.[0];
-        if (candidate?.finishReason) finishReason = candidate.finishReason;
-        for (const part of candidate?.content?.parts ?? []) {
-            if (part.thought) continue;
-            if (part.functionCall) {
-                toolCalls.push(toToolCall(part.functionCall, toolCalls.length, part.thoughtSignature));
-            } else if (part.text) {
-                text += part.text;
-                options.onText?.(part.text);
-            }
+        const result: Anthropic.ToolResultBlockParam = { type: "tool_result", tool_use_id: toolUseId(message.tool_call_id), content: message.content };
+        const last = converted[converted.length - 1];
+        // All results for one assistant turn go back in a single user message.
+        if (last?.role === "user" && Array.isArray(last.content) && last.content.every((block) => block.type === "tool_result")) {
+            last.content.push(result);
+        } else {
+            converted.push({ role: "user", content: [result] });
         }
     }
-
-    return { text, toolCalls: toolCalls.filter((call) => call.name), finishReason: finishReason === "MAX_TOKENS" ? "length" : finishReason, usage };
+    return { system, messages: converted };
 }
 
+const toClaudeTools = (tools: ToolSpec[]): Anthropic.Tool[] =>
+    tools.map(({ name, description, parameters }) => ({ name, description, input_schema: parameters as Anthropic.Tool.InputSchema }));
+
+/** One streamed reply; text is forwarded as it arrives, tool calls are returned once complete. */
 export async function chatStream(options: RequestOptions): Promise<ChatResult> {
-    return withGeminiModels("concierge", CONCIERGE_GEMINI, async (model) => {
-        const stalled = new AbortController();
-        const deadline = setTimeout(() => stalled.abort(), CONCIERGE_FIRST_CHUNK_MS);
-        const signal = AbortSignal.any([stalled.signal, AbortSignal.timeout(CONCIERGE_TIMEOUT_MS)]);
-        try {
-            return await streamOnce(model, options, signal, () => clearTimeout(deadline));
-        } catch (error) {
-            if (stalled.signal.aborted) throw new GeminiTimeoutError(`${model} sent nothing for ${CONCIERGE_FIRST_CHUNK_MS} ms`);
-            throw error;
-        } finally {
-            clearTimeout(deadline);
-        }
-    });
+    const { system, messages } = toClaudeMessages(options.messages);
+    const stalled = new AbortController();
+    const deadline = setTimeout(() => stalled.abort(), CONCIERGE_FIRST_CHUNK_MS);
+
+    try {
+        const stream = claudeClient().messages.stream(
+            {
+                model: CLAUDE_MODEL,
+                max_tokens: options.maxTokens,
+                system,
+                messages,
+                cache_control: { type: "ephemeral" },
+                output_config: { effort: "low" },
+                ...(options.tools?.length ? { tools: toClaudeTools(options.tools) } : {}),
+            },
+            { signal: AbortSignal.any([stalled.signal, AbortSignal.timeout(CONCIERGE_TIMEOUT_MS)]) },
+        );
+        stream.on("streamEvent", () => clearTimeout(deadline));
+        stream.on("text", (delta) => options.onText?.(delta));
+
+        const message = await stream.finalMessage();
+        const toolCalls = message.content
+            .filter((block): block is Anthropic.ToolUseBlock => block.type === "tool_use")
+            .map((block) => ({ id: block.id, name: block.name, arguments: JSON.stringify(block.input) }));
+        const text = message.content
+            .filter((block): block is Anthropic.TextBlock => block.type === "text")
+            .map((block) => block.text)
+            .join("");
+
+        return {
+            text,
+            toolCalls,
+            finishReason: message.stop_reason === "max_tokens" ? "length" : message.stop_reason,
+            usage: {
+                input: message.usage.input_tokens,
+                output: message.usage.output_tokens,
+                cached: message.usage.cache_read_input_tokens ?? 0,
+            },
+        };
+    } catch (error) {
+        if (stalled.signal.aborted) throw new Error(`Claude sent nothing for ${CONCIERGE_FIRST_CHUNK_MS} ms`, { cause: error });
+        throw error;
+    } finally {
+        clearTimeout(deadline);
+    }
 }

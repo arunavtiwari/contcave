@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { toGeminiSchema } from "@/lib/ai/gemini";
 import { mergeQueries, prepareQueryText, refineWithRules } from "@/lib/search/parse";
 import { parseQueryRules } from "@/lib/search/parse/rules";
-import { diffOverrides, EMPTY_QUERY, overridesToParams, type ParsedQuery, parsedQuerySchema } from "@/schemas/search";
+import { diffOverrides, EMPTY_QUERY, overridesToParams, type ParsedQuery } from "@/schemas/search";
 
 const TODAY = "2026-10-06";
 const parsed = (overrides: Partial<ParsedQuery> = {}): ParsedQuery => ({ ...EMPTY_QUERY, ...overrides });
@@ -33,15 +32,5 @@ describe("refineWithRules", () => {
     it("produces URL params for only the changed fields", () => {
         const next = refineWithRules(current, prepareQueryText("for 8 people"), TODAY);
         expect(overridesToParams(diffOverrides(current, next))).toEqual({ crew: "8" });
-    });
-});
-
-describe("toGeminiSchema", () => {
-    it("keeps enums and drops keywords Gemini does not accept", () => {
-        const schema = JSON.stringify(toGeminiSchema(parsedQuerySchema));
-        expect(schema).not.toContain("\"pattern\"");
-        expect(schema).not.toContain("$schema");
-        expect(schema).toContain("Infinity White Cyc");
-        expect(schema).toContain("\"required\"");
     });
 });

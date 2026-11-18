@@ -124,7 +124,7 @@ const searchSchema = z.object({
 
 export type StudioSearchInput = z.input<typeof searchSchema>;
 
-/** Gemini's search fields as the search box's query. Validated by the box's own schema, so both accept the same values. */
+/** The model's search fields as the search box's query. Validated by the box's own schema, so both accept the same values. */
 export function toParsedQuery(raw: unknown): { parsed: ParsedQuery; limit: number } {
     const input = searchSchema.parse(raw);
     for (const date of input.dates) assertBookableDate(date);

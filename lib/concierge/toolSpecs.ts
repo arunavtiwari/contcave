@@ -28,8 +28,8 @@ const date = { type: "string", description: "Date as YYYY-MM-DD, in India time."
 
 /**
  * Tool definitions sent to the model. Order and wording are part of the
- * fixed prefix every request starts with; Gemini's implicit cache reuses an
- * unchanged prefix, so edit deliberately and keep the order fixed.
+ * fixed prefix every request starts with; the prompt cache reuses an unchanged
+ * prefix, so edit deliberately and keep the order fixed.
  */
 export const TOOL_DEFINITIONS: ToolSpec[] = [
     {

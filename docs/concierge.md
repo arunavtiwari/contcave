@@ -44,24 +44,25 @@ browser ── POST /api/concierge/chat ──> runtime.ts ──> model server 
 
 ## Model
 
-The concierge runs on **Gemini** through the official `@google/genai` SDK
-(`lib/concierge/model.ts`), using `GEMINI_API_KEY`, the same key as AI search.
-The chat is hidden when the key is not set.
+Spot runs on **Claude** through the official Anthropic SDK (`@anthropic-ai/sdk`), using
+`ANTHROPIC_API_KEY`, the same key and the same shared client as AI search (`lib/ai/claude.ts`).
+The model is `CLAUDE_MODEL` there (Claude Haiku 5.5, effort `low`); change it in that one place
+to move every AI feature. The chat is hidden when the key is not set.
 
-- It is a standard tool-calling agent. Gemini decides which tools to call.
-  The runtime runs them, sends the results back and streams the reply. There
-  is no keyword routing and no rule-based reply path.
-- `CONCIERGE_GEMINI` in `lib/concierge/config.ts` lists the models tried in
-  order (`gemini-3.5-flash`, `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite`). A 429 or
-  5xx moves to the next model. The rate breaker is shared with AI search
-  (`lib/ai/breaker.ts`). Both use the shared SDK client in `lib/ai/gemini.ts`.
-- Gemini thought signatures are stored with each tool call and replayed on
-  later turns, as Gemini 3 requires. Calls stored before the switch are sent
-  with Gemini's documented skip value.
-- Shoot plans use Gemini structured output against the plan's Zod schema. If
-  that call fails, a template plan is used.
+- It is a standard tool-calling agent. Claude decides which tools to call. The runtime runs them,
+  sends the results back and streams the reply (`lib/concierge/model.ts`). There is no keyword
+  routing and no rule-based reply path.
+- The SDK retries 429, 5xx and connection errors with backoff. A reply that sends nothing for
+  `CONCIERGE_FIRST_CHUNK_MS` is abandoned.
+- Spot keeps its own provider-neutral transcript and converts it per request. Thinking blocks are
+  never replayed: Spot trims old turns to `CONCIERGE_HISTORY_CHARS`, and replaying thinking next to
+  an edited history is rejected, while dropping all of it is always valid.
+- The long system prompt is prompt-cached.
+- Shoot plans use Claude structured output shaped by the plan's Zod schema; the reply is then
+  validated with that schema. If the call fails, a template plan is used.
 - No embeddings are used.
-- If every model fails, the customer gets a short apology and can resend.
+- If the reply still fails, Spot points to the studios the search already found, or asks the
+  customer to try again or use WhatsApp.
 
 ## Guardrails (in code, not just in the prompt)
 
@@ -87,7 +88,7 @@ The chat is hidden when the key is not set.
 | What | How | Last result |
 |---|---|---|
 | Unit tests (96) | `npm run test:unit` | all pass |
-| Eval set (24 conversations, 31 turns) | `node scripts/concierge-eval.mjs <site url>` | 22/24 on Gemini 3.5 Flash Lite (2026-11-18); the 2 misses are data-dependent: first studio set-priced (quote) or curated (start-booking), where Spot correctly offers the studio page or a handover |
+| Eval set (24 conversations, 31 turns) | `node scripts/concierge-eval.mjs <site url>` | 22/24 on Gemini 3.5 Flash Lite (2026-11-18, before the move to Claude; re-run on Claude); the 2 misses are data-dependent: first studio set-priced (quote) or curated (start-booking), where Spot correctly offers the studio page or a handover |
 | Type-check, lint | `npm run type-check`, `npx eslint lib/concierge components/concierge app/api/concierge tests/unit` | clean |
 | Production build | `npm run build` | passes |
 
@@ -105,7 +106,7 @@ and Mumbai in the database it runs against; cases live in
 | `lib/concierge/runtime.ts` | The turn loop |
 | `lib/concierge/history.ts` | How much history is sent to the model |
 | `lib/concierge/toolSpecs.ts` | Tool definitions as the model sees them |
-| `lib/concierge/model.ts` | Gemini client: history conversion, streaming, model fallback |
+| `lib/concierge/model.ts` | Claude adapter: transcript conversion and streaming |
 | `lib/concierge/guardrails.ts` | Input cleaning, masking, grounding, reply check |
 | `lib/concierge/planner.ts` | Shoot plan; budget arithmetic is done in code |
 | `lib/concierge/help.ts` | Policy answers (keep in step with the public pages) |

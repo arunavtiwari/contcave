@@ -13,7 +13,7 @@ We use three tiers of testing to ensure platform stability:
 
 ### AI search evaluation
 
-`npm run eval:search` scores the AI search query parser against the labelled queries in `tests/eval/queries.fixture.ts` (city, date, crew and budget target 90%+). The rule-based reader is always scored; Gemini is scored too when `GEMINI_API_KEY` is set.
+`npm run eval:search` scores the AI search query parser against the labelled queries in `tests/eval/queries.fixture.ts` (city, date, crew and budget target 90%+). The rule-based reader is always scored; Claude is scored too when `ANTHROPIC_API_KEY` is set.
 
 ---
 

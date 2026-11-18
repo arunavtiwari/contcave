@@ -2,9 +2,9 @@ import "server-only";
 
 import { z } from "zod";
 
-import { generateGeminiJson, toGeminiSchema } from "@/lib/ai/gemini";
+import { generateClaudeJson } from "@/lib/ai/claude";
 
-import { CONCIERGE_GEMINI, CONCIERGE_TIMEOUT_MS, PLANNER_MAX_TOKENS } from "./config";
+import { CONCIERGE_TIMEOUT_MS, PLANNER_MAX_TOKENS } from "./config";
 import { PLANNER_SYSTEM } from "./prompts";
 import type { ConciergeBrief, ConciergeCard } from "./types";
 
@@ -21,7 +21,6 @@ const planSchema = z.object({
 });
 
 
-const PLAN_SCHEMA = toGeminiSchema(planSchema);
 /**
  * Rupee amounts for a percentage split, worked out here rather than by the
  * model: whole rupees, rounded to the nearest ₹100, with the remainder put on
@@ -105,15 +104,13 @@ export async function draftPlan(brief: ConciergeBrief): Promise<{ card: PlanCard
     let source: "model" | "template" = "template";
 
     try {
-        const value = await generateGeminiJson({
+        const value = await generateClaudeJson({
             label: "concierge plan",
-            policy: CONCIERGE_GEMINI,
             system: PLANNER_SYSTEM,
             input: JSON.stringify(brief),
-            schema: PLAN_SCHEMA,
+            schema: planSchema,
             timeoutMs: CONCIERGE_TIMEOUT_MS,
-            maxOutputTokens: PLANNER_MAX_TOKENS,
-            thinkingLevel: "low",
+            maxTokens: PLANNER_MAX_TOKENS,
         });
         const parsed = planSchema.safeParse(value);
         if (parsed.success) {

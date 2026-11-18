@@ -36,7 +36,7 @@ const FALLBACK_UNAVAILABLE =
 /**
  * Everything that varies per request goes here, on the customer's message,
  * and is stored with it. The system prompt and tools stay byte-identical, so
- * Gemini's implicit cache can reuse that prefix for every conversation.
+ * the prompt cache can reuse that prefix for every conversation.
  */
 function contextBlock(input: TurnInput): string {
     const today = istDateKey(new Date());
@@ -161,7 +161,6 @@ export async function runTurn(input: TurnInput): Promise<TurnResult> {
                         id: call.id,
                         type: "function" as const,
                         function: { name: call.name, arguments: call.arguments },
-                        ...(call.signature ? { signature: call.signature } : {}),
                     })),
                 });
 

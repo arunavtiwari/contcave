@@ -1,17 +1,8 @@
 import "server-only";
 
-import { geminiConfigured, type GeminiModelPolicy, ThinkingLevel } from "@/lib/ai/gemini";
+import { claudeConfigured } from "@/lib/ai/claude";
 
-/** Tried in order; the next model takes over when one is rate-limited, down or stalled. */
-export const CONCIERGE_GEMINI: GeminiModelPolicy = {
-    models: ["gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite"],
-    perModelPerMinute: 30,
-    order: "listed",
-};
-
-export const CONCIERGE_THINKING = ThinkingLevel.MEDIUM;
-
-/** A model that sends nothing within this time is abandoned for the next one. */
+/** A reply that sends nothing within this time is abandoned (the turn then falls back). */
 export const CONCIERGE_FIRST_CHUNK_MS = 8_000;
 
 export const CONCIERGE_TIMEOUT_MS = 30_000;
@@ -37,4 +28,4 @@ export const SHORTLIST_TTL_DAYS = 30;
 
 export const VISITOR_COOKIE = "cc_concierge_vid";
 
-export const conciergeEnabled = () => process.env.CONCIERGE_ENABLED !== "false" && geminiConfigured();
+export const conciergeEnabled = () => process.env.CONCIERGE_ENABLED !== "false" && claudeConfigured();
