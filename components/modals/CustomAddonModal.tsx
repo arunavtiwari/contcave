@@ -91,7 +91,6 @@ function CustomAddonModal({ save }: Props) {
                 label="Add-on Image"
                 onChange={(value) => setImage(value.slice(-1))}
                 values={[]}
-                deferUpload
                 onFilesChange={(files) => {
                   if (files.length > 0) setAddonFile(files[files.length - 1]);
                 }}

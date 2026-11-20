@@ -2,7 +2,7 @@
 
 import Ably from "ably";
 import Image from "next/image";
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
 import { IoSend } from "react-icons/io5";
 
 import Heading from "@/components/ui/Heading";
@@ -101,7 +101,8 @@ function mergeMessages(existing: Message[], incoming: Message[]) {
 }
 
 const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationId }) => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => initialBooking.messages ?? []);
+  const [seededMessages, setSeededMessages] = useState(initialBooking.messages);
   const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isChannelReady, setIsChannelReady] = useState(false);
@@ -111,12 +112,23 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const userId = profile?.id ?? null;
 
+  if (initialBooking.messages !== seededMessages) {
+    setSeededMessages(initialBooking.messages);
+    setMessages((previousMessages) => mergeMessages(previousMessages, initialBooking.messages ?? []));
+  }
+
+  const latestIncomingId = useMemo(
+    () => messages.findLast((message) => message.senderId !== userId)?.id ?? null,
+    [messages, userId]
+  );
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    if (reservationId) {
-      void markAsRead(reservationId);
-    }
-  }, [messages, reservationId]);
+  }, [messages]);
+
+  useEffect(() => {
+    if (reservationId && userId) void markAsRead(reservationId);
+  }, [reservationId, userId, latestIncomingId]);
 
   useEffect(() => {
     if (!reservationId || !userId) {
@@ -152,7 +164,6 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
     const initialize = async () => {
       try {
         setError(null);
-        setMessages(initialBooking.messages || []);
         setIsChannelReady(false);
 
         const ably = new Ably.Realtime({
@@ -238,7 +249,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
         }
       }
     };
-  }, [initialBooking.messages, reservationId, userId]);
+  }, [reservationId, userId]);
 
   const handleSend = async () => {
     const trimmedMessage = newMessage.trim();

@@ -15,6 +15,7 @@ const INDIA_CENTER: [number, number] = [20.5937, 78.9629];
 
 const TILE_URL =
   "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+const MAX_ZOOM = 16;
 
 function MapViewportController({
   center,
@@ -42,6 +43,12 @@ function MapViewportController({
       prevZoomRef.current === targetZoom;
 
     if (isSameTarget) {
+      return;
+    }
+
+    // react-leaflet's MapContainer calls map.remove() on unmount, which tears
+    // down the panes. Moving a removed map throws "_leaflet_pos of undefined".
+    if (!map.getPane("mapPane")) {
       return;
     }
 
@@ -96,7 +103,7 @@ function Map({ center, animated = false }: Props) {
       center={mapCenter}
       zoom={isValidCenter ? 14 : 4}
       minZoom={3}
-      maxZoom={19}
+      maxZoom={MAX_ZOOM}
       scrollWheelZoom={true}
       zoomControl={false}
       attributionControl={false}
@@ -111,7 +118,6 @@ function Map({ center, animated = false }: Props) {
       />
       <TileLayer
         url={TILE_URL}
-        maxZoom={19}
         detectRetina
       />
 

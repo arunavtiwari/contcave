@@ -46,7 +46,7 @@ test.describe("customer review submission staging flow", () => {
     await loginViaUi(page, customerAccount);
     await trackUserByEmail(customerAccount.email);
     
-    await gotoApp(page, `/listings/${listing.id}`);
+    await gotoApp(page, `/studio/${listing.id}`);
 
     // 5. Fill and submit the review
     const commentInput = page.locator("#review-comment");

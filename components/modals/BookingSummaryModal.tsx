@@ -5,6 +5,7 @@ import React, { useState } from "react";
 
 import { saveBillingInfo } from "@/app/actions/billingActions";
 import Modal from "@/components/modals/Modal";
+import Callout from "@/components/ui/Callout";
 import Checkbox from "@/components/ui/Checkbox";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
@@ -28,6 +29,7 @@ type BookingSummaryModalProps = {
   gstDetails: GSTDetails;
   setGstDetailsAction: (v: GSTDetails) => void;
   instantBooking: boolean;
+  contcaveNote?: string | null;
 };
 
 export default function BookingSummaryModal({
@@ -42,6 +44,7 @@ export default function BookingSummaryModal({
   gstDetails,
   setGstDetailsAction,
   instantBooking,
+  contcaveNote,
 }: BookingSummaryModalProps) {
   const [needGST, setNeedGST] = useState(false);
   const [agree, setAgree] = useState(false);
@@ -93,6 +96,11 @@ export default function BookingSummaryModal({
 
   const bodyContent = (
     <div className="flex flex-col gap-6 pt-2">
+      {contcaveNote && (
+        <Callout title="Note from ContCave" data-testid="booking-summary-contcave-note">
+          <p className="whitespace-pre-line">{contcaveNote}</p>
+        </Callout>
+      )}
       <div className="space-y-3 text-muted-foreground">
         <div className="flex justify-between text-sm">
           <p>Booking Fee</p>

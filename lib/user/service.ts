@@ -4,6 +4,7 @@ import crypto from "crypto";
 
 import { UserFacingError } from "@/lib/errors";
 import db from "@/lib/prismadb";
+import { dispatchMediaDeletion } from "@/lib/storage/mediaDeletion";
 import { UserUpdateSchema, userUpdateSchema } from "@/schemas/user";
 import { RegisterData, SafeUser } from "@/types/user";
 
@@ -80,9 +81,6 @@ export class UserService {
         }
     }
 
-    /**
-     * Unified user profile update with normalization and validation.
-     */
     static async updateProfile(email: string, userData: UserUpdateSchema): Promise<SafeUser> {
         const validation = userUpdateSchema.safeParse(userData);
         if (!validation.success) throw new UserFacingError(validation.error.issues[0]?.message || "Invalid profile update");
@@ -92,7 +90,7 @@ export class UserService {
         const stringFields = ['name', 'title', 'location', 'phone', 'description'];
         const currentUser = await db.user.findUnique({
             where: { email },
-            select: { phone: true, verified_via: true },
+            select: { id: true, phone: true, profileImage: true, verified_via: true },
         });
         if (!currentUser) throw new UserFacingError("User not found", 404);
 
@@ -116,10 +114,19 @@ export class UserService {
 
         if (Object.keys(updateData).length === 0) throw new UserFacingError("No valid fields to update");
 
-        const updatedUser = await db.user.update({
-            where: { email },
-            data: updateData,
+        const profileImageReplaced = Boolean(currentUser.profileImage && currentUser.profileImage !== updateData.profileImage && updateData.profileImage !== undefined);
+
+        const updatedUser = await db.$transaction(async (tx) => {
+            return await tx.user.update({ where: { email }, data: updateData });
         });
+
+        if (profileImageReplaced && currentUser.profileImage) {
+            void dispatchMediaDeletion({
+                refs: [currentUser.profileImage],
+                ownerId: currentUser.id,
+                sourceId: currentUser.id,
+            });
+        }
 
         return this.serializeUser(updatedUser);
     }

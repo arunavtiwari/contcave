@@ -12,9 +12,12 @@ import { escapeEmailHtml } from "@/lib/email/html";
 import { AttachmentInput, sendEmail } from "@/lib/email/mailer";
 import { sendCustomerPaymentInvoice, sendReservationConfirmationCustomer } from "@/lib/email/templates";
 import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
+import { hasValidGST } from "@/lib/payout/utils";
+import { amountBeforeGst } from "@/lib/pricing";
 import prisma from "@/lib/prismadb";
 import { isInvoiceEligible } from "@/lib/reservation/status";
 import { readPrivateDocument, uploadPrivateDocument } from "@/lib/storage/privateDocuments";
+import { withTransientRetry } from "@/lib/transient-retry";
 import { getValidatedBaseUrl } from "@/lib/utils";
 
 import { generateInvoicePDFBlob, InvoiceLineItem, InvoiceParty, InvoicePDFData, InvoiceTaxBreakup } from "./pdfBlob";
@@ -22,7 +25,6 @@ import { generateInvoicePDFBlob, InvoiceLineItem, InvoiceParty, InvoicePDFData, 
 const IST_TIME_ZONE = "Asia/Kolkata";
 const MAX_RETRY_COUNT = 5;
 const DELIVERY_CLAIM_TIMEOUT_MS = 10 * 60 * 1000;
-const MAX_TRANSACTION_RETRIES = 3;
 const OBJECT_ID_PATTERN = /^[a-f\d]{24}$/i;
 const GSTIN_PATTERN = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 const MAX_GST_INVOICE_NUMBER_LENGTH = 16;
@@ -303,7 +305,14 @@ async function createInvoiceWithIdempotency(params: {
   });
   if (existing) return existing;
 
-  for (let attempt = 1; attempt <= MAX_TRANSACTION_RETRIES; attempt += 1) {
+  return withTransientRetry(async (attempt) => {
+    if (attempt > 1) {
+      const retryExisting = await prisma.invoice.findFirst({
+        where: { idempotencyKey: params.idempotencyKey },
+      });
+      if (retryExisting) return retryExisting;
+    }
+
     try {
       return await prisma.$transaction(async (tx) => {
         const already = await tx.invoice.findFirst({
@@ -324,26 +333,9 @@ async function createInvoiceWithIdempotency(params: {
         });
         if (lockedInvoice) return lockedInvoice;
       }
-
-      const message = error instanceof Error ? error.message : String(error);
-      const isRetryable =
-        error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034"
-        || /write conflict|deadlock|transaction failed/i.test(message);
-
-      if (isRetryable && attempt < MAX_TRANSACTION_RETRIES) {
-        await new Promise((resolve) => setTimeout(resolve, attempt * 100));
-        const retryExisting = await prisma.invoice.findFirst({
-          where: { idempotencyKey: params.idempotencyKey },
-        });
-        if (retryExisting) return retryExisting;
-        continue;
-      }
-
       throw error;
     }
-  }
-
-  throw new Error("Invoice creation retry limit reached");
+  });
 }
 
 function getArkanetParty(): InvoiceParty {
@@ -592,7 +584,7 @@ export class InvoiceService {
     }
 
     const providedStudioGstin = normalizeGstin(studioPayment?.gstin);
-    const studioHasGst = Boolean(studioPayment?.companyName?.trim() && providedStudioGstin);
+    const studioHasGst = hasValidGST({ companyName: studioPayment?.companyName, gstin: providedStudioGstin });
     const studioGstin = studioHasGst ? assertValidGstin(providedStudioGstin, "Studio") : null;
     const supplierGstin = studioGstin || assertValidGstin(ARKANET_VENTURES_GST.gstin, "ContCave");
     const propertyStateCode = assertPropertyStateCode(listing.propertyStateCode);
@@ -602,7 +594,7 @@ export class InvoiceService {
     const financialYear = getFinancialYear(new Date());
     const idempotencyKey = `${documentType}:${transaction.id}`;
     const totalAmount = roundMoney(transaction.amount || reservation.totalPrice);
-    const amount = roundMoney(totalAmount / (1 + GST_RATE));
+    const amount = roundMoney(amountBeforeGst(totalAmount));
     const taxBreakup = calculateTaxBreakup(amount, supplierGstin, propertyStateCode);
     const gstAmount = taxBreakup.totalTax;
     const issuedAt = new Date();
@@ -612,7 +604,7 @@ export class InvoiceService {
       ? {
         name: studioPayment?.companyName || owner.name || "Studio Partner",
         legalName: studioPayment?.companyName || owner.name || "Studio Partner",
-        address: location || listing.locationValue,
+        address: studioPayment?.companyAddress || location || listing.locationValue,
         phone: owner.phone,
         email: owner.email,
         gstin: studioGstin,
@@ -899,7 +891,7 @@ export class InvoiceService {
       ? assertValidGstin(ownerGstin, "Studio owner")
       : ownerGstin || null;
     const totalBookingBase = roundMoney(relevantTxns.reduce((sum, txn) => {
-      const base = txn.baseAmountBeforeGst || roundMoney(txn.amount / (1 + GST_RATE));
+      const base = txn.baseAmountBeforeGst || roundMoney(amountBeforeGst(txn.amount));
       return sum + base;
     }, 0));
     const commissionAmount = roundMoney(totalBookingBase * (PLATFORM_COMMISSION_PERCENT / 100));
@@ -915,6 +907,7 @@ export class InvoiceService {
     const ownerParty: InvoiceParty = {
       name: studioPayment?.companyName || owner.name || "Studio Owner",
       legalName: studioPayment?.companyName || owner.name || "Studio Owner",
+      address: studioPayment?.companyAddress || owner.location || undefined,
       email: owner.email,
       phone: owner.phone,
       gstin: ownerGstinForCommission,
@@ -923,7 +916,7 @@ export class InvoiceService {
 
     const lineItems: InvoiceLineItem[] = documentType === "OWNER_MONTHLY_COMMISSION_INVOICE"
       ? relevantTxns.map((txn) => {
-        const base = roundMoney(txn.baseAmountBeforeGst || txn.amount / (1 + GST_RATE));
+        const base = roundMoney(txn.baseAmountBeforeGst || amountBeforeGst(txn.amount));
         return applyTaxRatesToLineItem({
           description: txn.bookingId || txn.reservation?.bookingId || "Booking",
           subText: `${txn.user.name || "Customer"} - ${txn.reservation?.listing.title || "Studio"}`,

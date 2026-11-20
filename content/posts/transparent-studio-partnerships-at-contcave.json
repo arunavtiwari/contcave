@@ -1,0 +1,238 @@
+{
+  "id": "transparent-studio-partnerships-at-contcave",
+  "title": "Transparent Studio Partnerships at ContCave: No Hidden Charges, Ever",
+  "categories": [
+    {
+      "id": "inside-contcave",
+      "title": "Inside ContCave",
+      "breadcrumbs": [
+        { "doc": "home", "label": "Home", "id": "bc-home" },
+        { "doc": "blogs", "label": "Blogs", "id": "bc-blogs" },
+        { "doc": "category", "label": "Inside ContCave", "id": "bc-inside-contcave" }
+      ],
+      "createdAt": "2026-09-30T00:00:00Z",
+      "updatedAt": "2026-09-30T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-09-30T05:00:00Z",
+  "authors": ["Samiksha | ContCave Studio Relations"],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "One flat commission, payouts in two days, and every policy written down where you can read it. Here's exactly how ContCave works with studio owners, and why we don't believe in fine print."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-intro",
+      "blockType": "heading",
+      "content": "Transparent Studio Partnerships at ContCave: No Hidden Charges, Ever"
+    },
+    {
+      "id": "p-intro-1",
+      "blockType": "paragraph",
+      "content": "When we speak with studio owners about listing on ContCave, one question comes up more than any other: \"Is there any extra money being earned behind the scenes?\""
+    },
+    {
+      "id": "p-intro-2",
+      "blockType": "paragraph",
+      "content": "It's a fair question. A studio isn't just a listing. It's a business, a physical space, and often years of investment. Handing a platform your bookings, payments and calendar is an act of trust, and trust shouldn't depend on reading between the lines. So here is the complete answer, in plain language."
+    },
+    {
+      "id": "h-commission",
+      "blockType": "heading",
+      "content": "One Commission. That's It."
+    },
+    {
+      "id": "p-commission",
+      "blockType": "paragraph",
+      "content": "ContCave charges a flat 12% commission per booking, plus GST. That is the only way we earn from a studio partnership. There are no listing fees, no onboarding charges, no hidden markups on your rates, and no deductions that don't appear on your payout statement."
+    },
+    {
+      "id": "quote-commission",
+      "blockType": "quote",
+      "content": "If it isn't in writing, we don't charge it. If it is in writing, you can read it before you sign."
+    },
+    {
+      "id": "h-value",
+      "blockType": "heading",
+      "content": "What the 12% Actually Covers"
+    },
+    {
+      "id": "p-value",
+      "blockType": "paragraph",
+      "content": "A commission only makes sense when you know what it pays for. Every booking that comes through ContCave includes:"
+    },
+    {
+      "id": "list-value",
+      "blockType": "list",
+      "items": [
+        "Discovery: your studio is shown to brands, creators and production teams actively searching for spaces in your city",
+        "Booking: enquiries, slot selection and confirmations handled end to end",
+        "Payments: secure collection from the client, so you never chase an invoice",
+        "Calendar management: availability kept in sync so double bookings don't happen",
+        "Payouts in T+2 days via Cashfree, straight to your bank account"
+      ]
+    },
+    {
+      "id": "h-payouts",
+      "blockType": "heading",
+      "content": "Payouts You Can Track"
+    },
+    {
+      "id": "p-payouts",
+      "blockType": "paragraph",
+      "content": "Your earnings are settled within two working days of a booking through Cashfree, a regulated payment gateway. Each payout shows the booking amount, our commission, GST, and what reaches you, so the numbers always add up and nothing needs explaining after the fact."
+    },
+    {
+      "id": "h-docs",
+      "blockType": "heading",
+      "content": "Every Policy, Publicly Available"
+    },
+    {
+      "id": "p-docs-1",
+      "blockType": "paragraph",
+      "content": "Transparency can't live only in a sales conversation. That's why we maintain an open Studio Partner Hub with every document a studio owner needs, available to anyone before they sign up."
+    },
+    {
+      "id": "list-docs",
+      "blockType": "list",
+      "items": [
+        "Partnership agreement, in full",
+        "Commission and payout process, step by step",
+        "Cancellation and refund policies, for both clients and studios",
+        "Support and escalation contacts"
+      ]
+    },
+    {
+      "id": "p-docs-2",
+      "blockType": "paragraph",
+      "content": "Read it at your own pace, share it with your partners or your accountant, and come back to us with questions. [Visit the ContCave Studio Partner Hub](https://great-nova-7ea.notion.site/26d01ecdcb528023ad9fffbb25a4f65a?v=26d01ecdcb5280399b81000c9996a2e7)"
+    },
+    {
+      "id": "h-promise",
+      "blockType": "heading",
+      "content": "Our Commitments to Studio Partners"
+    },
+    {
+      "id": "list-promise",
+      "blockType": "list",
+      "items": [
+        "No hidden charges: the 12% + GST commission is the only fee",
+        "No unrealistic promises: we won't guarantee bookings we can't deliver",
+        "No surprises: every policy is documented and public before you sign",
+        "No pressure: questions before signing are welcome, however many you have",
+        "Your pricing is yours: we never quietly mark up your rates to clients"
+      ]
+    },
+    {
+      "id": "h-faq",
+      "blockType": "heading",
+      "content": "FAQs: Listing Your Studio on ContCave"
+    },
+    {
+      "id": "h-faq1",
+      "blockType": "heading",
+      "content": "Are there any fees other than the commission?"
+    },
+    {
+      "id": "p-faq1",
+      "blockType": "paragraph",
+      "content": "No. ContCave earns only the 12% commission per booking, plus applicable GST. There are no listing, subscription or onboarding fees."
+    },
+    {
+      "id": "h-faq2",
+      "blockType": "heading",
+      "content": "When do I receive my payout?"
+    },
+    {
+      "id": "p-faq2",
+      "blockType": "paragraph",
+      "content": "Payouts are processed in T+2 days via Cashfree, directly to your registered bank account."
+    },
+    {
+      "id": "h-faq3",
+      "blockType": "heading",
+      "content": "What happens if a client cancels?"
+    },
+    {
+      "id": "p-faq3",
+      "blockType": "paragraph",
+      "content": "Cancellation and refund terms are set out in full in the Studio Partner Hub, so you know exactly how every scenario is handled before you sign up."
+    },
+    {
+      "id": "h-faq4",
+      "blockType": "heading",
+      "content": "Can I read the agreement before I sign up?"
+    },
+    {
+      "id": "p-faq4",
+      "blockType": "paragraph",
+      "content": "Yes. The complete partnership agreement is publicly available in the Studio Partner Hub. We encourage you to read it first."
+    },
+    {
+      "id": "h-contcave",
+      "blockType": "heading",
+      "content": "Ask Us Anything"
+    },
+    {
+      "id": "p-contcave",
+      "blockType": "paragraph",
+      "content": "If you run a studio and are considering ContCave, we'll walk you through the commission, payouts and booking process in as much detail as you need, including the questions you'd rather ask before signing than after. Reach us at contcave.com/contact."
+    },
+    {
+      "id": "h-final",
+      "blockType": "heading",
+      "content": "Final Takeaways"
+    },
+    {
+      "id": "list-final",
+      "blockType": "list",
+      "items": [
+        "A flat 12% + GST per booking is ContCave's only fee",
+        "The commission covers discovery, booking, payments and calendar management",
+        "Payouts arrive in T+2 days via Cashfree, with a clear breakdown",
+        "Every agreement and policy is public in the Studio Partner Hub",
+        "Questions are welcome, before and after you sign"
+      ]
+    }
+  ],
+  "slug": "transparent-studio-partnerships-at-contcave",
+  "meta": {
+    "title": "Transparent Studio Partnerships: No Hidden Charges | ContCave",
+    "description": "List your studio on ContCave with a flat 12% + GST commission, T+2 payouts and every policy public. No hidden fees, no fine print. See how it works."
+  },
+  "_status": "published",
+  "createdAt": "2026-09-30T05:00:00Z",
+  "updatedAt": "2026-09-30T05:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    { "id": "author-cc-edit", "name": "ContCave Editorial" }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "list your studio on contcave",
+    "studio partnership transparency",
+    "no hidden charges studio platform",
+    "studio booking platform commission",
+    "studio marketplace commission india",
+    "rent out your studio",
+    "studio listing platform india",
+    "studio owner partnership india",
+    "studio payouts",
+    "studio cancellation policy",
+    "list photography studio online",
+    "list podcast studio online",
+    "studio rental business india",
+    "creator economy india 2026",
+    "inside contcave",
+    "ContCave"
+  ]
+}

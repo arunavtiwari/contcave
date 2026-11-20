@@ -39,7 +39,7 @@ export default function AdminRootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="en">
+        <html lang="en-IN">
             <body className={GeistSans.className}>
                 <ClientOnly>
                     <Toaster />

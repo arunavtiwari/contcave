@@ -21,15 +21,18 @@ import { SafeUser } from "@/types/user";
 type Props = {
   title: string;
   locationValue: string;
+  kind?: string;
   imageSrc: string[];
   videoSrc?: string | null;
   id: string;
   currentUser?: SafeUser | null;
 };
 
-function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser }: Props) {
+function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, id, currentUser }: Props) {
   const { getByValue } = useCities();
   const location = getByValue(locationValue);
+  const altPrefix = `${title} – ${kind || "Studio"}${locationValue ? ` in ${locationValue}` : ""}`;
+  const photoAlt = (index: number) => `${altPrefix}, photo ${index + 1}`;
   const [showModal, setShowModal] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
@@ -93,7 +96,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
     <button type="button" aria-label={`Open photo ${index + 1}`} className={`relative block w-full h-full cursor-pointer overflow-hidden ${extraClasses} ${skeletonClasses(index)}`} onClick={() => handleImageClick(index)}>
       <Image
         src={src}
-        alt={`image-${index}`}
+        alt={photoAlt(index)}
         fill
         sizes={sizes}
         priority={priority}
@@ -104,28 +107,64 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
   );
 
   const modalContent = (
-    <div className="grid grid-cols-2 gap-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
       {imageSrc.map((url, index) => {
-        const isFeatured = index % 3 === 0;
+        const isHero = index === 0;
         return (
           <button
             type="button"
             aria-label={`Open photo ${index + 1}`}
             key={index}
-            className={`relative ${isFeatured ? "col-span-2" : ""} h-75 cursor-pointer group overflow-hidden rounded-lg ${skeletonClasses(index)}`}
+            className={`relative ${isHero ? "col-span-1 md:col-span-2 h-96 sm:h-112 md:h-130" : "col-span-1 h-72 sm:h-84 md:h-96"} cursor-pointer group overflow-hidden rounded-2xl border border-border/40 bg-neutral-950/5 dark:bg-neutral-900/40 flex items-center justify-center transition-all hover:border-border ${skeletonClasses(index)}`}
             onClick={() => handleModalImageClick(index)}
           >
+            {/* Ambient blurred backdrop so letterboxing/pillarboxing looks seamless */}
+            <div className="absolute inset-0 overflow-hidden opacity-25 dark:opacity-20 filter blur-xl scale-110 pointer-events-none">
+              <Image
+                src={url}
+                alt=""
+                fill
+                sizes="25vw"
+                className="object-cover"
+                aria-hidden="true"
+              />
+            </div>
+            {/* The complete, uncropped photo */}
             <Image
               src={url}
-              alt={`image-${index}`}
+              alt={photoAlt(index)}
               fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              sizes={isHero ? "(max-width: 768px) 100vw, 80vw" : "(max-width: 768px) 100vw, 45vw"}
               onLoad={() => handleImageLoad(index)}
-              className={`object-cover group-hover:brightness-90 ${imageOpacityClasses(index)}`}
+              className={`relative z-10 object-contain group-hover:scale-[1.01] transition-transform duration-300 ${imageOpacityClasses(index)}`}
             />
+            {/* Photo index badge */}
+            <span className="absolute bottom-3 right-3 z-20 text-xs font-medium px-2.5 py-1 rounded-full bg-background/80 dark:bg-background/70 backdrop-blur-md text-foreground border border-border/40 select-none shadow-xs">
+              {index + 1} / {imageSrc.length}
+            </span>
           </button>
         );
       })}
+    </div>
+  );
+
+  const galleryActions = (
+    <div className="absolute bottom-4 right-4 z-20 flex gap-2">
+      {videoSrc && (
+        <Button
+          label="Video tour"
+          icon={HiOutlineVideoCamera}
+          onClick={() => setShowVideoModal(true)}
+          variant="outline"
+          fit
+        />
+      )}
+      <Button
+        label="Show all photos"
+        onClick={handleShowAllPhotos}
+        variant="outline"
+        fit
+      />
     </div>
   );
 
@@ -147,7 +186,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
             <button type="button" aria-label={`Open photo ${index + 1}`} className={`block w-full h-full relative cursor-pointer overflow-hidden ${skeletonClasses(index)}`} onClick={() => handleImageClick(index)}>
               <Image
                 src={url}
-                alt={`image-${index}`}
+                alt={photoAlt(index)}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 priority={index === 0}
@@ -165,6 +204,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
       <button type="button" aria-label="Next photo" className="swiper-button-next-custom absolute top-1/2 right-3 transform -translate-y-1/2 z-10 cursor-pointer bg-foreground/60 backdrop-blur-2xl p-2 rounded-full border border-background/50 hover:bg-foreground/80 transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100">
         <HiOutlineChevronRight className="text-background" size={24} />
       </button>
+      {galleryActions}
     </div>
   );
 
@@ -183,12 +223,12 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
         </div>
       ) : (
         <>
-          <div className="hidden lg:grid lg:grid-cols-2 gap-1 mt-4">
+          <div className="relative hidden lg:grid lg:grid-cols-2 gap-1 mt-4">
             <button type="button" aria-label="Open photo 1" className={`relative block h-113.75 w-full cursor-pointer overflow-hidden rounded-l-lg ${skeletonClasses(0)}`} onClick={() => handleImageClick(0)}>
               {imageSrc[0] && (
                 <Image
                   src={imageSrc[0]}
-                  alt="image-0"
+                  alt={photoAlt(0)}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
                   priority
@@ -206,7 +246,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
                 <div className={`relative w-full h-full overflow-hidden rounded-br-lg ${skeletonClasses(4)}`}>
                   <Image
                     src={imageSrc[4]}
-                    alt="image-4"
+                    alt={photoAlt(4)}
                     fill
                     priority
                     sizes="(max-width: 768px) 100vw, 33vw"
@@ -214,17 +254,10 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
                     className={`object-cover hover:brightness-90 ${imageOpacityClasses(4)} cursor-pointer`}
                   />
                   <button type="button" aria-label="Open photo 5" className="absolute inset-0" onClick={() => handleImageClick(4)} />
-                  <div className="absolute bottom-4 right-4 z-10 flex gap-2">
-                    <Button
-                      label="Show all photos"
-                      onClick={handleShowAllPhotos}
-                      variant="outline"
-                      fit
-                    />
-                  </div>
                 </div>
               )}
             </div>
+            {galleryActions}
           </div>
 
           <div className="lg:hidden mt-4">
@@ -237,27 +270,15 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
         isOpen={showModal}
         onCloseAction={() => setShowModal(false)}
         onSubmitAction={() => { }}
-        title="All Photos"
+        title={`All Photos (${imageSrc.length})`}
         body={modalContent}
         actionLabel=""
         selfActionButton={true}
-        customWidth="w-full md:w-5/6 lg:w-4/6 xl:w-3/5"
+        customWidth="w-full md:w-5/6 lg:w-4/5 xl:w-3/4 max-w-6xl"
       />
 
       {videoSrc && (
         <>
-          <Button
-            onClick={() => setShowVideoModal(true)}
-            aria-label="video tour"
-            rounded
-            className="fixed bottom-18 right-4 z-99 group px-2.5! group-hover:px-5! transition-all duration-300"
-            fit
-          >
-            <HiOutlineVideoCamera size={20} className="shrink-0" />
-            <span className="max-w-0 opacity-0 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out -ml-2 group-hover:max-w-37.5 group-hover:opacity-100 group-hover:ml-0">
-              Video Tour
-            </span>
-          </Button>
           <VideoTourModal
             isOpen={showVideoModal}
             onClose={() => setShowVideoModal(false)}
@@ -305,7 +326,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
                       <div className="relative h-[80vh] w-full">
                         <Image
                           src={url}
-                          alt={`Fullscreen image ${index}`}
+                          alt={photoAlt(index)}
                           fill
                           sizes="100vw"
                           className={`object-contain ${imageOpacityClasses(index)}`}
@@ -320,10 +341,10 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
               </Swiper>
             </div>
 
-            <button type="button" aria-label="Previous photo" className="swiper-lb-prev absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-50 cursor-pointer border border-background/20 bg-background/5 hover:bg-background/15 hover:border-background/50 text-background p-3 rounded-full backdrop-blur-sm transition-colors hidden md:flex items-center justify-center active:scale-90">
+            <button type="button" aria-label="Previous photo" className="swiper-lb-prev absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-50 cursor-pointer border border-background/20 bg-background/5 hover:bg-background/15 hover:border-background/50 text-background p-3 rounded-full backdrop-blur-sm transition-colors hidden md:flex items-center justify-center">
               <HiOutlineChevronLeft size={20} />
             </button>
-            <button type="button" aria-label="Next photo" className="swiper-lb-next absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-50 cursor-pointer border border-background/20 bg-background/5 hover:bg-background/15 hover:border-background/50 text-background p-3 rounded-full backdrop-blur-sm transition-colors hidden md:flex items-center justify-center active:scale-90">
+            <button type="button" aria-label="Next photo" className="swiper-lb-next absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-50 cursor-pointer border border-background/20 bg-background/5 hover:bg-background/15 hover:border-background/50 text-background p-3 rounded-full backdrop-blur-sm transition-colors hidden md:flex items-center justify-center">
               <HiOutlineChevronRight size={20} />
             </button>
           </div>

@@ -1,14 +1,9 @@
-import Footer from "@/components/layout/Footer";
+import PublicPageShell from "@/components/layout/PublicPageShell";
 
 export default function PublicLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <>
-      <div className="min-h-screen pt-20">{children}</div>
-      <Footer />
-    </>
-  );
+  return <PublicPageShell>{children}</PublicPageShell>;
 }

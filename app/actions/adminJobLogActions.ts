@@ -1,5 +1,7 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
+
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import prisma from "@/lib/prismadb";
 import { isAdmin } from "@/lib/user/permissions";
@@ -32,6 +34,61 @@ export type GetAdminJobLogsParams = {
   status?: string;
 };
 
+type JobLogOverview = {
+  availableJobs: string[];
+  stats: AdminJobLogStats;
+};
+
+/**
+ * The filter dropdown and the four stat cards used to cost five separate queries, one of
+ * which asked Prisma for `distinct` job names — which MongoDB answers by loading every log
+ * row and de-duplicating in memory. A single grouped aggregation replaces all of them.
+ */
+async function getJobLogOverview(): Promise<JobLogOverview> {
+  const result = (await prisma.maintenanceJobLog.aggregateRaw({
+    pipeline: [
+      {
+        $facet: {
+          jobNames: [{ $group: { _id: "$jobName" } }, { $sort: { _id: 1 } }],
+          byStatus: [{ $group: { _id: "$status", total: { $sum: 1 } } }],
+          totals: [
+            {
+              $group: {
+                _id: null,
+                totalRecorded: { $sum: 1 },
+                totalModified: { $sum: "$itemsModified" },
+              },
+            },
+          ],
+        },
+      },
+    ] as unknown as Prisma.InputJsonValue[],
+  })) as unknown as Array<{
+    jobNames?: Array<{ _id?: unknown }>;
+    byStatus?: Array<{ _id?: unknown; total?: number }>;
+    totals?: Array<{ totalRecorded?: number; totalModified?: number }>;
+  }>;
+
+  const facet = result[0] || {};
+  const statusCounts = new Map<string, number>();
+  for (const row of facet.byStatus || []) {
+    if (typeof row._id === "string") statusCounts.set(row._id, row.total ?? 0);
+  }
+
+  return {
+    availableJobs: (facet.jobNames || [])
+      .map((row) => row._id)
+      .filter((name): name is string => typeof name === "string"),
+    stats: {
+      totalRecorded: facet.totals?.[0]?.totalRecorded ?? 0,
+      totalModified: facet.totals?.[0]?.totalModified ?? 0,
+      successCount: statusCounts.get("SUCCESS") ?? 0,
+      partialCount: statusCounts.get("PARTIAL") ?? 0,
+      failedCount: statusCounts.get("FAILED") ?? 0,
+    },
+  };
+}
+
 export async function getAdminJobLogs({
   page = 1,
   pageSize = 20,
@@ -58,31 +115,27 @@ export async function getAdminJobLogs({
     where.status = status;
   }
 
-  const [total, logs, stats, successCount, partialCount, failedCount, distinctJobs] = await Promise.all([
+  const [total, logs, overview] = await Promise.all([
     prisma.maintenanceJobLog.count({ where }),
     prisma.maintenanceJobLog.findMany({
       where,
+      select: {
+        id: true,
+        jobName: true,
+        status: true,
+        itemsProcessed: true,
+        itemsModified: true,
+        summary: true,
+        details: true,
+        error: true,
+        durationMs: true,
+        createdAt: true,
+      },
       orderBy: { createdAt: "desc" },
       skip,
       take: pageSize,
     }),
-    prisma.maintenanceJobLog.aggregate({
-      _sum: {
-        itemsModified: true,
-        durationMs: true,
-      },
-      _count: {
-        _all: true,
-      },
-    }),
-    prisma.maintenanceJobLog.count({ where: { status: "SUCCESS" } }),
-    prisma.maintenanceJobLog.count({ where: { status: "PARTIAL" } }),
-    prisma.maintenanceJobLog.count({ where: { status: "FAILED" } }),
-    prisma.maintenanceJobLog.findMany({
-      select: { jobName: true },
-      distinct: ["jobName"],
-      orderBy: { jobName: "asc" },
-    }),
+    getJobLogOverview(),
   ]);
 
   const serializedLogs: AdminJobLogRow[] = logs.map((log) => ({
@@ -103,13 +156,7 @@ export async function getAdminJobLogs({
     total,
     page: safePage,
     pageSize,
-    availableJobs: distinctJobs.map((j) => j.jobName),
-    stats: {
-      totalRecorded: stats._count._all,
-      totalModified: stats._sum.itemsModified || 0,
-      successCount,
-      partialCount,
-      failedCount,
-    },
+    availableJobs: overview.availableJobs,
+    stats: overview.stats,
   };
 }

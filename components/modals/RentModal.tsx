@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import React, {
   useCallback,
@@ -20,8 +21,10 @@ import Modal from "@/components/modals/Modal";
 import { toast } from "@/components/ui/Toast";
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import useUIStore from "@/hooks/useUIStore";
-import { uploadListingMedia } from "@/lib/listing/mediaUpload";
+import { listingLocationIssues, listingLocationValue } from "@/lib/listing/location";
+import { collectUploadedMediaRefs, uploadListingMedia } from "@/lib/listing/mediaUpload";
 import { isRichTextEmpty } from "@/lib/richText";
+import { discardUploadedMedia } from "@/lib/storage/discard";
 import { uploadToR2 } from "@/lib/storage/upload";
 import {
   ListingSchema,
@@ -176,7 +179,9 @@ export default function RentModal({
   predefinedAddons = [],
 }: RentModalProps) {
   const uiStore = useUIStore();
+  const router = useRouter();
   const { data: session } = useSession();
+  const needsVerification = !!currentUser && currentUser.role !== "ADMIN" && !currentUser.is_verified;
 
   const userEmail = (currentUser?.email || session?.user?.email || "").toLowerCase().trim();
   const isContcave = userEmail === "contcave@gmail.com";
@@ -372,16 +377,10 @@ export default function RentModal({
   }, [venueTypes]);
 
   const validateLocationStep = useCallback(async () => {
-    if (!actualLocation || !actualLocation.value) {
-      setCityError("Please select a city");
-      return false;
-    }
-    if (!actualLocation.display_name) {
-      setAddressError("Please enter a complete address");
-      return false;
-    }
-    if (!actualLocation.latlng || !Array.isArray(actualLocation.latlng) || actualLocation.latlng.length !== 2) {
-      setAddressError("Please select a valid location using autocomplete to fetch map coordinates");
+    const issues = listingLocationIssues(actualLocation);
+    if (issues.city || issues.address) {
+      setCityError(issues.city ?? "");
+      setAddressError(issues.address ?? "");
       return false;
     }
     return trigger("actualLocation");
@@ -575,6 +574,8 @@ export default function RentModal({
     setValue("addons", v, { shouldDirty: true });
   }, [setValue]);
 
+  const packagesError = errors.packages?.message;
+
   const validatePackagesStep = useCallback(async () => {
     return trigger("packages");
   }, [trigger]);
@@ -741,6 +742,7 @@ export default function RentModal({
             hasSets={hasSets}
             sets={sets as SetEditorItem[]}
             setValue={setValue as never}
+            error={packagesError}
           />
         ),
       },
@@ -794,6 +796,7 @@ export default function RentModal({
       listingDetails,
       listingType,
       packages,
+      packagesError,
       register,
       setCustomValue,
       otherAmenities,
@@ -926,18 +929,11 @@ export default function RentModal({
       }
     }
 
-    const locationValue =
-      data.actualLocation?.value ||
-      data.actualLocation?.label ||
-      data.actualLocation?.display_name ||
-      "";
-
-    if (!locationValue) {
-      return toast.error("Please select a valid city/location");
-    }
-
-    if (!data.actualLocation || !data.actualLocation.display_name) {
-      return toast.error("Please select an accurate location using the address search");
+    const locationValue = listingLocationValue(data.actualLocation);
+    const locationIssues = listingLocationIssues(data.actualLocation);
+    const locationIssue = locationIssues.city ?? locationIssues.address;
+    if (locationIssue) {
+      return toast.error(locationIssue);
     }
 
     const remoteImages = (data.imageSrc || []);
@@ -949,6 +945,8 @@ export default function RentModal({
 
     uiStore.onClose("rent");
 
+    const uploadedMediaRefs: string[] = [];
+
     try {
       const listingId = createObjectId();
 
@@ -959,10 +957,10 @@ export default function RentModal({
         addons: data.addons,
       });
 
+      uploadedMediaRefs.push(...collectUploadedMediaRefs(mediaResults));
+
       if (mediaResults.imageSrc.length === 0) {
-        setIsLoading(false);
-        setIsSubmitting(false);
-        return toast.error("Please upload at least one image");
+        throw new Error("Please upload at least one image");
       }
 
       const storedVerifications = toStoredVerificationPayload(data.verifications);
@@ -977,6 +975,7 @@ export default function RentModal({
             `listings/${listingId}/compliance/verification/general`,
             { access: "private" }
           );
+          uploadedMediaRefs.push(...uploadedRefs);
 
           for (let i = 0; i < docsWithFiles.length; i++) {
             const doc = docsWithFiles[i];
@@ -1001,6 +1000,7 @@ export default function RentModal({
       if (data.agreementSignature && data.terms) {
         if (!generatePdf) throw new Error("Signed agreement generator is unavailable");
         const meta = await generatePdf(listingId);
+        uploadedMediaRefs.push(meta.storageRef);
         setAgreementPdf(meta);
         finalVerifications.agreementPdf = meta;
       }
@@ -1081,6 +1081,7 @@ export default function RentModal({
       setShowSuccessModal(true);
       toast.success(isCurated ? "Curated space created successfully!" : "Listing created successfully!");
     } catch (error: unknown) {
+      await discardUploadedMedia(uploadedMediaRefs);
       const errorMessage = error instanceof Error ? error.message : "Something went wrong while creating the listing.";
       toast.error(errorMessage);
     } finally {
@@ -1177,16 +1178,28 @@ export default function RentModal({
         isOpen={showSuccessModal}
         testId="rent-modal-success"
         onCloseAction={() => { setShowSuccessModal(false); }}
-        onSubmitAction={() => { setShowSuccessModal(false); }}
-        title={isCurated ? "Curated Space Submitted 🎉" : "Listing Submitted 🎉"}
+        onSubmitAction={() => {
+          setShowSuccessModal(false);
+          if (needsVerification) router.push("/dashboard/profile");
+        }}
+        title={needsVerification ? "Details Submitted Successfully 🎉" : isCurated ? "Curated Space Submitted 🎉" : "Listing Submitted 🎉"}
         customHeight="h-auto"
-        actionLabel="Close"
+        actionLabel={needsVerification ? "Verify your profile" : "Close"}
+        secondaryActionLabel={needsVerification ? "Later" : undefined}
+        secondaryActionAction={needsVerification ? () => setShowSuccessModal(false) : undefined}
         body={
-          <div className="flex flex-col gap-3 text-muted-foreground text-center">
-            <p>{isCurated ? "Thank you for submitting your curated space!" : "Thank you for submitting your studio!"}</p>
-            <p>Our team will review and verify your listing shortly.</p>
-            <p>We&apos;ll notify you once it&apos;s live on ContCave.</p>
-          </div>
+          needsVerification ? (
+            <div className="flex flex-col gap-3 text-muted-foreground text-center">
+              <p>Your listing details have been submitted successfully.</p>
+              <p>To make your listing live, kindly verify your profile.</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3 text-muted-foreground text-center">
+              <p>{isCurated ? "Thank you for submitting your curated space!" : "Thank you for submitting your studio!"}</p>
+              <p>Our team will review and verify your listing shortly.</p>
+              <p>We&apos;ll notify you once it&apos;s live on ContCave.</p>
+            </div>
+          )
         }
       />
     </>

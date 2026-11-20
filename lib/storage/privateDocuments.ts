@@ -65,7 +65,7 @@ export async function readPrivateDocument(ref: string, maxBytes = 10_000_000) {
   return Buffer.from(bytes);
 }
 
-function safeDownloadName(value: string) {
+export function safeDownloadName(value: string) {
   const name = value.replace(/[\r\n"\\/]/g, "_").trim().slice(0, 180);
   return name || "document.pdf";
 }

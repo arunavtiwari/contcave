@@ -16,6 +16,17 @@ export type PublicDayStatus = {
     endTime: string;
 };
 
+export type CalendarBusyEvent = {
+    start?: { date?: string | null; dateTime?: string | null };
+    end?: { date?: string | null; dateTime?: string | null };
+};
+
+export type ListingAvailability = {
+    reservations: PublicReservationSlot[];
+    dayStatuses: PublicDayStatus[];
+    googleCalendarEvents: CalendarBusyEvent[];
+};
+
 export type SafeReservation = Omit<
     Reservation,
     | "createdAt"

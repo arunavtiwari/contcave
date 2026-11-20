@@ -83,7 +83,7 @@ const AdminSidebar: React.FC = React.memo(() => {
                 <button
                     type="button"
                     onClick={handleLogout}
-                    className="group flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring active:scale-100! active:transform-none!"
+                    className="group flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring active:transform-none!"
                 >
                     <LuLogOut className="size-4.5 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
                     <span>Logout</span>

@@ -16,7 +16,7 @@ export const addWhatsAppReviewAction = createAction(
     { requireAuth: true, allowedRoles: ["ADMIN"] },
     async (data, { user }) => {
         const review = await ReviewService.createWhatsAppReview(user!.id, data);
-        revalidatePath(`/listings/${data.listingId}`);
+        revalidatePath(`/studio/${data.listingId}`);
         revalidatePath("/admin/dashboard/listings");
         return review;
     }
@@ -27,7 +27,7 @@ export const deleteReviewAction = createAction(
     { requireAuth: true, allowedRoles: ["ADMIN"] },
     async (data) => {
         await ReviewService.deleteReview(data.reviewId, "", true);
-        revalidatePath(`/listings/${data.listingId}`);
+        revalidatePath(`/studio/${data.listingId}`);
         revalidatePath("/admin/dashboard/listings");
         return { success: true };
     }

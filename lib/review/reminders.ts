@@ -10,7 +10,7 @@ type ReminderResult = { reservationId: string; status: "sent" | "skipped" };
 
 function getReviewUrl(slug: string | null, listingId: string) {
   const identifier = slug || listingId;
-  return `${getValidatedBaseUrl()}/listings/${encodeURIComponent(identifier)}`;
+  return `${getValidatedBaseUrl()}/studio/${encodeURIComponent(identifier)}`;
 }
 
 export class ReviewReminderService {
@@ -108,7 +108,7 @@ export class ReviewReminderService {
       where: {
         status: "COMPLETED",
         markedForDeletion: false,
-        completedAt: { lte: dueBefore },
+        completedAt: { not: null, lte: dueBefore },
         AND: [
           { OR: [{ reviewReminderSentAt: null }, { reviewReminderSentAt: { isSet: false } }] },
         ],

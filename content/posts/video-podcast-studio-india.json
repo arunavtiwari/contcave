@@ -1,0 +1,295 @@
+{
+  "id": "video-podcast-studio-india",
+  "title": "Video Podcast Studio in India: Why Audio-Only Isn't Enough",
+  "categories": [
+    {
+      "id": "studio-guides",
+      "title": "Studio Guides",
+      "breadcrumbs": [
+        {
+          "doc": "home",
+          "label": "Home",
+          "id": "bc-home"
+        },
+        {
+          "doc": "blogs",
+          "label": "Blogs",
+          "id": "bc-blogs"
+        },
+        {
+          "doc": "category",
+          "label": "Studio Guides",
+          "id": "bc-studio-guides"
+        }
+      ],
+      "createdAt": "2026-11-18T00:00:00Z",
+      "updatedAt": "2026-11-18T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-11-18T04:00:00Z",
+  "authors": [
+    "ContCave Editorial"
+  ],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "Audio carried Indian podcasting for years, but guests, sponsors and the algorithm now expect a camera in the room. Here's what a real video podcast studio setup needs."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-1",
+      "blockType": "heading",
+      "content": "Video Podcast Studio in India: Why Audio-Only Isn't Enough"
+    },
+    {
+      "id": "p-1",
+      "blockType": "paragraph",
+      "content": "If you're searching for a video podcast studio in India right now, you've probably already felt the shift: a clean audio track used to be enough to launch a show, but guests ask for the YouTube link, sponsors ask for view counts, and clips for Reels and Shorts need footage, not just waveforms. A video podcast studio setup is no longer a nice-to-have add-on to audio recording — for most creators and brands booking studio time in 2026, it is the default ask. This guide walks through what actually changes when you add cameras to a podcast session, what it costs by city, and how to avoid the common setup mistakes that make a video podcast look worse than a plain audio one."
+    },
+    {
+      "id": "h-2",
+      "blockType": "heading",
+      "content": "What \"video podcast studio\" actually means"
+    },
+    {
+      "id": "p-2",
+      "blockType": "paragraph",
+      "content": "A video podcast studio is not just an audio booth with a camera bolted on. It is a room designed around two jobs at once: capturing clean dialogue and capturing watchable footage, without one compromising the other. That means acoustic treatment that also looks good on camera (fabric panels instead of foam egg-crate), lighting that doesn't create audible fan noise, and seating arranged so every speaker is in frame and in mic range at the same time."
+    },
+    {
+      "id": "p-3",
+      "blockType": "paragraph",
+      "content": "Most studios in India that advertise \"video podcast\" rooms fall into two tiers. The first is a single-camera setup — one wide shot, sometimes with a basic switch to a close-up — suited to two-person interviews and short-form clip cutting. The second is a true multi-camera setup, usually three to four angles switched live or synced in post, aimed at panel formats, brand interviews, or shows that plan to repurpose heavily into vertical clips. Knowing which tier you actually need before you book saves you from overpaying for gear you won't use, or underbooking and getting footage that can't be cut into anything usable."
+    },
+    {
+      "id": "h-3",
+      "blockType": "heading",
+      "content": "Why audio-only stopped being enough"
+    },
+    {
+      "id": "p-4",
+      "blockType": "paragraph",
+      "content": "A few things changed at once. Distribution moved: a growing share of podcast consumption now happens through video platforms rather than audio-only apps, so a show with no video simply isn't discoverable to a chunk of its potential audience. Sponsors changed too — a brand paying for a podcast integration increasingly wants a video view count and a thumbnail to show for it, not just a download number. And clip-based discovery means the real growth engine for most new shows is a 30-second cut of a strong moment, which needs footage to exist at all."
+    },
+    {
+      "id": "quote-1",
+      "blockType": "quote",
+      "content": "A simple way to think about it: audio gets you heard, video gets you found. If growth matters more than just archiving a conversation, the camera isn't optional anymore."
+    },
+    {
+      "id": "p-5",
+      "blockType": "paragraph",
+      "content": "None of this means audio quality can slip — if anything, a bad camera is more forgivable to viewers than bad audio, which breaks the listening experience within seconds. The point of a video podcast studio is that you stop treating video as an afterthought bolted onto an audio session, and start planning for both from the first booking."
+    },
+    {
+      "id": "h-4",
+      "blockType": "heading",
+      "content": "What a proper setup includes"
+    },
+    {
+      "id": "p-6",
+      "blockType": "paragraph",
+      "content": "A workable video podcast room in India should give you, at minimum:"
+    },
+    {
+      "id": "list-1",
+      "blockType": "list",
+      "items": [
+        "At least one dedicated camera per speaker position, not a single wide shot trying to cover three people",
+        "A mic per speaker — lavalier or a desk condenser — rather than one shared boundary mic picking up room echo",
+        "Soft, even lighting from the front (a large soft-box or LED panel setup, not a single harsh ring light that throws shadows on a second guest)",
+        "A neutral or branded backdrop that won't date the footage or clash with a guest's outfit",
+        "A monitor the host can glance at to check framing without staring at a phone mid-conversation",
+        "Basic acoustic treatment so the room doesn't echo once the camera adds reflective surfaces like glass or screens"
+      ]
+    },
+    {
+      "id": "p-7",
+      "blockType": "paragraph",
+      "content": "If a studio only offers one of these — say, cameras but no dedicated per-speaker mics — expect the video to look fine and the audio to sound noticeably worse than a dedicated audio booth. That tradeoff is common enough in India's rental market that it's worth asking about explicitly before booking, rather than assuming \"video podcast studio\" on a listing means the full setup."
+    },
+    {
+      "id": "h-5",
+      "blockType": "heading",
+      "content": "What it costs, city by city"
+    },
+    {
+      "id": "p-8",
+      "blockType": "paragraph",
+      "content": "Pricing for video-enabled podcast studios in India varies a lot by city, equipment tier, and whether editing is bundled in. As a rough, conservative range based on typical rental listings:"
+    },
+    {
+      "id": "list-2",
+      "blockType": "list",
+      "items": [
+        "A basic single-camera video podcast setup generally runs somewhere around ₹1,500–₹3,000 per hour in cities like Mumbai and Delhi NCR.",
+        "Multi-camera setups with switching, better lighting rigs, and 4K capture tend to sit higher, often in the ₹3,000–₹8,000-per-hour range depending on the studio and the number of camera angles.",
+        "Fully produced multi-camera podcast packages — camera operators, live switching, same-week edit — are usually quoted per episode rather than per hour, and can run well beyond a simple hourly rate.",
+        "Some studios charge extra per piece of add-on equipment (an extra camera, a teleprompter, a second light kit) on top of the base room rate, so always ask what's included before comparing two quotes."
+      ]
+    },
+    {
+      "id": "p-9",
+      "blockType": "paragraph",
+      "content": "Treat any number you see online, including the ranges above, as a starting point for a conversation rather than a fixed price — studio pricing shifts by neighbourhood, time slot, and season, and the only way to know your real cost is to check live availability and get an itemised quote."
+    },
+    {
+      "id": "h-6",
+      "blockType": "heading",
+      "content": "Booking tips specific to video shoots"
+    },
+    {
+      "id": "p-10",
+      "blockType": "paragraph",
+      "content": "A few things matter more for video bookings than for audio-only ones:"
+    },
+    {
+      "id": "list-3",
+      "blockType": "list",
+      "items": [
+        "Book extra buffer time for lighting and camera setup, especially for a first visit to a new studio — a 60-minute recording often needs 90 minutes of studio time once setup and a wardrobe/background check are factored in.",
+        "Ask whether raw multi-camera footage is handed over, or only a pre-switched single file — this matters a lot if you plan to cut your own clips later.",
+        "Confirm backdrop and branding rules in advance if you're recording a sponsored or brand-led episode; some studios restrict what can be taped to walls or placed in frame.",
+        "If guests are joining remotely, ask whether the studio supports a clean hybrid setup (in-room camera plus a remote feed capture) rather than just pointing a camera at a laptop screen."
+      ]
+    },
+    {
+      "id": "h-7",
+      "blockType": "heading",
+      "content": "FAQs: Video Podcast Studios in India"
+    },
+    {
+      "id": "h-8",
+      "blockType": "heading",
+      "content": "Do I need a multi-camera setup for my first video podcast?"
+    },
+    {
+      "id": "p-11",
+      "blockType": "paragraph",
+      "content": "Not necessarily. A single well-lit camera with good framing is enough for most two-person interview shows starting out. Multi-camera setups earn their cost once you're recording panels, doing heavy short-form clipping, or need cutaways between speakers to keep longer episodes watchable."
+    },
+    {
+      "id": "h-9",
+      "blockType": "heading",
+      "content": "Is a video podcast studio much more expensive than an audio-only one?"
+    },
+    {
+      "id": "p-12",
+      "blockType": "paragraph",
+      "content": "Expect a noticeable step up, but not an extreme one for a basic setup — a single-camera video room typically costs somewhat more per hour than a pure audio booth in the same studio, mainly because of the lighting and camera gear involved. The bigger cost jump comes with multi-camera and fully produced packages, not the basic video add-on."
+    },
+    {
+      "id": "h-10",
+      "blockType": "heading",
+      "content": "Can I convert an audio-only recording into a video podcast later?"
+    },
+    {
+      "id": "p-13",
+      "blockType": "paragraph",
+      "content": "Only partially. You can add static visuals, waveforms, or stock footage to an existing audio file, but you can't retroactively create real video of the conversation. If there's any chance you'll want video later, it's cheaper to record it from the start even if you don't publish it immediately."
+    },
+    {
+      "id": "h-11",
+      "blockType": "heading",
+      "content": "What's the biggest mistake creators make when adding video to a podcast?"
+    },
+    {
+      "id": "p-14",
+      "blockType": "paragraph",
+      "content": "Treating audio as secondary once cameras are in the room. Many creators focus their studio briefing entirely on camera angles and lighting, then end up with video that looks fine but audio that sounds worse than their old audio-only setup, because nobody asked about per-speaker mics."
+    },
+    {
+      "id": "h-12",
+      "blockType": "heading",
+      "content": "How do I know if a studio's \"video podcast\" listing actually has what I need?"
+    },
+    {
+      "id": "p-15",
+      "blockType": "paragraph",
+      "content": "Ask directly: how many cameras, how many dedicated mics, what lighting setup, and whether raw multi-camera files are provided. A good studio will answer specifically; a vague answer usually means a single camera and a shared mic, dressed up as a \"video podcast room.\""
+    },
+    {
+      "id": "h-13",
+      "blockType": "heading",
+      "content": "Why book with ContCave"
+    },
+    {
+      "id": "p-16",
+      "blockType": "paragraph",
+      "content": "ContCave lists studios across Delhi NCR with clear, hourly pricing and the specific equipment each space actually has — camera count, lighting setup, and mic configuration — so you're not guessing whether a \"video podcast\" listing means a real multi-camera room or a single camera pointed at a desk. Compare studios side by side, check real-time availability, and book instantly instead of waiting on a callback to confirm basic specs."
+    },
+    {
+      "id": "h-14",
+      "blockType": "heading",
+      "content": "Final takeaways"
+    },
+    {
+      "id": "p-17",
+      "blockType": "paragraph",
+      "content": "Video has moved from optional extra to default expectation for podcasts aiming to grow in India, but that doesn't mean every show needs a four-camera production crew. Match the setup to your format, ask specific equipment questions before booking, and don't let video planning crowd out the audio quality that still carries the listening experience."
+    },
+    {
+      "id": "list-4",
+      "blockType": "list",
+      "items": [
+        "Decide upfront whether you need single-camera or multi-camera coverage based on your format, not just what sounds impressive",
+        "Confirm per-speaker mic setup specifically — don't assume \"video podcast studio\" means good audio by default",
+        "Budget roughly ₹1,500–₹3,000/hour for basic single-camera setups and ₹3,000–₹8,000/hour for multi-camera rigs, then get an itemised quote",
+        "Book extra buffer time for lighting, camera checks, and any background or wardrobe review",
+        "Ask whether you get raw multi-camera files or only a pre-switched edit, especially if you plan to cut your own clips"
+      ]
+    }
+  ],
+  "slug": "video-podcast-studio-india",
+  "meta": {
+    "title": "Video Podcast Studio in India: Why Audio-Only Isn't Enough",
+    "description": "Planning a video podcast studio in India? Compare camera, lighting and multi-mic setups, hourly price ranges, and why audio-only no longer cuts it."
+  },
+  "_status": "published",
+  "createdAt": "2026-11-18T04:00:00Z",
+  "updatedAt": "2026-11-18T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    {
+      "id": "author-cc-edit",
+      "name": "ContCave Editorial"
+    }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "video podcast studio india",
+    "video podcast studio",
+    "video podcast setup india",
+    "video podcast recording studio",
+    "multi camera podcast studio india",
+    "podcast studio with video",
+    "video podcast studio delhi",
+    "video podcast studio mumbai",
+    "video podcast studio gurugram",
+    "video podcast studio noida",
+    "video podcast studio bangalore",
+    "video podcast studio cost",
+    "video podcast studio price per hour",
+    "video podcast studio near me",
+    "book a video podcast studio",
+    "video podcast studio for youtubers",
+    "video podcast studio for brands",
+    "video podcast studio for creators",
+    "podcast studio with cameras",
+    "podcast studio with lighting setup",
+    "multi mic podcast recording",
+    "audio vs video podcast india",
+    "podcast studio india 2026",
+    "hourly studio rental for podcasts",
+    "podcast studio booking india",
+    "ContCave"
+  ]
+}

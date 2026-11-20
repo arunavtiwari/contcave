@@ -84,7 +84,7 @@
     {
       "id": "p-includes",
       "blockType": "paragraph",
-      "content": "The backdrop itself is the easy part — a smooth, wrinkle-free chroma-green fabric or cyclorama wall. What separates a usable rental from a frustrating one is everything around it: how evenly the screen is lit, how much distance you have between subject and backdrop, and whether anyone on site actually understands chroma key rather than just owning a green wall."
+      "content": "The backdrop itself is the easy part: a smooth, wrinkle-free chroma-green fabric or cyclorama wall. What separates a usable rental from a frustrating one is everything around it: how evenly the screen is lit, how much distance you have between subject and backdrop, and whether anyone on site actually understands chroma key rather than just owning a green wall."
     },
     {
       "id": "list-includes",
@@ -95,7 +95,7 @@
         "At least 6-8 feet of clear space between subject and backdrop",
         "An operator or DIT who can preview the key live before you start shooting",
         "Camera and lens suited to the frame rate and shutter speed you need to avoid motion blur",
-        "A note on wardrobe — studios will usually flag if what you're wearing is too close to the screen colour"
+        "A note on wardrobe: studios will usually flag if what you're wearing is too close to the screen colour"
       ]
     },
     {
@@ -106,13 +106,13 @@
     {
       "id": "p-prices",
       "blockType": "paragraph",
-      "content": "Rates vary more here than for a standard photography studio, mostly because \"green screen ready\" means different things at different venues. These are typical ranges you'll see across Delhi NCR listings in 2026 — always confirm what's actually included before comparing purely on the hourly number."
+      "content": "Rates vary more here than for a standard photography studio, mostly because \"green screen ready\" means different things at different venues. These are typical ranges you'll see across Delhi NCR listings in 2026: always confirm what's actually included before comparing purely on the hourly number."
     },
     {
       "id": "list-prices",
       "blockType": "list",
       "items": [
-        "Basic self-operated rooms with a green backdrop: roughly ₹800-1,500 per hour — you bring your own lighting knowledge and crew",
+        "Basic self-operated rooms with a green backdrop: roughly ₹800-1,500 per hour, and you bring your own lighting knowledge and crew",
         "Standard studios with pre-lit chroma, backdrop, and basic crew support: roughly ₹1,500-3,000 per hour",
         "Premium studios with multiple camera angles, dedicated DIT/colourist, and live key preview: roughly ₹3,000-6,000 per hour",
         "Virtual production or LED-wall stages: significantly higher, generally an agency-level booking rather than an hourly creator rental"
@@ -136,7 +136,7 @@
     {
       "id": "p-vs-regular",
       "blockType": "paragraph",
-      "content": "A well-lit photography studio is not automatically a green screen studio. Portrait and product lighting is built to flatter a subject, not to light a colored backdrop evenly edge to edge — and general-purpose studios rarely have a seamless chroma cyc, which means you're dealing with corners, floor seams, and shadows that are hard to key out cleanly. If your final footage doesn't need the background swapped, a regular studio with a plain or branded backdrop is cheaper and simpler. If it does — because the same shoot needs to appear against multiple backgrounds, or you're building a repeatable format like a weekly explainer series — book a space that's actually set up for chroma, not one that just happens to own a green sheet."
+      "content": "A well-lit photography studio is not automatically a green screen studio. Portrait and product lighting is built to flatter a subject, not to light a colored backdrop evenly edge to edge, and general-purpose studios rarely have a seamless chroma cyc, which means you're dealing with corners, floor seams, and shadows that are hard to key out cleanly. If your final footage doesn't need the background swapped, a regular studio with a plain or branded backdrop is cheaper and simpler. If it does (because the same shoot needs to appear against multiple backgrounds, or you're building a repeatable format like a weekly explainer series), book a space that's actually set up for chroma, not one that just happens to own a green sheet."
     },
     {
       "id": "h-space",
@@ -153,9 +153,9 @@
       "blockType": "list",
       "items": [
         "Keep at least 6-8 feet between subject and screen to avoid green light bouncing back onto the talent",
-        "Light the screen with two soft, even sources — hot spots and shadows on the backdrop are the top cause of a patchy key",
+        "Light the screen with two soft, even sources: hot spots and shadows on the backdrop are the top cause of a patchy key",
         "Add a separate rim or edge light on the subject to prevent green spill along hair and shoulders",
-        "Avoid green or similar tones in wardrobe — it will key out along with the background",
+        "Avoid green or similar tones in wardrobe: it will key out along with the background",
         "Shoot at a shutter speed appropriate for your frame rate; motion blur in front of a green screen is very hard to fix afterward"
       ]
     },
@@ -168,12 +168,12 @@
       "id": "list-booking",
       "blockType": "list",
       "items": [
-        "Decide your deliverable first — do you need a live preview of the key, or is offline keying in post fine?",
+        "Decide your deliverable first: do you need a live preview of the key, or is offline keying in post fine?",
         "Confirm the screen size and coverage fit your frame, especially if more than one person is on camera",
         "Ask whether an operator or DIT is included and whether they'll test the key live before your session starts",
-        "Confirm file handover — raw footage only, or pre-keyed clips with the background already removed",
+        "Confirm file handover: raw footage only, or pre-keyed clips with the background already removed",
         "Book extra time for a wardrobe and lighting check, especially for a first session at a new studio",
-        "Batch multiple videos into one booking if you run a recurring format — the lighting setup cost is fixed either way"
+        "Batch multiple videos into one booking if you run a recurring format: the lighting setup cost is fixed either way"
       ]
     },
     {
@@ -219,7 +219,7 @@
     {
       "id": "p-faq4",
       "blockType": "paragraph",
-      "content": "For most creator and brand content — tutorials, product demos, social ads — a well-lit green screen studio is enough and far more affordable. Virtual production with LED walls solves a different problem: in-camera realism and interactive lighting for high-end video or film production. Unless you specifically need that, a chroma key studio rental is the more practical and budget-friendly choice."
+      "content": "For most creator and brand content (tutorials, product demos, social ads), a well-lit green screen studio is enough and far more affordable. Virtual production with LED walls solves a different problem: in-camera realism and interactive lighting for high-end video or film production. Unless you specifically need that, a chroma key studio rental is the more practical and budget-friendly choice."
     },
     {
       "id": "h-contcave",

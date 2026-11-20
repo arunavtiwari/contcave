@@ -33,7 +33,6 @@ const ImagesStep: React.FC<ImagesStepProps> = ({
               setImageError("");
             }}
             values={imageSrc || []}
-            deferUpload={true}
             className="w-full h-48 p-4 border border-border"
           />
           {imageSrc && imageSrc.length > 0 && (

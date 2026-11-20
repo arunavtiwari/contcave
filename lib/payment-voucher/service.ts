@@ -5,12 +5,12 @@ import { escapeEmailHtml } from "@/lib/email/html";
 import { AttachmentInput, sendEmail } from "@/lib/email/mailer";
 import prisma from "@/lib/prismadb";
 import { readPrivateDocument, uploadPrivateDocument } from "@/lib/storage/privateDocuments";
+import { withTransientRetry } from "@/lib/transient-retry";
 import { getValidatedBaseUrl } from "@/lib/utils";
 
 import { generateVoucherPDFBuffer, VoucherPdfData } from "./pdfBlob";
 
 const IST_TIME_ZONE = "Asia/Kolkata";
-const MAX_TRANSACTION_RETRIES = 3;
 const MAX_RETRY_COUNT = 5;
 const DELIVERY_CLAIM_TIMEOUT_MS = 10 * 60 * 1000;
 const OBJECT_ID_PATTERN = /^[a-f\d]{24}$/i;
@@ -101,7 +101,7 @@ async function createVoucherWithIdempotency(params: {
   });
   if (existing) return existing;
 
-  for (let attempt = 1; attempt <= MAX_TRANSACTION_RETRIES; attempt += 1) {
+  return withTransientRetry(async () => {
     try {
       return await prisma.$transaction(async (tx) => {
         const already = await tx.paymentVoucher.findUnique({
@@ -122,20 +122,9 @@ async function createVoucherWithIdempotency(params: {
         });
         if (locked) return locked;
       }
-
-      const message = error instanceof Error ? error.message : String(error);
-      const retryable =
-        error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034"
-        || /write conflict|deadlock|transaction failed/i.test(message);
-      if (retryable && attempt < MAX_TRANSACTION_RETRIES) {
-        await new Promise((resolve) => setTimeout(resolve, attempt * 100));
-        continue;
-      }
       throw error;
     }
-  }
-
-  throw new Error("Voucher creation retry limit reached");
+  });
 }
 
 function buildAttachment(voucher: PaymentVoucher, buffer: Buffer): AttachmentInput {

@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 import { auth } from "@/auth";
 import { UserService } from "@/lib/user/service";
 
@@ -5,7 +7,12 @@ export async function getSession() {
   return await auth();
 }
 
-export default async function getCurrentUser() {
+/**
+ * Memoised per request: the admin layout, the page and the server action behind it all
+ * need the current user, and without this each one pays for a fresh session decode plus
+ * a `user.findUnique` round trip.
+ */
+const getCurrentUser = cache(async function getCurrentUser() {
   try {
     const session = await getSession();
 
@@ -31,5 +38,7 @@ export default async function getCurrentUser() {
     console.error('[getCurrentUser] Error:', error instanceof Error ? error.message : 'Unknown error');
     return null;
   }
-}
+});
+
+export default getCurrentUser;
 

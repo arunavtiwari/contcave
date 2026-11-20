@@ -1,0 +1,292 @@
+{
+  "id": "cooking-studio-rental-india",
+  "title": "Cooking Studio Rental in India: Kitchen Setup Guide for Creators",
+  "categories": [
+    {
+      "id": "studio-guides",
+      "title": "Studio Guides",
+      "breadcrumbs": [
+        {
+          "doc": "home",
+          "label": "Home",
+          "id": "bc-home"
+        },
+        {
+          "doc": "blogs",
+          "label": "Blogs",
+          "id": "bc-blogs"
+        },
+        {
+          "doc": "category",
+          "label": "Studio Guides",
+          "id": "bc-studio-guides"
+        }
+      ],
+      "createdAt": "2026-10-28T00:00:00Z",
+      "updatedAt": "2026-10-28T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-10-28T04:00:00Z",
+  "authors": [
+    "ContCave Editorial"
+  ],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "A practical guide to renting a cooking studio in India, from kitchen layout and equipment to hourly pricing by city and a realistic shoot-day plan."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-1",
+      "blockType": "heading",
+      "content": "Cooking Studio Rental in India: Kitchen Setup Guide for Creators"
+    },
+    {
+      "id": "p-1",
+      "blockType": "paragraph",
+      "content": "If you make recipe reels, YouTube cook-alongs, or food brand content, a cooking studio rental in India solves the one problem your home kitchen can't: consistent light, a camera-friendly layout, and a kitchen built to be filmed in rather than just cooked in. Home counters are cramped, backsplashes clash with food styling, and a single window rarely gives you light that holds steady for a two-hour shoot. A proper cooking studio gives you a working stove, counter space sized for multiple camera angles, and a backdrop that doesn't fight the dish for attention. This guide walks through what to look for, what it typically costs, and how to plan a shoot day so you leave with everything on your shot list."
+    },
+    {
+      "id": "h-2",
+      "blockType": "heading",
+      "content": "Why a Dedicated Cooking Studio Beats a Home Kitchen"
+    },
+    {
+      "id": "p-2",
+      "blockType": "paragraph",
+      "content": "A home kitchen is built for cooking, not for cameras. Overhead shots need ceiling clearance for a tripod arm; side angles need counter depth that doesn't force the camera into the sink or the stove. Most home kitchens also have mixed light sources — a tube light, a window, a hob flame — that shift color temperature mid-shot and show up as inconsistent footage once you're editing."
+    },
+    {
+      "id": "p-3",
+      "blockType": "paragraph",
+      "content": "A cooking studio is set up the other way around: the stove and counter sit where a camera can reach every angle, the backdrop is chosen to be unobtrusive, and the lighting is controllable rather than whatever the time of day gives you. For a brand shoot or a recipe series you're publishing on a schedule, that consistency matters more than it seems while you're scouting locations."
+    },
+    {
+      "id": "h-3",
+      "blockType": "heading",
+      "content": "What to Look for in a Kitchen Studio Setup"
+    },
+    {
+      "id": "p-4",
+      "blockType": "paragraph",
+      "content": "Not every studio listed as having a \"kitchen\" is shoot-ready. Before booking, check for:"
+    },
+    {
+      "id": "list-1",
+      "blockType": "list",
+      "items": [
+        "A working stove or induction top with enough burners to cook and plate without rushing between takes",
+        "Counter depth of at least 60cm so an overhead rig has room to sit above the dish without clipping the frame",
+        "A sink and prep area separate from the hero cooking surface, so mess from earlier steps doesn't creep into frame",
+        "Neutral or easily swappable backsplash and counter finish — plain tile or stone reads better on camera than a patterned one",
+        "Ventilation strong enough that smoke or steam from searing and frying doesn't fog the shot",
+        "Power points near the counter for ring lights, extra camera batteries, and a laptop for tethered shooting"
+      ]
+    },
+    {
+      "id": "p-5",
+      "blockType": "paragraph",
+      "content": "A studio that ticks these boxes will save you re-shoots far more than a slightly lower hourly rate will."
+    },
+    {
+      "id": "h-4",
+      "blockType": "heading",
+      "content": "Typical Cooking Studio Rental Prices in India"
+    },
+    {
+      "id": "p-6",
+      "blockType": "paragraph",
+      "content": "Dedicated kitchen studios are less common than plain photo studios, so expect pricing to sit above general studio rates because of the added plumbing, gas, and ventilation. As a working range across metros, plain studio space in India typically runs from roughly ₹1,500–2,500 per hour for basic setups to ₹3,000–5,000+ per hour for premium ones, with Delhi NCR, Mumbai, and Bengaluru toward the higher end of that band. A studio with a functioning kitchen attached tends to price closer to the premium tier, since you're also paying for the stove, cookware, and cleanup between bookings."
+    },
+    {
+      "id": "quote-1",
+      "blockType": "quote",
+      "content": "Rule of thumb: budget roughly double the time you'd give a straight product shoot. Cooking adds prep, multiple takes of pours and sizzles, and a reset between dishes that a static product table never needs."
+    },
+    {
+      "id": "p-7",
+      "blockType": "paragraph",
+      "content": "Always confirm what's included — some studios bundle basic cookware and crockery, others charge separately, and a few expect you to bring your own ingredients and props entirely."
+    },
+    {
+      "id": "h-5",
+      "blockType": "heading",
+      "content": "Equipment and Props a Good Studio Should Provide"
+    },
+    {
+      "id": "p-8",
+      "blockType": "paragraph",
+      "content": "Beyond the kitchen itself, check what the studio stocks versus what you need to carry in:"
+    },
+    {
+      "id": "list-2",
+      "blockType": "list",
+      "items": [
+        "Overhead mount or ceiling rig for the classic bird's-eye cooking angle",
+        "A small selection of neutral plates, bowls, and linens for styling, if you haven't brought your own",
+        "Softbox or LED panel lighting that can be dialled down for a warmer, homier food look",
+        "A side table or trolley to keep raw ingredients and finished plates visually separated on camera",
+        "A designated space to charge gear and review footage between setups"
+      ]
+    },
+    {
+      "id": "p-9",
+      "blockType": "paragraph",
+      "content": "If a studio can't answer these questions clearly when you ask, treat that as a signal to keep looking rather than hope it works out on the day."
+    },
+    {
+      "id": "h-6",
+      "blockType": "heading",
+      "content": "Planning Your Shoot Day: Prep, Shot List, and Timing"
+    },
+    {
+      "id": "p-10",
+      "blockType": "paragraph",
+      "content": "Cooking content eats more clock time than it looks like it should. A realistic plan for a half-day booking:"
+    },
+    {
+      "id": "list-3",
+      "blockType": "list",
+      "items": [
+        "Pre-chop and pre-measure everything you can before arriving — studio time is for filming, not mise en place",
+        "Shoot hero overhead angles first while the dish is freshest, then side and close-up detail shots",
+        "Plan for at least one \"beauty\" plate that's assembled purely for the final shot, separate from the plate you actually cook",
+        "Build in 15–20 minutes of buffer per dish for re-takes of pours, garnishing, or a sizzle that didn't read on camera",
+        "Pack your own small kit — tongs, a kitchen towel, extra garnish — even if the studio provides basics, since running short mid-shoot costs more time than carrying a spare"
+      ]
+    },
+    {
+      "id": "p-11",
+      "blockType": "paragraph",
+      "content": "A tight shot list, written before you book, is the single biggest factor in whether a two-hour slot feels rushed or comfortable."
+    },
+    {
+      "id": "h-7",
+      "blockType": "heading",
+      "content": "FAQs: Cooking Studio Rental in India"
+    },
+    {
+      "id": "h-8",
+      "blockType": "heading",
+      "content": "How much does a cooking studio cost per hour in India?"
+    },
+    {
+      "id": "p-12",
+      "blockType": "paragraph",
+      "content": "Pricing varies by city and how fully equipped the kitchen is, but most dedicated cooking studios sit in the mid-to-premium range of general studio rates, often a notch above a plain photo studio because of the stove, ventilation, and cleanup involved. Always ask whether cookware and crockery are included before comparing two quotes."
+    },
+    {
+      "id": "h-9",
+      "blockType": "heading",
+      "content": "Can I bring my own ingredients and props to a cooking studio?"
+    },
+    {
+      "id": "p-13",
+      "blockType": "paragraph",
+      "content": "Yes — most studios expect you to bring your own ingredients, and many expect you to bring your own hero props and styling pieces too. Confirm in advance exactly what the studio stocks (basic plates, linens, a stove) versus what's on you, so you're not improvising on shoot day."
+    },
+    {
+      "id": "h-10",
+      "blockType": "heading",
+      "content": "How long should I book for a recipe video or reel?"
+    },
+    {
+      "id": "p-14",
+      "blockType": "paragraph",
+      "content": "For a single dish with two to three camera angles, a two-hour slot is usually enough once prep is done beforehand. A multi-dish shoot for a brand or a batch of reels is safer booked as a half-day so re-takes don't eat into your last setup."
+    },
+    {
+      "id": "h-11",
+      "blockType": "heading",
+      "content": "Do cooking studios in India allow overnight or early-morning slots?"
+    },
+    {
+      "id": "p-15",
+      "blockType": "paragraph",
+      "content": "Some do, particularly studios aimed at commercial food shoots that need to film in natural-light-adjacent setups early in the day. Availability varies by studio, so check operating hours and any early-slot surcharge before locking a date."
+    },
+    {
+      "id": "h-12",
+      "blockType": "heading",
+      "content": "Why Book with ContCave"
+    },
+    {
+      "id": "p-16",
+      "blockType": "paragraph",
+      "content": "ContCave lists verified studios across categories including kitchen and cooking setups, with transparent hourly pricing so you can compare what's actually included — cookware, lighting, backdrop — before you book. Instead of calling around multiple studios for quotes, you can filter by location and amenities, see real pricing upfront, and confirm your slot instantly, which matters most when you're trying to lock a shoot date around ingredient freshness or a content calendar deadline."
+    },
+    {
+      "id": "h-13",
+      "blockType": "heading",
+      "content": "Final Takeaways"
+    },
+    {
+      "id": "p-17",
+      "blockType": "paragraph",
+      "content": "A cooking studio rental in India is worth the premium over a home kitchen the moment you're shooting on a schedule rather than for fun — the consistency in lighting and layout alone cuts your editing time. Treat the booking like a production, not a venue rental: confirm equipment, plan your shot list before you arrive, and budget extra time for the parts of cooking a straight product shoot never has to deal with."
+    },
+    {
+      "id": "list-4",
+      "blockType": "list",
+      "items": [
+        "Shortlist studios that confirm stove, counter depth, and ventilation upfront, not just \"kitchen available\"",
+        "Ask exactly what cookware, crockery, and props are included versus what you must bring",
+        "Write your shot list and pre-chop ingredients before the clock starts",
+        "Book at least double the time you'd budget for a static product shoot",
+        "Compare transparent hourly pricing across studios on ContCave before committing to a date"
+      ]
+    }
+  ],
+  "slug": "cooking-studio-rental-india",
+  "meta": {
+    "title": "Cooking Studio Rental in India: Kitchen Setup Guide for Creators",
+    "description": "Planning a cooking studio rental in India? Compare kitchen layouts, hourly prices, and equipment checklists, then book a studio transparently on ContCave."
+  },
+  "_status": "published",
+  "createdAt": "2026-10-28T04:00:00Z",
+  "updatedAt": "2026-10-28T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    {
+      "id": "author-cc-edit",
+      "name": "ContCave Editorial"
+    }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "cooking studio rental india",
+    "kitchen studio rental india",
+    "cooking studio for rent",
+    "kitchen studio for food creators",
+    "food photography studio india",
+    "recipe video studio india",
+    "cooking studio delhi ncr",
+    "kitchen studio gurugram",
+    "cooking studio noida",
+    "food shoot studio mumbai",
+    "cooking studio bangalore",
+    "kitchen studio price india",
+    "cooking studio rental cost",
+    "hourly kitchen studio rental",
+    "book a cooking studio",
+    "cooking studio near me",
+    "kitchen studio 2026",
+    "food content creator studio",
+    "studio for recipe videos",
+    "studio for food bloggers",
+    "studio for home chefs",
+    "kitchen studio for youtubers",
+    "kitchen studio for instagram reels",
+    "commercial kitchen for content shoot",
+    "food styling studio india",
+    "ContCave"
+  ]
+}
