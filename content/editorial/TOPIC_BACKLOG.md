@@ -15,7 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 72 | Booking a Studio for a Creator Collab or Multi-Guest Shoot | studio for creator collab shoot india | booking-tips | creators |
 | 73 | Unboxing & PR Package Video Studios for Creators | unboxing video studio india | content-creation | creators, brands |
 | 74 | Studio Options for Tier 2 and Tier 3 City Creators | studio for creators in tier 2 cities india | creator-economy | creators |
 | 75 | Comedy & Stand-Up Content Studios: What Changes for a Live-Feel Set | comedy content studio india | content-creation | creators |
@@ -112,3 +111,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-11-13 | 69 | bts-content-studio-shoot-india |
 | 2026-11-16 | 70 | monsoon-proofing-studio-booking-india |
 | 2026-11-18 | 71 | video-podcast-studio-india |
+| 2026-11-20 | 72 | studio-for-creator-collab-shoot-india |
