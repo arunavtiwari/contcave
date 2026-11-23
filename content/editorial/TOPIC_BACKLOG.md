@@ -15,11 +15,18 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 73 | Unboxing & PR Package Video Studios for Creators | unboxing video studio india | content-creation | creators, brands |
 | 74 | Studio Options for Tier 2 and Tier 3 City Creators | studio for creators in tier 2 cities india | creator-economy | creators |
 | 75 | Comedy & Stand-Up Content Studios: What Changes for a Live-Feel Set | comedy content studio india | content-creation | creators |
 | 76 | Multi-Camera Setup for Interview & Panel Podcasts | multi camera podcast studio india | studio-guides | creators, hosts |
 | 77 | Accessible Studios: What Hosts Should Offer for Differently-Abled Creators | accessible studio for creators india | host-guides | hosts |
+| 78 | Content House & Co-Living Studios: India's New Creator Hub Model | content house for creators india | creator-economy | creators |
+| 79 | Real Estate & Property Video Studios: Shooting Virtual Tours Indoors | real estate shoot studio india | studio-guides | brands |
+| 80 | Baby Shower & Celebration Content Studios: What to Book | baby shower photoshoot studio india | studio-guides | creators |
+| 81 | UGC Studio Space: What Brands Should Book for Creator Shoots | ugc studio space for brands india | booking-tips | brands |
+| 82 | Holi & Colour-Safe Studio Shoots: Planning a Festival Content Day | holi photoshoot studio india | booking-tips | creators, brands |
+| 83 | Studio Membership & Subscription Plans: Should Hosts Offer Them | studio membership plan for creators india | host-guides | hosts |
+| 84 | AI Avatar & Virtual Influencer Content: Do You Still Need a Studio | ai avatar content studio india | creator-economy | creators |
+| 85 | Audition Tape & Self-Tape Studios for Actors and OTT Auditions | audition tape studio india | studio-guides | creators |
 
 ## Published
 
@@ -112,3 +119,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-11-16 | 70 | monsoon-proofing-studio-booking-india |
 | 2026-11-18 | 71 | video-podcast-studio-india |
 | 2026-11-20 | 72 | studio-for-creator-collab-shoot-india |
+| 2026-11-23 | 73 | unboxing-video-studio-india |
