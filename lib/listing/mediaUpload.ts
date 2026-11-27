@@ -64,6 +64,20 @@ const uploadMediaItems = async (
   return urls;
 };
 
+export function collectUploadedMediaRefs(media: {
+  imageSrc: string[];
+  videoSrc: string | null;
+  sets: { images?: string[] }[];
+  addons: { imageUrl?: string }[];
+}): string[] {
+  return [
+    ...media.imageSrc,
+    ...(media.videoSrc ? [media.videoSrc] : []),
+    ...media.sets.flatMap((set) => set.images ?? []),
+    ...media.addons.map((addon) => addon.imageUrl ?? ""),
+  ].filter(Boolean);
+}
+
 export async function uploadListingMedia<
   TSet extends { id?: string; images?: string[] },
 >(

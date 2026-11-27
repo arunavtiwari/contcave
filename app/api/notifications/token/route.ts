@@ -1,8 +1,7 @@
-import Ably from "ably";
 import { NextRequest, NextResponse } from "next/server";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import { getAblyApiKey } from "@/lib/ably-server";
+import { getAblyRest } from "@/lib/ably-server";
 import { createErrorResponse, handleRouteError } from "@/lib/api-utils";
 import { getClientIp } from "@/lib/http/requestMeta";
 import { formatRetryAfterMs, rateLimit } from "@/lib/security/rateLimit";
@@ -34,12 +33,11 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const ablyApiKey = getAblyApiKey();
-        if (!ablyApiKey) {
+        const client = getAblyRest();
+        if (!client) {
             return createErrorResponse("Server configuration error", 500);
         }
 
-        const client = new Ably.Rest({ key: ablyApiKey });
 
         // Capability for the user's private notification channel
         const capability = JSON.stringify({

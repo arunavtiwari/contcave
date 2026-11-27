@@ -28,6 +28,7 @@ const phoneStepSchema = z.object({
 const bankVerificationSchema = vendorPayloadSchema.extend({
     bankName: z.string().trim().min(2).max(100),
     companyName: z.string().trim().min(2).max(200).optional(),
+    companyAddress: z.string().trim().max(500).optional(),
 });
 
 async function enforceVerificationLimit(scope: string, limit: number) {
@@ -72,6 +73,7 @@ export const verifyBankAction = createAction(
             bankName: payload.bankName,
             gstin: payload.gstin,
             companyName: payload.companyName,
+            companyAddress: payload.companyAddress,
         });
         return { user: updatedUser };
     }

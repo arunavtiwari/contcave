@@ -1,0 +1,378 @@
+{
+  "id": "microdrama-shoot-schedule",
+  "title": "Microdrama Shoot Schedule: Plan 60 Vertical Episodes in 4 Days",
+  "categories": [
+    {
+      "id": "content-creation",
+      "title": "Content Creation",
+      "breadcrumbs": [
+        {
+          "doc": "home",
+          "label": "Home",
+          "id": "bc-home"
+        },
+        {
+          "doc": "blogs",
+          "label": "Blogs",
+          "id": "bc-blogs"
+        },
+        {
+          "doc": "category",
+          "label": "Content Creation",
+          "id": "bc-content-creation"
+        }
+      ],
+      "createdAt": "2026-10-23T00:00:00Z",
+      "updatedAt": "2026-10-23T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-10-23T04:00:00Z",
+  "authors": [
+    "ContCave Editorial"
+  ],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "How to plan and run a vertical microdrama shoot, from breaking the script down by set to a sample four-day schedule, call sheets, continuity, 9:16 framing and clean dialogue audio."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-1",
+      "blockType": "heading",
+      "content": "Microdrama Shoot Schedule: Plan 60 Vertical Episodes in 4 Days"
+    },
+    {
+      "id": "p-1",
+      "blockType": "paragraph",
+      "content": "A vertical series can have 60 or more episodes, but most of them happen in the same handful of rooms. The microdrama shoot schedule is where a show is won or lost: shoot in episode order and you will spend half your days relighting and moving; shoot by set and you can cover a whole series in a few days. This guide walks directors, assistant directors and indie producers through breaking a script down by set, a sample four-day schedule, continuity, call sheets, 9:16 framing and audio."
+    },
+    {
+      "id": "h-2",
+      "blockType": "heading",
+      "content": "How long microdrama episodes are and how many you need"
+    },
+    {
+      "id": "p-2",
+      "blockType": "paragraph",
+      "content": "Before you schedule, pin down what the platform expects. afaqs and indiantelevision have reported that Kuku TV episodes run roughly 60 to 120 seconds, with around 60 to 90 one-minute episodes per show and 50 or more episodes per series. Variety reported that Story TV's episodes are about a minute long, across more than 1,000 titles in Hindi, Tamil and Telugu. Formats change, so confirm current length and delivery specs with the platform before you lock the script."
+    },
+    {
+      "id": "p-3",
+      "blockType": "paragraph",
+      "content": "So a typical series means 60 to 120 minutes of finished screen time. On speed, one Indian report described a 45-episode series shot in about three days, and outside India, Filmustage describes 10 to 15 episodes a day as standard, with seven-day shoots covering 70 to 100 episodes. Treat these as benchmarks, not targets. A first-time crew should plan on the slower end."
+    },
+    {
+      "id": "quote-1",
+      "blockType": "quote",
+      "content": "Count your schedule in set-ups and screen minutes, not episodes. Episodes are an editing unit; sets are a shooting unit."
+    },
+    {
+      "id": "h-3",
+      "blockType": "heading",
+      "content": "Break the script down by set, not by episode"
+    },
+    {
+      "id": "p-4",
+      "blockType": "paragraph",
+      "content": "Take every episode script and split it into scenes. Tag each scene with its set, time of day, characters present, costume look and any key props. Then sort the whole list by set. Instead of 60 episodes you now have three or four piles: every bedroom scene, every office scene, every cafe scene and the exteriors."
+    },
+    {
+      "id": "list-1",
+      "blockType": "list",
+      "items": [
+        "Number scenes as episode plus scene, such as 14-2, so the editor can rebuild order later.",
+        "Inside each set, group by time of day, then by which actors are needed, so day players come in only for their block.",
+        "Group by costume look too, which cuts wardrobe changes within a set.",
+        "Estimate screen time per scene. A dialogue page in a vertical drama often plays at around a minute.",
+        "Flag any scene with stunts, crying, rain, food or children. These take longer than their page count suggests."
+      ]
+    },
+    {
+      "id": "h-4",
+      "blockType": "heading",
+      "content": "A sample 4-day vertical series shooting schedule"
+    },
+    {
+      "id": "p-5",
+      "blockType": "paragraph",
+      "content": "This sample assumes 60 episodes of about 90 seconds, roughly 90 minutes of screen time, three interior sets in one studio and a small number of outdoor scenes. It works out to around 22 minutes of screen time a day, or 15 episodes' worth of scenes."
+    },
+    {
+      "id": "p-6",
+      "blockType": "paragraph",
+      "content": "Day 1: Set A, the lead's home"
+    },
+    {
+      "id": "list-2",
+      "blockType": "list",
+      "items": [
+        "Pre-light Set A before call time, so the first shot rolls within an hour of call.",
+        "Shoot all day-time scenes on Set A, then switch to night-time scenes after lunch with blackout and a lighting change.",
+        "Target: around 30 to 35 scenes, roughly 22 to 25 minutes of screen time.",
+        "No company move. The day ends with a quick dress of Set A for any pickups."
+      ]
+    },
+    {
+      "id": "p-7",
+      "blockType": "paragraph",
+      "content": "Day 2: Set B, the office, and Set C, the cafe"
+    },
+    {
+      "id": "list-3",
+      "blockType": "list",
+      "items": [
+        "Morning on Set B with the full ensemble, since office scenes usually carry the most characters.",
+        "After lunch, move to Set C in the same building: a 20 to 30 minute relight, not a half-day move.",
+        "Target: around 30 scenes split across the two sets."
+      ]
+    },
+    {
+      "id": "p-8",
+      "blockType": "paragraph",
+      "content": "Day 3: Set C, then Set A pickups"
+    },
+    {
+      "id": "list-4",
+      "blockType": "list",
+      "items": [
+        "Finish Set C, then return to Set A for scenes that need a changed dressing, such as a party or an aftermath.",
+        "Target: around 25 to 30 scenes."
+      ]
+    },
+    {
+      "id": "p-9",
+      "blockType": "paragraph",
+      "content": "Day 4: Exteriors and pickups"
+    },
+    {
+      "id": "list-5",
+      "blockType": "list",
+      "items": [
+        "Exterior scenes in the morning light, then return to the studio for any missed shots and insert shots of phones, letters and hands.",
+        "Target: around 20 scenes plus inserts, with time held back for reshoots."
+      ]
+    },
+    {
+      "id": "p-10",
+      "blockType": "paragraph",
+      "content": "If any set lives at a different address, give it a full day of its own. A company move across Delhi NCR traffic can easily eat two to three hours."
+    },
+    {
+      "id": "h-5",
+      "blockType": "heading",
+      "content": "Continuity, wardrobe and call sheets for out-of-order shooting"
+    },
+    {
+      "id": "p-11",
+      "blockType": "paragraph",
+      "content": "Shooting by set means episode 3 and episode 57 may be filmed ten minutes apart. Continuity is what makes that invisible."
+    },
+    {
+      "id": "list-6",
+      "blockType": "list",
+      "items": [
+        "Appoint one continuity person whose only job is tracking. Do not give it to the AD as a side task.",
+        "Photograph every actor head to toe in each look, front and back, and label the photos by look number.",
+        "Keep a look list: which costume, hair and makeup each character wears in each scene.",
+        "Note prop positions, drink levels, injuries and anything a character carries.",
+        "Keep a running log of what was shot and what changed on set, so the editor is not guessing."
+      ]
+    },
+    {
+      "id": "p-12",
+      "blockType": "paragraph",
+      "content": "Wardrobe changes are the hidden time sink. A lead with eight looks across a set can lose an hour to changes, so schedule scenes within a set by look wherever the story allows, and keep a quick-change rail with labelled hangers next to the set."
+    },
+    {
+      "id": "p-13",
+      "blockType": "paragraph",
+      "content": "Every call sheet should carry:"
+    },
+    {
+      "id": "list-7",
+      "blockType": "list",
+      "items": [
+        "Date, studio address and parking notes, and call time for each person.",
+        "Scene numbers in shooting order, with set, characters, look number and estimated screen time.",
+        "Meal times and wrap time.",
+        "Key contacts: producer, AD and studio host.",
+        "Weather and sunrise or sunset times for exterior days."
+      ]
+    },
+    {
+      "id": "h-6",
+      "blockType": "heading",
+      "content": "Vertical drama framing: 9:16 cheat sheet"
+    },
+    {
+      "id": "p-14",
+      "blockType": "paragraph",
+      "content": "Should you shoot vertical natively or crop from 16:9? Cropping a 16:9 frame to 9:16 keeps only about one-third of the width, so you lose a lot of resolution and your composition is decided in the edit rather than on set. Shoot natively in 9:16 if the series will only ever live on vertical apps. Shoot 16:9 and crop only if you also need a horizontal version, and then frame every shot for the centre third, using a high-resolution sensor."
+    },
+    {
+      "id": "list-8",
+      "blockType": "list",
+      "items": [
+        "Make the waist-up medium shot your dialogue default. It shows expression and hands on a small screen.",
+        "Use close-ups for reveals and cliffhanger reactions. Every episode ending deserves one.",
+        "Keep faces and any on-screen text in the centre third, clear of the app's buttons, captions and progress bar.",
+        "For two-shots, stack actors in depth rather than side by side, or cut between singles.",
+        "Wides are rare in vertical. Use one to establish a new set, then get closer.",
+        "Mark 9:16 frame lines on the monitor and check framing on a phone before each set-up."
+      ]
+    },
+    {
+      "id": "h-7",
+      "blockType": "heading",
+      "content": "Audio on a vertical drama shoot"
+    },
+    {
+      "id": "p-15",
+      "blockType": "paragraph",
+      "content": "Most viewers watch on a phone, often in noisy places, so dialogue has to be clean and forward in the mix."
+    },
+    {
+      "id": "list-9",
+      "blockType": "list",
+      "items": [
+        "Put a lavalier microphone on every speaking actor and back it up with a boom.",
+        "Record room tone on every set before you move on.",
+        "Kill air conditioners and fans during takes, then let the room cool between set-ups.",
+        "Brief the studio host on your schedule so nobody starts drilling next door during takes."
+      ]
+    },
+    {
+      "id": "p-16",
+      "blockType": "paragraph",
+      "content": "Brand-funded formats exist too: Kuku TV's Sabse Bada Dramebaaz was co-presented by Meesho. If a brand is involved, schedule product scenes early in the set block so the brand team can sign off before you move."
+    },
+    {
+      "id": "h-8",
+      "blockType": "heading",
+      "content": "FAQs: Microdrama Shoot Schedule"
+    },
+    {
+      "id": "h-9",
+      "blockType": "heading",
+      "content": "How many days does it take to shoot a microdrama?"
+    },
+    {
+      "id": "p-17",
+      "blockType": "paragraph",
+      "content": "Indian trade reports describe full series shot in about three to four days. A first-time crew should plan four to five days for 50 to 60 episodes, plus a buffer for pickups."
+    },
+    {
+      "id": "h-10",
+      "blockType": "heading",
+      "content": "How many episodes can you shoot in a day?"
+    },
+    {
+      "id": "p-18",
+      "blockType": "paragraph",
+      "content": "Filmustage, writing about productions outside India, describes 10 to 15 episodes a day as standard. Think in screen minutes: 15 to 25 minutes a day is achievable when you shoot by set with no company moves."
+    },
+    {
+      "id": "h-11",
+      "blockType": "heading",
+      "content": "Should you shoot vertical natively or crop from 16:9?"
+    },
+    {
+      "id": "p-19",
+      "blockType": "paragraph",
+      "content": "Shoot natively in 9:16 if the series is vertical only. Cropping keeps only about a third of the width, so crop only when you also need a horizontal version and frame for the centre third."
+    },
+    {
+      "id": "h-12",
+      "blockType": "heading",
+      "content": "How long is a Kuku TV episode?"
+    },
+    {
+      "id": "p-20",
+      "blockType": "paragraph",
+      "content": "Trade press has reported roughly 60 to 120 seconds per episode. Confirm the current spec with the platform before you write and schedule."
+    },
+    {
+      "id": "h-13",
+      "blockType": "heading",
+      "content": "Why book with ContCave"
+    },
+    {
+      "id": "p-21",
+      "blockType": "paragraph",
+      "content": "Company moves are the biggest schedule killer on a microdrama, and a studio with several sets or zones under one roof removes most of them. ContCave lets you browse and compare studios across Delhi NCR in one place, see hourly pricing upfront, and check listing photos, amenities, add-ons and packages hosts offer. Message the host before booking to confirm how many distinct sets the space has, power and AC control, and whether a multi-day block works, then book and pay online with a published cancellation policy."
+    },
+    {
+      "id": "h-14",
+      "blockType": "heading",
+      "content": "Final takeaways"
+    },
+    {
+      "id": "p-22",
+      "blockType": "paragraph",
+      "content": "A microdrama schedule is a set schedule. Break the script down by location, protect continuity, frame for the centre of a phone and record clean dialogue, and dozens of episodes fit into a few days."
+    },
+    {
+      "id": "list-10",
+      "blockType": "list",
+      "items": [
+        "Confirm episode length and delivery specs with the platform first.",
+        "Re-sort every scene by set, time of day, actors and costume look.",
+        "Draft a four-day plan with screen-minute targets and no unnecessary company moves.",
+        "Assign a dedicated continuity person and photograph every look.",
+        "Block-book a multi-set studio so set changes become relights, not moves."
+      ]
+    }
+  ],
+  "slug": "microdrama-shoot-schedule",
+  "meta": {
+    "title": "Microdrama Shoot Schedule: Plan 60 Vertical Episodes in 4 Days",
+    "description": "A practical microdrama shoot schedule: break scripts down by set, plan a 4-day vertical series shoot, frame for 9:16 and cut company moves. From ContCave."
+  },
+  "_status": "published",
+  "createdAt": "2026-10-23T04:00:00Z",
+  "updatedAt": "2026-10-23T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    {
+      "id": "author-cc-edit",
+      "name": "ContCave Editorial"
+    }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "microdrama shoot schedule",
+    "vertical series shooting schedule",
+    "how many episodes per day microdrama",
+    "microdrama call sheet",
+    "9:16 drama shooting tips",
+    "vertical drama framing",
+    "microdrama shooting days",
+    "shoot vertical natively or crop 16:9",
+    "script breakdown by set",
+    "continuity for out of order shooting",
+    "block shooting schedule",
+    "Kuku TV episode length",
+    "vertical drama audio tips",
+    "multi-set studio booking",
+    "studio for web series shoot",
+    "microdrama shoot delhi",
+    "microdrama shoot delhi ncr",
+    "vertical series shoot gurugram",
+    "vertical series shoot noida",
+    "microdrama production india",
+    "microdrama shoot 2026",
+    "for directors",
+    "for assistant directors",
+    "for indie producers",
+    "for youtube sketch creators",
+    "ContCave"
+  ]
+}

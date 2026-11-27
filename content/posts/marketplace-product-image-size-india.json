@@ -1,0 +1,393 @@
+{
+  "id": "marketplace-product-image-size-india",
+  "title": "Amazon Flipkart Myntra Image Size: One Shoot for All 5 (2026)",
+  "categories": [
+    {
+      "id": "content-creation",
+      "title": "Content Creation",
+      "breadcrumbs": [
+        {
+          "doc": "home",
+          "label": "Home",
+          "id": "bc-home"
+        },
+        {
+          "doc": "blogs",
+          "label": "Blogs",
+          "id": "bc-blogs"
+        },
+        {
+          "doc": "category",
+          "label": "Content Creation",
+          "id": "bc-content-creation"
+        }
+      ],
+      "createdAt": "2026-10-10T00:00:00Z",
+      "updatedAt": "2026-10-10T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-10-10T04:00:00Z",
+  "authors": [
+    "ContCave Editorial"
+  ],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "One studio session, planned with crop headroom and a per-SKU shot list, can produce images that pass QC on Amazon, Flipkart, Myntra, Nykaa and Meesho without reshoots."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-1",
+      "blockType": "heading",
+      "content": "Amazon Flipkart Myntra Image Size: One Shoot for All 5 (2026)"
+    },
+    {
+      "id": "p-1",
+      "blockType": "paragraph",
+      "content": "Most D2C catalogue teams sell on several marketplaces at once, and each one has its own image rules. Shoot only for Amazon and Myntra rejects your square crops; shoot only for Myntra and Flipkart wants something else. Getting the Amazon, Flipkart, Myntra image size and background rules right before you book the studio means one session can cover Nykaa and Meesho too, with nothing bounced back by QC and no second shoot during festive season. This guide lists the specs, then shows how to frame, light, name and export so one set of frames works everywhere."
+    },
+    {
+      "id": "h-2",
+      "blockType": "heading",
+      "content": "The specs, marketplace by marketplace"
+    },
+    {
+      "id": "p-2",
+      "blockType": "paragraph",
+      "content": "These figures come from third-party seller guides and common seller experience, not from a single official source. Marketplaces update their rules, so confirm every number in your seller panel before the shoot."
+    },
+    {
+      "id": "p-3",
+      "blockType": "paragraph",
+      "content": "Amazon main image:"
+    },
+    {
+      "id": "list-1",
+      "blockType": "list",
+      "items": [
+        "Pure white background, RGB 255, 255, 255",
+        "Product fills roughly 85 percent of the frame",
+        "At least 1000 pixels on the longest side so zoom works",
+        "No text, logos, watermarks or graphics on the main image",
+        "Clothing shown on a model or laid flat"
+      ]
+    },
+    {
+      "id": "p-4",
+      "blockType": "paragraph",
+      "content": "Myntra:"
+    },
+    {
+      "id": "list-2",
+      "blockType": "list",
+      "items": [
+        "1080 by 1440 pixels or larger, in 3:4 portrait",
+        "White or light grey background",
+        "No tags or watermarks",
+        "Uploading 1:1 square images is a commonly cited reason for rejection"
+      ]
+    },
+    {
+      "id": "p-5",
+      "blockType": "paragraph",
+      "content": "Nykaa:"
+    },
+    {
+      "id": "list-3",
+      "blockType": "list",
+      "items": [
+        "Around 1500 by 2000 pixels or larger, which is also 3:4",
+        "JPEG or PNG",
+        "File size under roughly 2MB"
+      ]
+    },
+    {
+      "id": "p-6",
+      "blockType": "paragraph",
+      "content": "Flipkart:"
+    },
+    {
+      "id": "list-4",
+      "blockType": "list",
+      "items": [
+        "Square 1:1",
+        "White background",
+        "Around 1000 by 1000 pixels or more recommended",
+        "No watermarks or borders"
+      ]
+    },
+    {
+      "id": "p-7",
+      "blockType": "paragraph",
+      "content": "Meesho:"
+    },
+    {
+      "id": "list-5",
+      "blockType": "list",
+      "items": [
+        "Square, at least around 1000 by 1000 pixels",
+        "White or light background",
+        "No text, MRP or logos on the image",
+        "Fully AI-fabricated product images are not allowed"
+      ]
+    },
+    {
+      "id": "p-8",
+      "blockType": "paragraph",
+      "content": "The pattern is clear: two families of crop. Flipkart and Meesho want square images on white, and an Amazon main image on pure white exports cleanly as a square too; Myntra and Nykaa want 3:4 portrait. Plan for both from the start."
+    },
+    {
+      "id": "h-3",
+      "blockType": "heading",
+      "content": "Shoot with crop headroom: one frame, two ratios"
+    },
+    {
+      "id": "p-9",
+      "blockType": "paragraph",
+      "content": "The single most useful habit is shooting with space around the product so one frame can be exported as both 1:1 and 3:4. Frame in portrait, place the product in the centre, and leave clean background above, below and to the sides."
+    },
+    {
+      "id": "list-6",
+      "blockType": "list",
+      "items": [
+        "Shoot at full camera resolution so even a tight 1:1 crop stays well above 2000 pixels",
+        "Use a centred composition; off-centre framing breaks when you switch ratio",
+        "Keep the whole product, including straps, soles and hanging tags you intend to remove, inside the safe area of both crops",
+        "Turn on a 1:1 and 3:4 crop overlay in your tethering software so the team checks both while shooting"
+      ]
+    },
+    {
+      "id": "quote-1",
+      "blockType": "quote",
+      "content": "Shoot loose, crop tight: it is easy to cut background away in post and impossible to add product that was never in the frame."
+    },
+    {
+      "id": "p-10",
+      "blockType": "paragraph",
+      "content": "For Amazon's roughly 85 percent fill, you will crop tighter on the square export than for Myntra, where a little more breathing room on the portrait version usually looks better. That is fine as long as the original frame had headroom."
+    },
+    {
+      "id": "h-4",
+      "blockType": "heading",
+      "content": "Plan the shot list per SKU"
+    },
+    {
+      "id": "p-11",
+      "blockType": "paragraph",
+      "content": "Write the shot list before the shoot and print one row per SKU, ticking off angles as you go. A standard set:"
+    },
+    {
+      "id": "list-7",
+      "blockType": "list",
+      "items": [
+        "Front",
+        "Back",
+        "Side or three-quarter",
+        "Detail: fabric texture, stitching, closure, plating or print",
+        "Scale: in hand, against a common object or on a body",
+        "On-model: full length and mid shot for apparel, worn shots for accessories and jewellery"
+      ]
+    },
+    {
+      "id": "p-12",
+      "blockType": "paragraph",
+      "content": "For apparel, Amazon accepts on-model or flat lay, so decide early which you will use as the main image and shoot both for hero SKUs. For beauty and personal care listed on Nykaa, add texture and swatch shots. Realistically, a team with a stylist and a tethered camera can cover a few dozen simple SKUs in a full day; complex apparel with model changes takes longer, so build the day from your shot list rather than a guess."
+    },
+    {
+      "id": "h-5",
+      "blockType": "heading",
+      "content": "Why a white cyclorama or sweep studio helps"
+    },
+    {
+      "id": "p-13",
+      "blockType": "paragraph",
+      "content": "A white cyclorama, or a paper or vinyl sweep, removes the corner between floor and wall, so the background reads as one continuous white. That makes it far easier to reach the pure white Amazon expects and the clean light backgrounds Flipkart, Myntra and Meesho ask for, with less masking in post."
+    },
+    {
+      "id": "p-14",
+      "blockType": "paragraph",
+      "content": "Light the background separately from the product. Two lights on the cyc, slightly overexposed relative to the product, give a clean white without blowing out the edges of the item. A main softbox and fill on the product keep shadows soft. For a light grey Myntra background, simply lower the background lights."
+    },
+    {
+      "id": "p-15",
+      "blockType": "paragraph",
+      "content": "When you shortlist studios, check that the cyc is freshly painted, ask about background lights and stands, and confirm whether you can bring your own sweep for small products. A short message to the host before booking settles this."
+    },
+    {
+      "id": "h-6",
+      "blockType": "heading",
+      "content": "Colour accuracy: grey card and consistent light"
+    },
+    {
+      "id": "p-16",
+      "blockType": "paragraph",
+      "content": "Returns often start with \"colour not as shown\". Protect against it:"
+    },
+    {
+      "id": "list-8",
+      "blockType": "list",
+      "items": [
+        "Shoot a grey card or colour checker at the start of each setup and whenever lights change",
+        "Set a custom white balance from the card and keep it fixed for the session",
+        "Use the same lights for the whole catalogue; do not mix daylight from a window with studio strobes",
+        "Calibrate the editing monitor and correct the whole batch from the card frame",
+        "Compare a printed or on-screen frame against the physical product before you sign off"
+      ]
+    },
+    {
+      "id": "h-7",
+      "blockType": "heading",
+      "content": "Naming and export workflow"
+    },
+    {
+      "id": "p-17",
+      "blockType": "paragraph",
+      "content": "A consistent naming scheme stops the wrong file going to the wrong marketplace. One approach:"
+    },
+    {
+      "id": "list-9",
+      "blockType": "list",
+      "items": [
+        "Master files: SKU_angle_number, for example SKU1234_front_01",
+        "Export folders per marketplace: amazon, flipkart, meesho, myntra, nykaa",
+        "Square exports for Amazon, Flipkart and Meesho at around 2000 by 2000 pixels, which clears the 1000 pixel minimums with room for zoom",
+        "3:4 exports for Myntra at 1080 by 1440 or larger and for Nykaa at around 1500 by 2000",
+        "JPEG at a quality setting that keeps Nykaa files under its size limit; check before upload",
+        "Strip any text, borders or watermarks from marketplace exports and keep branded versions in a separate folder for your site and ads"
+      ]
+    },
+    {
+      "id": "p-18",
+      "blockType": "paragraph",
+      "content": "Batch the exports with an action or preset so every SKU goes through the same steps."
+    },
+    {
+      "id": "h-8",
+      "blockType": "heading",
+      "content": "FAQs: Amazon, Flipkart and Myntra image size"
+    },
+    {
+      "id": "h-9",
+      "blockType": "heading",
+      "content": "What is the image size for Myntra?"
+    },
+    {
+      "id": "p-19",
+      "blockType": "paragraph",
+      "content": "Seller guides commonly cite 1080 by 1440 pixels or larger, in a 3:4 portrait ratio, on a white or light grey background with no tags or watermarks. Confirm the current requirement in your Myntra seller panel before exporting."
+    },
+    {
+      "id": "h-10",
+      "blockType": "heading",
+      "content": "Why was my Meesho catalogue rejected?"
+    },
+    {
+      "id": "p-20",
+      "blockType": "paragraph",
+      "content": "Common reasons include images below the minimum size, backgrounds that are not white or light, and text, MRP or logos on the image. Fully AI-fabricated product images are also not allowed. Check the rejection reason in your supplier panel and the current image rules there."
+    },
+    {
+      "id": "h-11",
+      "blockType": "heading",
+      "content": "Can I use the same photos on Amazon and Flipkart?"
+    },
+    {
+      "id": "p-21",
+      "blockType": "paragraph",
+      "content": "Usually yes, if you shoot on pure white with the product centred. Both use square, white-background main images, though Amazon's rule about the product filling about 85 percent of the frame may need a tighter crop. Export separate versions so you can tune each."
+    },
+    {
+      "id": "h-12",
+      "blockType": "heading",
+      "content": "Does Myntra accept square images?"
+    },
+    {
+      "id": "p-22",
+      "blockType": "paragraph",
+      "content": "Seller guides consistently say Myntra wants 3:4 portrait images, and uploading 1:1 squares is a commonly cited rejection reason. Shoot with crop headroom so the same frame exports to both square and portrait."
+    },
+    {
+      "id": "h-13",
+      "blockType": "heading",
+      "content": "Why book with ContCave"
+    },
+    {
+      "id": "p-23",
+      "blockType": "paragraph",
+      "content": "ContCave lets you browse and compare studios across Delhi, Gurugram and Noida in one place, including white cyclorama spaces, with hourly pricing upfront. You can check listing photos, amenities, add-ons and packages hosts offer, read reviews from past bookings, and message the host to confirm the cyc condition and lighting before you book. Booking and payment happen online, with a published cancellation policy on each listing."
+    },
+    {
+      "id": "h-14",
+      "blockType": "heading",
+      "content": "Final takeaways"
+    },
+    {
+      "id": "p-24",
+      "blockType": "paragraph",
+      "content": "Marketplace QC rejections are mostly a planning problem. Shoot on clean white with crop headroom, cover every angle per SKU, and export to each marketplace's spec from one set of masters."
+    },
+    {
+      "id": "list-10",
+      "blockType": "list",
+      "items": [
+        "Confirm current image specs in each seller panel before the shoot",
+        "Book a white cyclorama or sweep studio and light the background separately",
+        "Frame centred with room for both 1:1 and 3:4 crops, using a crop overlay while tethered",
+        "Shoot a grey card each setup and keep white balance fixed",
+        "Name masters by SKU and angle, and batch-export into per-marketplace folders"
+      ]
+    }
+  ],
+  "slug": "marketplace-product-image-size-india",
+  "meta": {
+    "title": "Amazon Flipkart Myntra Image Size: One Shoot for All 5 (2026)",
+    "description": "Amazon, Flipkart, Myntra image size specs plus Nykaa and Meesho, and how to shoot once so every marketplace passes QC. Book a white studio on ContCave."
+  },
+  "_status": "published",
+  "createdAt": "2026-10-10T04:00:00Z",
+  "updatedAt": "2026-10-10T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    {
+      "id": "author-cc-edit",
+      "name": "ContCave Editorial"
+    }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "amazon flipkart myntra image size",
+    "marketplace product image size india",
+    "myntra image size 1080 x 1440",
+    "meesho product image size",
+    "flipkart product image guidelines",
+    "nykaa image guidelines",
+    "amazon product image requirements",
+    "white background product photo requirements",
+    "ecommerce product photography india",
+    "catalogue shoot for marketplaces",
+    "product photography studio delhi",
+    "white cyclorama studio delhi ncr",
+    "catalogue shoot gurugram",
+    "catalogue shoot noida",
+    "myntra square image rejected",
+    "why meesho catalogue rejected",
+    "same photos amazon and flipkart",
+    "3:4 product images",
+    "1:1 product images",
+    "colour accurate product photos",
+    "grey card product photography",
+    "product image naming workflow",
+    "d2c catalogue team",
+    "ecommerce catalogue shoot 2026",
+    "book white studio by the hour",
+    "ContCave"
+  ]
+}

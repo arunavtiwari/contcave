@@ -30,7 +30,7 @@ test.describe("wishlist and favorites staging flow", () => {
     await trackUserByEmail(customerAccount.email);
 
     // 3. Visit listing details page and click the favorite button
-    await gotoApp(page, `/listings/${listing.id}`);
+    await gotoApp(page, `/studio/${listing.id}`);
     const heartBtn = page.getByTestId("heart-button").first();
     await expect(heartBtn).toBeVisible({ timeout: 15_000 });
     

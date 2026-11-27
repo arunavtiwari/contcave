@@ -1,0 +1,369 @@
+{
+  "id": "short-film-budget-india",
+  "title": "Short Film Budget India: 2026 Breakdown With 3 Worked Examples",
+  "categories": [
+    {
+      "id": "content-creation",
+      "title": "Content Creation",
+      "breadcrumbs": [
+        {
+          "doc": "home",
+          "label": "Home",
+          "id": "bc-home"
+        },
+        {
+          "doc": "blogs",
+          "label": "Blogs",
+          "id": "bc-blogs"
+        },
+        {
+          "doc": "category",
+          "label": "Content Creation",
+          "id": "bc-content-creation"
+        }
+      ],
+      "createdAt": "2026-10-15T00:00:00Z",
+      "updatedAt": "2026-10-15T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-10-15T04:00:00Z",
+  "authors": [
+    "ContCave Editorial"
+  ],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "A practical short film budget for India, with a line-item template for a 10–15 minute film, three worked example budgets, and a clear view of where every rupee should and should not go."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-1",
+      "blockType": "heading",
+      "content": "Short Film Budget India: 2026 Breakdown With 3 Worked Examples"
+    },
+    {
+      "id": "p-1",
+      "blockType": "paragraph",
+      "content": "Every first-time filmmaker hits the same wall: you have a script you love and no idea whether it costs ₹10,000 or ₹10 lakh to make. A realistic short film budget in India depends far less on your camera than on how many days you shoot, how many people you feed and whether your sound is usable. This guide gives you a line-item template for a 10–15 minute short, three worked example budgets with their assumptions spelled out, a rule of thumb for shooting days, and the places where spending more actually shows on screen. All figures are indicative; rates vary by city, crew experience and season."
+    },
+    {
+      "id": "h-2",
+      "blockType": "heading",
+      "content": "How much does a short film cost in India?"
+    },
+    {
+      "id": "p-2",
+      "blockType": "paragraph",
+      "content": "Indian filmmaking blogs commonly describe four rough tiers. Treat these as one source's ranges, not market data:"
+    },
+    {
+      "id": "list-1",
+      "blockType": "list",
+      "items": [
+        "Ultra-low budget: about ₹5,000–25,000, usually friends as cast and crew, own phone or camera, free locations",
+        "Student or indie: about ₹25,000–1 lakh, paid key crew, some gear rental, one controlled location",
+        "Festival-ready: about ₹1–3 lakh, experienced cast, proper sound, professional colour and mix",
+        "Professional or OTT pitch: ₹3–10 lakh and above, full crew, multiple locations, original score"
+      ]
+    },
+    {
+      "id": "p-3",
+      "blockType": "paragraph",
+      "content": "The same source puts pre-production at roughly ₹20,000–40,000 when done properly (casting, recce, rehearsals, script consultation) and post-production anywhere from ₹20,000 to ₹5 lakh depending on how much you outsource. That wide range is the point: post is where budgets quietly balloon."
+    },
+    {
+      "id": "quote-1",
+      "blockType": "quote",
+      "content": "Rule of thumb: your budget is mostly a function of shooting days multiplied by heads on set. Cut a day, and you cut 20–30 per cent of the cost."
+    },
+    {
+      "id": "h-3",
+      "blockType": "heading",
+      "content": "Short film budget breakdown: a line-item template"
+    },
+    {
+      "id": "p-4",
+      "blockType": "paragraph",
+      "content": "Copy this list into a spreadsheet and fill in a rate, a quantity and a total for every line. Leave nothing at zero without writing why."
+    },
+    {
+      "id": "list-2",
+      "blockType": "list",
+      "items": [
+        "Cast: lead and supporting actors (per-day fee), junior artists, rehearsal days",
+        "Crew: director of photography, sound recordist, gaffer or light assistant, makeup and hair, assistant director, production assistant",
+        "Gear rental: camera body, lenses, lights and modifiers, stands, monitor, gimbal, sound kit (boom, lavaliers, recorder), batteries",
+        "Location or studio: hourly or daily rent, location permissions if shooting in public places, power backup",
+        "Art and props: set dressing, props, consumables like tape and gels",
+        "Wardrobe: purchases, rentals, alterations, laundry",
+        "Food: meals and tea for everyone on set, every day",
+        "Transport: cabs for cast and crew, gear transport, a vehicle for shoot days",
+        "Sound: location recording, foley and ADR if needed",
+        "Post-production: editing, colour grading, sound design and mix, subtitles",
+        "Music: original score or licensed tracks",
+        "Festival fees: submission fees, DCP or screener preparation",
+        "Contingency: 10–15 per cent of everything above"
+      ]
+    },
+    {
+      "id": "p-5",
+      "blockType": "paragraph",
+      "content": "For Delhi crews, the location line can surprise you. Trade press reported in September 2025 that the MCD charges ₹15,000 for an 8-hour slot at its properties, and that Dilli Haat costs ₹80,000 plus GST a day. A single public-location day can rival your entire cast budget, which is why many shorts move interiors into a rented studio or a private home."
+    },
+    {
+      "id": "h-4",
+      "blockType": "heading",
+      "content": "How many shooting days does a 10-minute short need?"
+    },
+    {
+      "id": "p-6",
+      "blockType": "paragraph",
+      "content": "A screenplay page roughly equals a minute of screen time, so a 10-minute short is about 10 pages. For indie crews, a common rule of thumb is two to four pages a day, depending on setups, actors and how much the location fights you."
+    },
+    {
+      "id": "list-3",
+      "blockType": "list",
+      "items": [
+        "Dialogue in one room with two actors: three to four pages a day is realistic",
+        "Multiple locations, company moves or night exteriors: closer to two pages a day",
+        "Action, stunts, kids or animals: plan for fewer pages and more time"
+      ]
+    },
+    {
+      "id": "p-7",
+      "blockType": "paragraph",
+      "content": "That puts most 10-minute shorts at three to four shooting days, and 15-minute shorts at four to five. Budget a half-day buffer, because the first day always runs slow."
+    },
+    {
+      "id": "h-5",
+      "blockType": "heading",
+      "content": "Three worked example budgets"
+    },
+    {
+      "id": "p-8",
+      "blockType": "paragraph",
+      "content": "The rates below are assumptions for illustration, not quotes. Replace them with what your cast, crew and rental houses actually charge."
+    },
+    {
+      "id": "p-9",
+      "blockType": "paragraph",
+      "content": "Example 1: Ultra-low, 10 minutes, 2 days, about ₹14,000. Assumes friends as cast and crew, own camera, a friend's flat, and self-edited post."
+    },
+    {
+      "id": "list-4",
+      "blockType": "list",
+      "items": [
+        "Cast travel and token fees: ₹3,000",
+        "Gear rental (lavalier mic kit and one LED panel): ₹2,000",
+        "Location: ₹0 (private home with owner's consent)",
+        "Art, props and wardrobe: ₹1,500",
+        "Food: 6 people × 2 days × ₹250 = ₹3,000",
+        "Transport: ₹1,500",
+        "Festival fees (a few online festivals): ₹1,500",
+        "Contingency (about 10 per cent): ₹1,500"
+      ]
+    },
+    {
+      "id": "p-10",
+      "blockType": "paragraph",
+      "content": "Example 2: Student or indie, 12 minutes, 3 days, about ₹96,000. Assumes paid DoP and sound recordist, three paid actors, and one studio day."
+    },
+    {
+      "id": "list-5",
+      "blockType": "list",
+      "items": [
+        "Cast: 3 actors × 3 days × ₹2,500 = ₹22,500",
+        "Crew: DoP ₹4,000 × 3 days + sound ₹2,500 × 3 days = ₹19,500",
+        "Gear rental: ₹4,000 × 3 days = ₹12,000",
+        "Studio: 8 hours × ₹1,000 per hour (assumed rate) = ₹8,000",
+        "Art, props and wardrobe: ₹4,000",
+        "Food: 10 people × 3 days × ₹250 = ₹7,500",
+        "Transport: ₹3,000",
+        "Colour and mix by a freelancer: ₹6,000",
+        "Music licence: ₹2,000",
+        "Festival fees: ₹3,000",
+        "Contingency (10 per cent): ₹8,750"
+      ]
+    },
+    {
+      "id": "p-11",
+      "blockType": "paragraph",
+      "content": "Example 3: Festival-ready, 15 minutes, 4 days, about ₹2.9 lakh. Assumes experienced leads, a fuller crew, professional post and an original score."
+    },
+    {
+      "id": "list-6",
+      "blockType": "list",
+      "items": [
+        "Cast: 2 leads × 4 days × ₹5,000 + supporting ₹12,000 = ₹52,000",
+        "Crew: DoP, sound, gaffer and makeup across 4 days = ₹70,000",
+        "Gear rental: ₹6,000 × 4 days = ₹24,000",
+        "Studio: 10 hours × ₹1,200 per hour (assumed rate) = ₹12,000",
+        "Art, props and wardrobe: ₹15,000",
+        "Food: 15 people × 4 days × ₹300 = ₹18,000",
+        "Transport: ₹8,000",
+        "Post: edit ₹15,000 + colour ₹10,000 + sound design and mix ₹12,000 = ₹37,000",
+        "Original score: ₹10,000",
+        "Festival fees: ₹15,000",
+        "Contingency (10 per cent): ₹26,100"
+      ]
+    },
+    {
+      "id": "h-6",
+      "blockType": "heading",
+      "content": "Where the money matters most"
+    },
+    {
+      "id": "p-12",
+      "blockType": "paragraph",
+      "content": "If you have to choose, spend on the things audiences and festival juries notice first."
+    },
+    {
+      "id": "list-7",
+      "blockType": "list",
+      "items": [
+        "Sound: viewers forgive soft focus, but not muddy dialogue. A dedicated sound recordist and a quiet location matter more than a better camera body.",
+        "Actors: a strong performance carries a simple frame. Pay for rehearsal time if you can.",
+        "Food for crew: well-fed crews work faster and come back for your next film. Never cut this line.",
+        "Colour and mix: a modest grade and a clean mix make a ₹50,000 film look like it cost more."
+      ]
+    },
+    {
+      "id": "p-13",
+      "blockType": "paragraph",
+      "content": "Places you can safely save: owning versus renting gear (rent for the days you need), fancy wardrobe (borrow and alter), and expensive public locations (move scenes indoors)."
+    },
+    {
+      "id": "quote-2",
+      "blockType": "quote",
+      "content": "Pro tip: a quiet, controllable interior saves money twice, once on location fees and again in post, because you are not fixing traffic noise in the mix."
+    },
+    {
+      "id": "h-7",
+      "blockType": "heading",
+      "content": "FAQs: Short film budget India"
+    },
+    {
+      "id": "h-8",
+      "blockType": "heading",
+      "content": "How much does it cost to make a short film in India?"
+    },
+    {
+      "id": "p-14",
+      "blockType": "paragraph",
+      "content": "Indicative ranges run from about ₹5,000–25,000 for ultra-low productions to ₹1–3 lakh for festival-ready shorts, and ₹3–10 lakh or more for professional work. Your number depends mainly on shooting days, paid cast and crew, and how much post-production you outsource."
+    },
+    {
+      "id": "h-9",
+      "blockType": "heading",
+      "content": "Can I make a short film for ₹10,000?"
+    },
+    {
+      "id": "p-15",
+      "blockType": "paragraph",
+      "content": "Yes, if you shoot in two days or fewer with volunteer cast and crew, use your own camera, borrow a private location and edit yourself. Spend what you have on a decent microphone, food and transport."
+    },
+    {
+      "id": "h-10",
+      "blockType": "heading",
+      "content": "What is a good budget for a festival short film?"
+    },
+    {
+      "id": "p-16",
+      "blockType": "paragraph",
+      "content": "Many festival-bound shorts fall in the ₹1–3 lakh range, mainly because of experienced actors, a dedicated sound team and professional colour and mix. Add ₹10,000–20,000 for submission fees across a realistic festival list."
+    },
+    {
+      "id": "h-11",
+      "blockType": "heading",
+      "content": "How do I save money on a short film shoot?"
+    },
+    {
+      "id": "p-17",
+      "blockType": "paragraph",
+      "content": "Cut shooting days by grouping scenes by location, keep the cast small, rent gear only for shoot days, and move dialogue scenes into one controllable interior. Avoid public locations that need paid permissions unless the story truly depends on them."
+    },
+    {
+      "id": "h-12",
+      "blockType": "heading",
+      "content": "Why book with ContCave"
+    },
+    {
+      "id": "p-18",
+      "blockType": "paragraph",
+      "content": "When your budget has a line for location or studio, ContCave lets you browse and compare studios across Delhi, Gurugram and Noida in one place, with hourly pricing shown upfront. You can check listing photos, amenities, add-ons and packages, read reviews from past bookings, and message the host about crew size, power and set dressing before you book and pay online. Knowing the exact hourly cost makes your location line a number, not a guess."
+    },
+    {
+      "id": "h-13",
+      "blockType": "heading",
+      "content": "Final takeaways"
+    },
+    {
+      "id": "p-19",
+      "blockType": "paragraph",
+      "content": "A good short film budget in India starts with shooting days and heads on set, then protects sound, actors and food before anything else. Fill every line in the template, add contingency, and test your numbers against the worked examples."
+    },
+    {
+      "id": "list-8",
+      "blockType": "list",
+      "items": [
+        "Break your script into pages and estimate two to four pages per shooting day",
+        "Fill in every line of the template with real quotes, not guesses",
+        "Add 10–15 per cent contingency before you share the budget with anyone",
+        "Move dialogue scenes into one controllable interior to save on fees and sound",
+        "Keep ₹10,000–20,000 aside for festival submissions if that is your goal"
+      ]
+    }
+  ],
+  "slug": "short-film-budget-india",
+  "meta": {
+    "title": "Short Film Budget India: 2026 Breakdown With 3 Worked Examples",
+    "description": "Short film budget India guide: a line-item template, three worked budgets from ₹14K to ₹2.9 lakh, and where to spend. Plan studio days on ContCave."
+  },
+  "_status": "published",
+  "createdAt": "2026-10-15T04:00:00Z",
+  "updatedAt": "2026-10-15T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    {
+      "id": "author-cc-edit",
+      "name": "ContCave Editorial"
+    }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "short film budget india",
+    "how much does a short film cost in india",
+    "short film production cost",
+    "low budget short film india",
+    "short film budget breakdown",
+    "festival short film budget",
+    "short film budget template",
+    "short film cost 2026",
+    "student short film budget",
+    "indie film budget india",
+    "short film budget delhi",
+    "short film shoot delhi ncr",
+    "short film crew cost",
+    "actor fees short film",
+    "gear rental cost india",
+    "studio for short film",
+    "short film post production cost",
+    "sound design cost india",
+    "festival submission fees",
+    "contingency budget film",
+    "shooting days per page",
+    "short film for film students",
+    "first short film tips",
+    "make a short film for 10000",
+    "book studio for short film",
+    "ContCave"
+  ]
+}

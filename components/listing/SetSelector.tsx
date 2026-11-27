@@ -21,7 +21,7 @@ interface SetSelectorProps {
     sets: ListingSet[];
     selectedSetIds: string[];
     onSetToggle: (setId: string) => void;
-    onSelectAll?: () => void;
+    onBookEntireStudio?: () => void;
     includedSetId: string | null;
     pricingType: "FIXED" | "HOURLY" | null;
     hours?: number;
@@ -29,7 +29,6 @@ interface SetSelectorProps {
     disabled?: boolean;
     selectedPackage?: Package | null;
     availableSetIds?: string[];
-    isEntireStudioBooked?: boolean;
 }
 
 const INR = new Intl.NumberFormat("en-IN", {
@@ -42,7 +41,7 @@ export default function SetSelector({
     sets,
     selectedSetIds,
     onSetToggle,
-    onSelectAll,
+    onBookEntireStudio,
     includedSetId,
     pricingType,
     hours = 1,
@@ -50,13 +49,11 @@ export default function SetSelector({
     disabled = false,
     selectedPackage,
     availableSetIds = [],
-    isEntireStudioBooked = false,
 }: SetSelectorProps) {
     const [modalSet, setModalSet] = useState<ListingSet | null>(null);
     const [isBeginning, setIsBeginning] = useState(true);
     const [isEnd, setIsEnd] = useState(false);
     const swiperRef = useRef<SwiperClass>(null);
-    const allSetsAvailable = sets.length > 0 && sets.every((set) => availableSetIds.includes(set.id));
 
     const getSetPrice = (set: ListingSet) => {
         if (set.id === includedSetId) {
@@ -81,10 +78,6 @@ export default function SetSelector({
         };
     };
 
-    const handleToggle = (setId: string) => {
-        if (!isEntireStudioBooked) onSetToggle(setId);
-    };
-
     const handleSwiperUpdate = (swiper: SwiperClass) => {
         setIsBeginning(swiper.isBeginning);
         setIsEnd(swiper.isEnd);
@@ -97,17 +90,13 @@ export default function SetSelector({
                     title="Select Sets"
                     variant="h5"
                 />
-                {onSelectAll && !selectedPackage && (
+                {onBookEntireStudio && !selectedPackage && (
                     <button
-                        onClick={onSelectAll}
-                        disabled={(disabled || !allSetsAvailable) && !isEntireStudioBooked}
-                        className={`text-sm font-medium px-4 py-2 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed
-                            ${isEntireStudioBooked
-                                ? "bg-muted text-foreground hover:bg-muted/80 shadow-sm"
-                                : "bg-foreground text-background hover:bg-neutral-800 shadow-sm hover:shadow-md"
-                            }`}
+                        type="button"
+                        onClick={onBookEntireStudio}
+                        className="text-sm font-medium px-4 py-2 rounded-xl transition bg-foreground text-background hover:bg-neutral-800 shadow-sm hover:shadow-md"
                     >
-                        {isEntireStudioBooked ? "Clear Selection" : "Book the Entire Studio"}
+                        Book the Entire Studio
                     </button>
                 )}
             </div>
@@ -169,7 +158,7 @@ export default function SetSelector({
 
                         const isAvailable = availableSetIds.includes(set.id);
 
-                        const isDisabled = !isAvailable || !isEligible || disabled || isEntireStudioBooked;
+                        const isDisabled = !isAvailable || !isEligible || disabled;
 
                         return (
                             <SwiperSlide key={set.id} style={{ width: "256px" }}>
@@ -186,7 +175,7 @@ export default function SetSelector({
                                             aria-label={`${isSelected ? "Deselect" : "Select"} ${set.name}`}
                                             aria-pressed={isSelected}
                                             disabled={isDisabled}
-                                            onClick={() => handleToggle(set.id)}
+                                            onClick={() => onSetToggle(set.id)}
                                             className="absolute inset-0 z-5"
                                         />
                                         {set.images.length > 1 ? (
@@ -220,7 +209,7 @@ export default function SetSelector({
                                                 aria-label={`${isSelected ? "Deselect" : "Select"} ${set.name}`}
                                                 checked={isSelected}
                                                 disabled={isDisabled}
-                                                onCheckedChange={() => handleToggle(set.id)}
+                                                onCheckedChange={() => onSetToggle(set.id)}
                                                 className="data-[state=checked]:bg-success data-[state=checked]:border-success"
                                             />
                                         </div>
@@ -267,7 +256,7 @@ export default function SetSelector({
                 onClose={() => setModalSet(null)}
                 set={modalSet}
                 isSelected={modalSet ? selectedSetIds.includes(modalSet.id) : false}
-                onToggle={() => modalSet && handleToggle(modalSet.id)}
+                onToggle={() => modalSet && onSetToggle(modalSet.id)}
                 priceLabel={modalSet ? getSetPrice(modalSet).label : ""}
                 isAvailable={modalSet ? availableSetIds.includes(modalSet.id) : false}
                 isEligible={modalSet ? (!selectedPackage || !selectedPackage.eligibleSetIds || selectedPackage.eligibleSetIds.length === 0 || selectedPackage.eligibleSetIds.includes(modalSet.id)) : false}

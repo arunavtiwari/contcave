@@ -1,0 +1,323 @@
+{
+  "id": "instagram-ad-creatives-shoot-day",
+  "title": "Ad Creatives for Instagram Ads: Shoot 30+ in One Studio Day",
+  "categories": [
+    {
+      "id": "content-creation",
+      "title": "Content Creation",
+      "breadcrumbs": [
+        {
+          "doc": "home",
+          "label": "Home",
+          "id": "bc-home"
+        },
+        {
+          "doc": "blogs",
+          "label": "Blogs",
+          "id": "bc-blogs"
+        },
+        {
+          "doc": "category",
+          "label": "Content Creation",
+          "id": "bc-content-creation"
+        }
+      ],
+      "createdAt": "2026-10-07T00:00:00Z",
+      "updatedAt": "2026-10-07T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-10-07T04:00:00Z",
+  "authors": [
+    "ContCave Editorial"
+  ],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "An hour-by-hour studio plan for D2C performance teams and social agencies who need dozens of genuinely different Meta ad creatives from a single 8-hour booking."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-1",
+      "blockType": "heading",
+      "content": "Ad Creatives for Instagram Ads: Shoot 30+ in One Studio Day"
+    },
+    {
+      "id": "p-1",
+      "blockType": "paragraph",
+      "content": "Performance teams are being asked for more creative with less money. exchange4media reported Indian brands cutting production budgets by 30 to 50 percent while still asking for more output, and festive season makes the squeeze worse. If you need fresh ad creatives for Instagram ads before Diwali on 8 November 2026, the most efficient answer is usually one well-planned studio day rather than five scrappy ones. This guide gives you an hour-by-hour plan for an 8-hour shoot with three or four sets, a shot matrix that turns a handful of ideas into 30-plus distinct creatives, and the specs to export them correctly."
+    },
+    {
+      "id": "h-2",
+      "blockType": "heading",
+      "content": "Why creative volume and variety matter on Meta now"
+    },
+    {
+      "id": "p-2",
+      "blockType": "paragraph",
+      "content": "Meta's Andromeda ad-retrieval system is built to match many different ads to many different people. In practice, that rewards creatives that are genuinely different from each other: a new hook, a different person, a different format or setting. Ten versions of the same video with a changed headline tend to be treated as near-duplicates."
+    },
+    {
+      "id": "p-3",
+      "blockType": "paragraph",
+      "content": "You will often hear that you should run 20 to 30 creatives per ad set. That is an agency heuristic, not a Meta rule. The useful takeaway is simpler: feed the system enough real variety to find winners, then keep refreshing before performance decays."
+    },
+    {
+      "id": "p-4",
+      "blockType": "paragraph",
+      "content": "Festive campaigns increasingly run as a content system rather than a single hero film. That means many cutdowns, timed to moments such as salary days at the start of the month and the final stretch before Diwali, which in 2026 runs from Dhanteras on Friday 6 November into the weekend of 7 and 8 November."
+    },
+    {
+      "id": "quote-1",
+      "blockType": "quote",
+      "content": "Variety beats volume: three hooks, three people and three formats will teach you more than thirty edits of one video."
+    },
+    {
+      "id": "h-3",
+      "blockType": "heading",
+      "content": "Build a shot matrix before you book"
+    },
+    {
+      "id": "p-5",
+      "blockType": "paragraph",
+      "content": "A shot matrix is a simple grid you write in a spreadsheet: hooks down one side, formats across the top, talent as a third variable. Every cell is a creative."
+    },
+    {
+      "id": "list-1",
+      "blockType": "list",
+      "items": [
+        "Hooks (5 to 6): problem statement, bold claim, price or offer reveal, reaction shot, myth versus fact, festive gifting angle",
+        "Formats (5 to 6): UGC-style talking head, product demo, unboxing, before and after, static flat lay, festive lifestyle scene",
+        "Talent (2 to 3): different ages, genders or styles so the same message reaches different audiences"
+      ]
+    },
+    {
+      "id": "p-6",
+      "blockType": "paragraph",
+      "content": "You will not shoot every combination. Pick the strongest 30 to 40 cells, then add extra hook takes to the best formats, because the opening three seconds is the cheapest thing to vary and often the biggest lever. Each video body can carry three or four separately shot hooks in the edit."
+    },
+    {
+      "id": "h-4",
+      "blockType": "heading",
+      "content": "The studio and set plan"
+    },
+    {
+      "id": "p-7",
+      "blockType": "paragraph",
+      "content": "For an 8-hour day, plan three or four sets you can move between without relighting the whole floor:"
+    },
+    {
+      "id": "list-2",
+      "blockType": "list",
+      "items": [
+        "Set 1: talking head corner with a sofa or chair, softbox key and a practical lamp in the background",
+        "Set 2: tabletop demo with a clean surface, overhead rig or arm for top-down shots",
+        "Set 3: lifestyle or festive corner with props such as diyas, gift boxes and fabric",
+        "Set 4: a white or neutral sweep for flat lays and the separate 1:1 and 4:5 feed set"
+      ]
+    },
+    {
+      "id": "p-8",
+      "blockType": "paragraph",
+      "content": "When you shortlist a studio, check floor area for multiple sets, the lighting kit and stands available, power points, a makeup and changing area, and whether you can shoot audio without street noise. Message the host before booking to confirm what is included and what is an add-on."
+    },
+    {
+      "id": "h-5",
+      "blockType": "heading",
+      "content": "Hour-by-hour plan for an 8-hour studio day"
+    },
+    {
+      "id": "p-9",
+      "blockType": "paragraph",
+      "content": "This plan assumes a crew of four to six: director or creative lead, camera operator, a second shooter on a phone, a stylist or makeup artist, a producer tracking the matrix, and two or three talent."
+    },
+    {
+      "id": "list-3",
+      "blockType": "list",
+      "items": [
+        "Hour 0 (before the clock starts): pre-light plan agreed, script cards printed, matrix shared, props packed by set",
+        "Hour 1: load in, build sets 1 and 2, makeup for first talent, test shots and audio check",
+        "Hour 2: talking head set with talent A. Shoot every hook line two or three times, then two full script bodies",
+        "Hour 3: talking head with talent B, same hooks and bodies, plus a reaction and testimonial-style take",
+        "Hour 4: product demo on the tabletop set. Hands-only close-ups, overhead shots, slow motion pours or texture shots",
+        "Hour 5: lunch for talent and crew while the camera team turns set 3 around for unboxing and festive lifestyle",
+        "Hour 6: unboxing and before and after sequences with talent A and C, plus festive gifting moments",
+        "Hour 7: static flat lays and the separate feed set in 1:1 and 4:5 on the sweep, plus product hero stills",
+        "Hour 8: pickups for gaps in the matrix, extra hook takes, B-roll of hands and textures, wrap and data backup"
+      ]
+    },
+    {
+      "id": "p-10",
+      "blockType": "paragraph",
+      "content": "The producer ticks off matrix cells as you go. Anything still empty at hour 7 becomes a pickup rather than a surprise in the edit."
+    },
+    {
+      "id": "h-6",
+      "blockType": "heading",
+      "content": "Batch shooting rules that save hours"
+    },
+    {
+      "id": "list-4",
+      "blockType": "list",
+      "items": [
+        "Shoot by set, not by script, so you light each area once",
+        "Change talent wardrobe, not the set, to create variety quickly",
+        "Run the phone as a second camera for raw UGC-style angles while the main camera shoots clean versions",
+        "Record a clean room tone for audio at each set",
+        "Name and back up cards at lunch and at wrap, two copies each time"
+      ]
+    },
+    {
+      "id": "h-7",
+      "blockType": "heading",
+      "content": "Specs: 9:16 video ad size and the feed set"
+    },
+    {
+      "id": "p-11",
+      "blockType": "paragraph",
+      "content": "Reels and Stories ads are 1080 by 1920 pixels in 9:16. Frame every video for vertical first, and shoot a little wider so you can reframe if needed."
+    },
+    {
+      "id": "p-12",
+      "blockType": "paragraph",
+      "content": "Commonly cited safe-zone guidance says to keep roughly the top 14 percent and bottom 35 percent of a 9:16 frame clear of text and key product, because the interface covers those areas. These are third-party figures, so confirm the current safe zones in Meta's Ads Guide before you lock supers and captions."
+    },
+    {
+      "id": "p-13",
+      "blockType": "paragraph",
+      "content": "Feed placements need their own set. Shoot 1:1 and 4:5 stills and short clips deliberately rather than cropping vertical video, because a 9:16 composition cropped to 4:5 often cuts the product or the face."
+    },
+    {
+      "id": "p-14",
+      "blockType": "paragraph",
+      "content": "On cost, a useful benchmark: indicative agency quotes for a set of three to five reels run roughly ₹15,000 to 30,000. Compare that against the per-creative cost of a full studio day where you come away with 30 or more pieces."
+    },
+    {
+      "id": "h-8",
+      "blockType": "heading",
+      "content": "FAQs: ad creatives for Instagram ads"
+    },
+    {
+      "id": "h-9",
+      "blockType": "heading",
+      "content": "How many creatives should I test on Meta?"
+    },
+    {
+      "id": "p-15",
+      "blockType": "paragraph",
+      "content": "Meta does not publish a fixed number. The often-quoted 20 to 30 creatives per ad set is an agency rule of thumb. A practical approach is to launch with a handful of genuinely different concepts, each with a few hook variations, then add new concepts as winners emerge and losers are paused."
+    },
+    {
+      "id": "h-10",
+      "blockType": "heading",
+      "content": "What size is an Instagram Reels ad?"
+    },
+    {
+      "id": "p-16",
+      "blockType": "paragraph",
+      "content": "Reels ads are 1080 by 1920 pixels in a 9:16 vertical ratio. Keep text and key product away from the top and bottom of the frame, where the interface overlays sit, and check Meta's Ads Guide for current safe zones."
+    },
+    {
+      "id": "h-11",
+      "blockType": "heading",
+      "content": "What is Meta Andromeda?"
+    },
+    {
+      "id": "p-17",
+      "blockType": "paragraph",
+      "content": "Andromeda is Meta's ad-retrieval system, which selects which ads are eligible to be shown to a person. Because it matches ads to people at large scale, it tends to favour accounts that supply genuinely diverse creatives rather than many near-identical versions."
+    },
+    {
+      "id": "h-12",
+      "blockType": "heading",
+      "content": "How do I avoid ad fatigue?"
+    },
+    {
+      "id": "p-18",
+      "blockType": "paragraph",
+      "content": "Plan refreshes before performance drops. Keep a bank of unused hooks and cutdowns from your shoot day, swap in new ones every week or two during peak season, and vary the person, setting and format, not just the text."
+    },
+    {
+      "id": "h-13",
+      "blockType": "heading",
+      "content": "Why book with ContCave"
+    },
+    {
+      "id": "p-19",
+      "blockType": "paragraph",
+      "content": "ContCave lets you browse and compare video and photography studios across Delhi NCR in one place, with hourly pricing upfront, so you can see what an 8-hour day will cost before you commit. Listing photos, amenities, add-ons and packages help you check floor space for multiple sets, and reviews from past bookings show how the space works in practice. You can message the host to confirm lighting and power, then book and pay online with a published cancellation policy."
+    },
+    {
+      "id": "h-14",
+      "blockType": "heading",
+      "content": "Final takeaways"
+    },
+    {
+      "id": "p-20",
+      "blockType": "paragraph",
+      "content": "One planned studio day, built around a shot matrix and batched by set, can give a performance team enough distinct creatives for the whole festive run."
+    },
+    {
+      "id": "list-5",
+      "blockType": "list",
+      "items": [
+        "Write a matrix of hooks, formats and talent and pick your 30 to 40 strongest cells",
+        "Book a studio with room for three or four sets and confirm the kit with the host",
+        "Shoot by set, capture extra hooks, and run a phone as a second camera",
+        "Export 9:16 at 1080 by 1920, check safe zones in Meta's Ads Guide, and shoot feed formats separately",
+        "Schedule refreshes around salary days and the final pre-Diwali weekends"
+      ]
+    }
+  ],
+  "slug": "instagram-ad-creatives-shoot-day",
+  "meta": {
+    "title": "Ad Creatives for Instagram Ads: Shoot 30+ in One Studio Day",
+    "description": "Shoot 30+ ad creatives for Instagram ads in one studio day: an hour-by-hour plan, shot matrix and 9:16 specs for festive 2026. Book a studio on ContCave."
+  },
+  "_status": "published",
+  "createdAt": "2026-10-07T04:00:00Z",
+  "updatedAt": "2026-10-07T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    {
+      "id": "author-cc-edit",
+      "name": "ContCave Editorial"
+    }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "ad creatives for instagram ads",
+    "instagram ad creatives",
+    "meta ad creatives",
+    "reels ad shoot",
+    "meta ad creative ideas",
+    "performance creative shoot",
+    "how many ad creatives to test",
+    "9:16 video ad size",
+    "instagram reels ad size",
+    "meta andromeda creatives",
+    "ad fatigue meta",
+    "ugc style ads",
+    "product demo video ads",
+    "festive ad creatives 2026",
+    "diwali ad campaign shoot",
+    "ad shoot studio delhi",
+    "video shoot studio delhi ncr",
+    "studio for ad shoots gurugram",
+    "studio for ad shoots noida",
+    "d2c brand ad shoot",
+    "social media agency shoot",
+    "batch content shoot",
+    "creative testing india",
+    "reels ad shoot cost india",
+    "book studio by the hour",
+    "ContCave"
+  ]
+}

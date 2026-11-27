@@ -1,0 +1,354 @@
+{
+  "id": "studio-security-deposit",
+  "title": "Studio Security Deposit and Damage Policy: A Host's Guide",
+  "categories": [
+    {
+      "id": "host-guides",
+      "title": "Host Guides",
+      "breadcrumbs": [
+        {
+          "doc": "home",
+          "label": "Home",
+          "id": "bc-home"
+        },
+        {
+          "doc": "blogs",
+          "label": "Blogs",
+          "id": "bc-blogs"
+        },
+        {
+          "doc": "category",
+          "label": "Host Guides",
+          "id": "bc-host-guides"
+        }
+      ],
+      "createdAt": "2026-10-11T00:00:00Z",
+      "updatedAt": "2026-10-11T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-10-11T04:00:00Z",
+  "authors": [
+    "ContCave Editorial"
+  ],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "How Indian studio hosts can size a security deposit, write a damage schedule renters will accept, collect check-in and check-out evidence, and handle refunds and disputes without losing good clients."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-1",
+      "blockType": "heading",
+      "content": "Studio Security Deposit and Damage Policy: A Host's Guide"
+    },
+    {
+      "id": "p-1",
+      "blockType": "paragraph",
+      "content": "Every studio host has a story: a strobe knocked off its stand, a white cyc wall smeared with colour powder, a paper roll walked on in outdoor shoes, a renter who swears the softbox was already torn. A studio security deposit and a clear damage policy will not prevent every accident, but they turn an awkward argument into a simple process. This guide is for hosts in Delhi NCR and across India who want to protect lights, backdrops and floors without scaring off good renters. It covers how to size a deposit, how to write a damage schedule, the evidence routine that settles most disputes, refund timelines, cleaning fees and insurance. It complements our studio rental rules post, which deals with etiquette; this one is about money and proof. It is general guidance, not legal advice."
+    },
+    {
+      "id": "h-2",
+      "blockType": "heading",
+      "content": "Why a deposit and a written damage policy matter"
+    },
+    {
+      "id": "p-2",
+      "blockType": "paragraph",
+      "content": "Without written terms, every damage conversation becomes your word against the renter's. With them, it becomes a checklist. In studio rental contracts we've seen, mostly from US studios, a few clauses recur:"
+    },
+    {
+      "id": "list-1",
+      "blockType": "list",
+      "items": [
+        "The renter is responsible for damage caused by the renter, their crew or their guests",
+        "Deductions can cover damage, unpaid overtime and extra cleaning",
+        "The remaining balance is refunded after inspection",
+        "Deposit holds are often released within about 48 hours of the booking ending"
+      ]
+    },
+    {
+      "id": "p-3",
+      "blockType": "paragraph",
+      "content": "Those are reasonable starting points for an Indian studio too, adapted to your own space. One important point: on ContCave, deposits and damage terms are between you and your renters. ContCave does not collect, hold or decide on deposits. So the terms need to live in your own house rules and rental agreement, appear in your listing description, and be confirmed in chat before the booking is made."
+    },
+    {
+      "id": "quote-1",
+      "blockType": "quote",
+      "content": "If a rule is not written down and agreed before the shoot starts, assume you cannot enforce it after the shoot ends."
+    },
+    {
+      "id": "h-3",
+      "blockType": "heading",
+      "content": "How much security deposit should a studio charge"
+    },
+    {
+      "id": "p-4",
+      "blockType": "paragraph",
+      "content": "There is no standard figure, and anyone quoting a universal number is guessing. Size your deposit by two things: the replacement value of what a renter can realistically damage, and the risk of the shoot type."
+    },
+    {
+      "id": "p-5",
+      "blockType": "paragraph",
+      "content": "Start with an exposure list. Walk through your studio and note the items a renter will touch: strobes and continuous lights, modifiers, stands, C-stands, backdrops and paper rolls, cyc wall paint, props, furniture, the floor, AC remotes, mics and audio interfaces. You are not trying to cover a total loss of everything; you are trying to cover the most likely bad day, such as one light head plus a modifier, or a cyc repaint."
+    },
+    {
+      "id": "p-6",
+      "blockType": "paragraph",
+      "content": "Then choose a structure:"
+    },
+    {
+      "id": "list-2",
+      "blockType": "list",
+      "items": [
+        "Flat deposit: one amount for every booking. Simple to explain, but either too high for a two-person podcast or too low for a 15-person ad shoot.",
+        "Tiered by shoot type: a base deposit for low-risk shoots (podcasts, headshots, product tabletop), and a higher tier for higher-risk work.",
+        "Tiered by crew size or gear: a higher tier when the renter uses your full lighting kit or brings a large crew."
+      ]
+    },
+    {
+      "id": "p-7",
+      "blockType": "paragraph",
+      "content": "Messy shoots deserve their own tier or a mandatory cleaning fee: cake smash, colour powder or Holi-style shoots, food and beverage pours, paint, glitter, water, smoke and haze, and anything with pets. Spell these out by name in your listing, so renters self-select into the right tier."
+    },
+    {
+      "id": "h-4",
+      "blockType": "heading",
+      "content": "Writing a damage schedule renters will accept"
+    },
+    {
+      "id": "p-8",
+      "blockType": "paragraph",
+      "content": "A damage schedule is a list of common items with how the charge is calculated. Renters accept charges more readily when they can see the logic in advance. Avoid inventing fixed penalty amounts that bear no relation to cost; tie each line to a real number you can show."
+    },
+    {
+      "id": "p-9",
+      "blockType": "paragraph",
+      "content": "A sample structure:"
+    },
+    {
+      "id": "list-3",
+      "blockType": "list",
+      "items": [
+        "Light heads, flashes and LED panels: actual repair invoice from an authorised service centre, or replacement cost of the same model if it cannot be repaired",
+        "Modifiers (softboxes, umbrellas, grids): replacement cost of the same or equivalent item",
+        "Stands and grip: repair cost or replacement cost of the damaged part",
+        "Paper backdrops: cost of the used length if marked or torn beyond normal use",
+        "Cyc wall or painted surfaces: cost of materials plus labour for the repaint, per your painter's invoice",
+        "Props and furniture: repair invoice or replacement cost",
+        "Extra cleaning beyond the standard reset: your stated cleaning fee, or the cleaner's actual invoice for heavy jobs",
+        "Overtime: your published hourly rate for time beyond the booked slot"
+      ]
+    },
+    {
+      "id": "p-10",
+      "blockType": "paragraph",
+      "content": "Define normal wear and tear too. A paper roll is meant to be used; a dusty floor after a fashion shoot is normal. Charging for ordinary use is the fastest way to collect bad reviews."
+    },
+    {
+      "id": "h-5",
+      "blockType": "heading",
+      "content": "The evidence routine: check-in and check-out"
+    },
+    {
+      "id": "p-11",
+      "blockType": "paragraph",
+      "content": "Most disputes are settled by whoever has better evidence. Make your routine boring and identical for every booking."
+    },
+    {
+      "id": "list-4",
+      "blockType": "list",
+      "items": [
+        "Before the renter arrives, take timestamped photos and a slow walk-through video of the set, cyc, floor and every piece of gear that will be used",
+        "Keep a written gear checklist with item names and any existing marks or faults",
+        "At check-in, walk the renter or their lead through the checklist and ask them to confirm it, either by signing a paper copy or replying \"confirmed\" in chat",
+        "Ask renters to report pre-existing damage within the first 15 minutes, and note it on the checklist",
+        "At check-out, repeat the photos and video in the same order, and both sign or confirm the checklist again",
+        "Store the files in a folder named by booking date and renter name, and keep them for at least a few months"
+      ]
+    },
+    {
+      "id": "p-12",
+      "blockType": "paragraph",
+      "content": "Chat messages are useful evidence because they are timestamped and tied to the booking. Keep deposit and damage conversations in writing rather than only on calls."
+    },
+    {
+      "id": "quote-2",
+      "blockType": "quote",
+      "content": "Photograph the gear in the same order at check-in and check-out. Matching before-and-after frames end most arguments in a minute."
+    },
+    {
+      "id": "h-6",
+      "blockType": "heading",
+      "content": "Refunds, disputes and invoices"
+    },
+    {
+      "id": "p-13",
+      "blockType": "paragraph",
+      "content": "Refund promptly. Taking a week to return an untouched deposit annoys renters more than a fair deduction does. A reasonable approach is to inspect within a few hours of check-out, then refund the full deposit within a stated window, for example 48 hours, unless you have raised an issue in writing."
+    },
+    {
+      "id": "p-14",
+      "blockType": "paragraph",
+      "content": "If something is damaged:"
+    },
+    {
+      "id": "list-5",
+      "blockType": "list",
+      "items": [
+        "Tell the renter the same day, in writing, with the before and after photos",
+        "Explain which line of the damage schedule applies",
+        "Get a repair estimate or replacement quote before deducting anything",
+        "Deduct only the documented amount and refund the balance",
+        "Share the repair invoice or purchase bill once you have it"
+      ]
+    },
+    {
+      "id": "p-15",
+      "blockType": "paragraph",
+      "content": "Stay calm and specific. Most renters accept a charge when they see the photo, the rule they agreed to and the invoice. If they dispute it, offer to wait for the service centre's diagnosis. Repeat clients are worth more than winning a ₹2,000 argument."
+    },
+    {
+      "id": "p-16",
+      "blockType": "paragraph",
+      "content": "Keep your paperwork clean. Issue a proper invoice or receipt for every deduction, showing what it was for. Whether GST applies to damage recoveries or cleaning charges, and how to record a refundable deposit in your books, depends on your registration and circumstances, so check with your chartered accountant rather than guessing."
+    },
+    {
+      "id": "h-7",
+      "blockType": "heading",
+      "content": "Cleaning fee versus damage charge"
+    },
+    {
+      "id": "p-17",
+      "blockType": "paragraph",
+      "content": "Keep these separate. A cleaning fee is a predictable charge for predictable mess, stated upfront for named shoot types: cake smash, food, colour, glitter, pets. It should be the same for every renter in that category. A damage charge is for something broken, stained permanently or lost, and it should be based on a repair invoice or replacement cost. Mixing them makes every deduction look arbitrary."
+    },
+    {
+      "id": "h-8",
+      "blockType": "heading",
+      "content": "FAQs: studio security deposit"
+    },
+    {
+      "id": "h-9",
+      "blockType": "heading",
+      "content": "How much security deposit should a studio charge?"
+    },
+    {
+      "id": "p-18",
+      "blockType": "paragraph",
+      "content": "Base it on the replacement cost of the items renters can realistically damage and the risk of the shoot type. Many hosts use a lower base deposit for podcasts and tabletop shoots and a higher tier for large crews or messy shoots."
+    },
+    {
+      "id": "h-10",
+      "blockType": "heading",
+      "content": "Who pays if equipment is damaged during a shoot?"
+    },
+    {
+      "id": "p-19",
+      "blockType": "paragraph",
+      "content": "Under typical studio terms, the renter is responsible for damage caused by them, their crew or guests, beyond normal wear and tear. This only holds up if it is in your written house rules and agreed before the booking."
+    },
+    {
+      "id": "h-11",
+      "blockType": "heading",
+      "content": "When should a security deposit be refunded?"
+    },
+    {
+      "id": "p-20",
+      "blockType": "paragraph",
+      "content": "After a check-out inspection, ideally within a short stated window such as 48 hours. If there is damage, notify the renter in writing and refund the balance once the cost is documented."
+    },
+    {
+      "id": "h-12",
+      "blockType": "heading",
+      "content": "Is there insurance for a photo studio in India?"
+    },
+    {
+      "id": "p-21",
+      "blockType": "paragraph",
+      "content": "Yes, in general terms. Camera and lighting gear is commonly insured under portable electronic equipment or all-risk policies, and some hosts look at shop or office package policies for the premises. Cover and exclusions vary, so ask an insurer or broker what fits your studio."
+    },
+    {
+      "id": "h-13",
+      "blockType": "heading",
+      "content": "Why list with ContCave"
+    },
+    {
+      "id": "p-22",
+      "blockType": "paragraph",
+      "content": "ContCave lets hosts list a studio, set hourly pricing, add-ons and packages, manage availability with Google Calendar sync, receive bookings and payouts online and chat with guests. Use your listing description to state your deposit, cleaning fee and damage terms clearly, and use chat to confirm them with each renter before the booking, so the rules are in writing from the start."
+    },
+    {
+      "id": "h-14",
+      "blockType": "heading",
+      "content": "Final takeaways"
+    },
+    {
+      "id": "p-23",
+      "blockType": "paragraph",
+      "content": "A deposit is not about catching renters out; it is about making accidents easy to resolve. Write the rules down, show them before booking and keep the evidence."
+    },
+    {
+      "id": "list-6",
+      "blockType": "list",
+      "items": [
+        "List the items renters can damage and size your deposit by replacement cost and shoot risk",
+        "Write a damage schedule based on repair invoices and replacement cost, not penalties",
+        "Run the same photo and checklist routine at every check-in and check-out",
+        "Separate a fixed cleaning fee for messy shoots from damage charges",
+        "Ask an insurer or broker about cover for your gear and premises"
+      ]
+    }
+  ],
+  "slug": "studio-security-deposit",
+  "meta": {
+    "title": "Studio Security Deposit and Damage Policy: A Host's Guide",
+    "description": "Set a fair studio security deposit, write a damage policy and keep evidence that settles disputes. A practical host guide from ContCave for Indian studios."
+  },
+  "_status": "published",
+  "createdAt": "2026-10-11T04:00:00Z",
+  "updatedAt": "2026-10-11T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    {
+      "id": "author-cc-edit",
+      "name": "ContCave Editorial"
+    }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "studio security deposit",
+    "studio damage policy",
+    "security deposit for studio rental",
+    "studio rental agreement india",
+    "cleaning fee studio",
+    "equipment damage charges",
+    "photo studio damage charges",
+    "studio house rules",
+    "studio insurance india",
+    "photography equipment insurance india",
+    "studio deposit refund",
+    "studio check-in checklist",
+    "studio check-out checklist",
+    "damage deposit for shoots",
+    "studio rental terms and conditions",
+    "messy shoot cleaning fee",
+    "studio dispute resolution",
+    "studio overtime charges",
+    "host guide studio rental",
+    "studio rental delhi ncr",
+    "studio hosts gurugram",
+    "studio hosts noida",
+    "studio owners india 2026",
+    "protect studio equipment",
+    "how much deposit for studio",
+    "ContCave"
+  ]
+}

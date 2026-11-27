@@ -45,43 +45,37 @@ const ListingCardContent: React.FC<ListingCardContentProps> = ({
     return (
         <div className="px-1 pt-1 pb-1">
             <div className="flex items-start justify-between gap-3">
+                {hasChips && (
+                    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                        {chips.map((chip) => (
+                            <Pill key={chip.key} label={chip.label} variant="outline" size="xs" />
+                        ))}
 
-                    {hasChips && (
-                        <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                            {chips.map((chip) => (
-                                <Pill
-                                    key={chip.key}
-                                    label={chip.label}
-                                    variant="outline"
-                                    size="xs"
-                                />
-                            ))}
+                        {ratingValue != null && showRating && (
+                            <Pill
+                                label={
+                                    <span className="text-[11px] font-extrabold flex items-center gap-1">
+                                        {ratingValue.toFixed(1)}
 
-                            {ratingValue != null && showRating && (
-                                <Pill
-                                    label={
-                                        <span className="text-[11px] font-extrabold flex items-center gap-1">
-                                            {ratingValue.toFixed(1)}
+                                        {reviewCount !== undefined && reviewCount > 0 && (
+                                            <span className="font-medium text-muted-foreground opacity-60 tracking-tighter">
+                                                ({reviewCount})
+                                            </span>
+                                        )}
+                                    </span>
+                                }
+                                icon={AiFillStar}
+                                variant="card-rating"
+                                size="xs"
+                            />
+                        )}
+                    </div>
+                )}
 
-                                            {reviewCount !== undefined && reviewCount > 0 && (
-                                                <span className="font-medium text-muted-foreground opacity-60 tracking-tighter">
-                                                    ({reviewCount})
-                                                </span>
-                                            )}
-                                        </span>
-                                    }
-                                    icon={AiFillStar}
-                                    variant="card-rating"
-                                    size="xs"
-                                />
-                            )}
-                        </div>
-                    )}
-
-                    <p className="mt-2 text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-wider leading-none">
-                        {locationLine}
-                    </p>
-                </div>
+                <p className="max-w-[45%] shrink-0 truncate pt-1.5 text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-wider leading-none">
+                    {locationLine}
+                </p>
+            </div>
 
             <Link href={cardHref} className="block mt-2">
                 <Heading

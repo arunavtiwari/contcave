@@ -12,6 +12,40 @@ interface DecryptionInput {
     iv: string;
 }
 
+/**
+ * Key derivation is PBKDF2 with 310k iterations — roughly 150-300ms of *synchronous*
+ * CPU per call, which blocks the event loop for every other request in the process.
+ * Because the master key is fixed for the process lifetime, `salt -> key` is a pure
+ * function, so derived keys are memoised in a bounded LRU. Reading a list of records
+ * (admin tables decrypt several fields per row) then costs one derivation per distinct
+ * salt instead of one per field per request.
+ *
+ * Only derived key material lives here — never plaintext — and it is no more sensitive
+ * than the master key already held in memory.
+ */
+// Each entry is a 32-byte key plus its salt, so holding several thousand is negligible —
+// and the limit wants to stay comfortably above (owners x encrypted fields) so that paging
+// through an admin table never evicts keys it is about to need again.
+const KEY_CACHE_LIMIT = 5000;
+const derivedKeyCache = new Map<string, Buffer>();
+
+function getCachedKey(saltHex: string): Buffer | undefined {
+    const cached = derivedKeyCache.get(saltHex);
+    if (!cached) return undefined;
+    // Re-insert to mark as most recently used.
+    derivedKeyCache.delete(saltHex);
+    derivedKeyCache.set(saltHex, cached);
+    return cached;
+}
+
+function setCachedKey(saltHex: string, key: Buffer): void {
+    if (derivedKeyCache.size >= KEY_CACHE_LIMIT) {
+        const oldest = derivedKeyCache.keys().next().value;
+        if (oldest !== undefined) derivedKeyCache.delete(oldest);
+    }
+    derivedKeyCache.set(saltHex, key);
+}
+
 class EncryptionService {
     private readonly masterKey: string;
     private readonly keyVersion: string;
@@ -36,13 +70,19 @@ class EncryptionService {
     }
 
     private deriveKey(salt: Buffer): Buffer {
-        return crypto.pbkdf2Sync(
+        const saltHex = salt.toString('hex');
+        const cached = getCachedKey(saltHex);
+        if (cached) return cached;
+
+        const key = crypto.pbkdf2Sync(
             this.masterKey,
             salt,
             this.iterations,
             this.keyLength,
             this.digest
         );
+        setCachedKey(saltHex, key);
+        return key;
     }
 
     encrypt(plaintext: string): EncryptionResult {

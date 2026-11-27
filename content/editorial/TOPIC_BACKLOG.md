@@ -15,13 +15,16 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 24 | Studio Etiquette: Rules Every Renter Should Know | studio rental rules | booking-tips | creators |
-| 25 | GST, Invoices & Payments: Studio Booking Paperwork Explained | gst on studio rental | booking-tips | brands, hosts |
-| 26 | Best Natural-Light Studios & the Right Time Slots to Book Them | natural light studio | studio-guides | creators |
-| 27 | Build a Monthly Content Calendar Around One Studio Day | content calendar for creators | content-creation | creators |
-| 28 | UGC Creators: Delivering Brand Content with Studio Shoots | ugc creator india | creator-economy | creators |
-| 29 | Renting Event Spaces for Workshops, Pop-Ups & Launches | event space on rent delhi | studio-guides | brands |
-| 30 | How Hosts Can Get More Bookings: Photos, Pricing & Reviews | get more studio bookings | host-guides | hosts |
+| 76 | Multi-Camera Setup for Interview & Panel Podcasts | multi camera podcast studio india | studio-guides | creators, hosts |
+| 77 | Accessible Studios: What Hosts Should Offer for Differently-Abled Creators | accessible studio for creators india | host-guides | hosts |
+| 78 | Content House & Co-Living Studios: India's New Creator Hub Model | content house for creators india | creator-economy | creators |
+| 79 | Real Estate & Property Video Studios: Shooting Virtual Tours Indoors | real estate shoot studio india | studio-guides | brands |
+| 80 | Baby Shower & Celebration Content Studios: What to Book | baby shower photoshoot studio india | studio-guides | creators |
+| 81 | UGC Studio Space: What Brands Should Book for Creator Shoots | ugc studio space for brands india | booking-tips | brands |
+| 82 | Holi & Colour-Safe Studio Shoots: Planning a Festival Content Day | holi photoshoot studio india | booking-tips | creators, brands |
+| 83 | Studio Membership & Subscription Plans: Should Hosts Offer Them | studio membership plan for creators india | host-guides | hosts |
+| 84 | AI Avatar & Virtual Influencer Content: Do You Still Need a Studio | ai avatar content studio india | creator-economy | creators |
+| 85 | Audition Tape & Self-Tape Studios for Actors and OTT Auditions | audition tape studio india | studio-guides | creators |
 
 ## Published
 
@@ -65,3 +68,55 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-09-07 | 21 | music-video-shoot-budget-india |
 | 2026-09-14 | 22 | rent-your-property-for-shoots-india |
 | 2026-09-16 | 23 | corporate-video-production-cost-india |
+| 2026-09-18 | 24 | studio-rental-rules |
+| 2026-09-21 | 25 | gst-on-studio-rental-india |
+| 2026-09-23 | 26 | natural-light-studio-delhi-ncr |
+| 2026-09-28 | 27 | content-calendar-for-creators-studio-day |
+| 2026-09-29 | 28 | ugc-creator-india |
+| 2026-09-30 | 29 | event-space-on-rent-delhi |
+| 2026-10-02 | 30 | get-more-studio-bookings |
+| 2026-10-05 | 37 | jewellery-photography-studio-diwali |
+| 2026-10-06 | 38 | diwali-family-photoshoot-ideas |
+| 2026-10-07 | 39 | instagram-ad-creatives-shoot-day |
+| 2026-10-08 | 40 | maternity-photoshoot-delhi |
+| 2026-10-09 | 41 | microdrama-production-cost-india |
+| 2026-10-10 | 42 | marketplace-product-image-size-india |
+| 2026-10-11 | 43 | studio-security-deposit |
+| 2026-10-12 | 44 | film-shooting-permission-delhi-ncr |
+| 2026-10-13 | 45 | newborn-photoshoot-safety |
+| 2026-10-14 | 46 | photoshoot-call-sheet-shot-list |
+| 2026-10-15 | 47 | short-film-budget-india |
+| 2026-10-16 | 48 | quick-commerce-product-images-blinkit-zepto |
+| 2026-10-17 | 49 | photography-studio-setup-cost-india |
+| 2026-10-18 | 50 | how-to-pitch-microdrama-india |
+| 2026-10-19 | 51 | cake-smash-photoshoot |
+| 2026-10-20 | 52 | model-fees-usage-rights-india |
+| 2026-10-21 | 53 | online-course-recording-studio-india |
+| 2026-10-22 | 54 | ai-photoshoot-vs-studio-shoot-india |
+| 2026-10-23 | 55 | microdrama-shoot-schedule |
+| 2026-10-24 | 56 | studio-vs-location-shoot-india |
+| 2026-10-25 | 57 | studio-revenue-ideas |
+| 2026-10-05 | 31 | microdrama-studio-india |
+| 2026-10-07 | 32 | live-streaming-studio-rental-india |
+| 2026-10-09 | 33 | studio-booking-cancellation-policy |
+| 2026-10-12 | 34 | studio-with-makeup-room-india |
+| 2026-10-26 | 35 | festive-season-studio-booking-india |
+| 2026-10-16 | 36 | voice-over-recording-studio-india |
+| 2026-10-19 | 58 | corporate-headshot-studio-india |
+| 2026-10-21 | 59 | gaming-streaming-studio-india |
+| 2026-10-23 | 60 | studio-insurance-for-hosts-india |
+| 2026-10-26 | 61 | fitness-studio-for-content-shoot-india |
+| 2026-10-28 | 62 | cooking-studio-rental-india |
+| 2026-10-30 | 63 | studio-for-student-creators-india |
+| 2026-11-02 | 64 | finance-content-studio-india |
+| 2026-11-04 | 65 | vernacular-content-studio-india |
+| 2026-11-06 | 66 | pet-friendly-photography-studio-india |
+| 2026-11-09 | 67 | ecommerce-catalogue-vs-lookbook-shoot-studio-india |
+| 2026-11-11 | 68 | soundproof-studio-for-hosts-india |
+| 2026-11-13 | 69 | bts-content-studio-shoot-india |
+| 2026-11-16 | 70 | monsoon-proofing-studio-booking-india |
+| 2026-11-18 | 71 | video-podcast-studio-india |
+| 2026-11-20 | 72 | studio-for-creator-collab-shoot-india |
+| 2026-11-23 | 73 | unboxing-video-studio-india |
+| 2026-11-25 | 74 | studio-for-creators-tier-2-cities-india |
+| 2026-11-27 | 75 | comedy-content-studio-rental-india |

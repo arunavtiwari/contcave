@@ -84,7 +84,7 @@ const NotificationMenu = memo(function NotificationMenu({ currentUser }: Props) 
                 ref={triggerRef}
                 onClick={toggleOpen}
                 className={cn(
-                    "relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 hover:bg-muted active:scale-95 cursor-pointer",
+                    "relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 hover:bg-muted cursor-pointer",
                     isOpen && "bg-foreground/5"
                 )}
                 aria-label="Notifications"

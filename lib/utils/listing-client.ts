@@ -47,5 +47,5 @@ export const getListingHref = (
 ): string => {
     if (data?.href) return data.href;
     if (onEdit) return `/dashboard/properties/${data?.id}`;
-    return `/listings/${data?.slug || data?.id}`;
+    return `/studio/${data?.slug || data?.id}`;
 };

@@ -3,10 +3,12 @@ import { Client } from "@upstash/qstash";
 import { getValidatedBaseUrl } from "@/lib/utils";
 
 export type QstashJobPayload = {
-  job: "pending-approval-expiry" | "extension-expiry" | "additional-charge-expiry" | "auto-complete" | "booking-reminder" | "review-reminder";
+  job: "pending-approval-expiry" | "extension-expiry" | "additional-charge-expiry" | "auto-complete" | "booking-reminder" | "review-reminder" | "delete-media";
   reservationId?: string;
   extensionId?: string;
   chargeId?: string;
+  refs?: string[];
+  ownerId?: string;
 };
 
 export async function scheduleQstashJob(payload: QstashJobPayload, runAt: Date) {

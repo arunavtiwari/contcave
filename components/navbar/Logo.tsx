@@ -9,7 +9,7 @@ const Logo = memo(function Logo() {
     <Link href="/">
       <div className="w-full max-w-50">
         <Image
-          alt="logo-large"
+          alt="ContCave"
           height={40}
           width={160}
           src="/assets/logo.png"
@@ -17,7 +17,7 @@ const Logo = memo(function Logo() {
           priority
         />
         <Image
-          alt="logo-small"
+          alt="ContCave"
           height={32}
           width={32}
           src="/assets/logo_small.png"

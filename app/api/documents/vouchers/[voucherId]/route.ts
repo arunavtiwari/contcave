@@ -1,7 +1,7 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
-import { createPrivateDocumentDownloadUrl } from "@/lib/storage/privateDocuments";
+import { readPrivateDocument, safeDownloadName } from "@/lib/storage/privateDocuments";
 import { UserRole } from "@/types/user";
 
 export async function GET(_request: Request, props: { params: Promise<{ voucherId?: string }> }) {
@@ -17,19 +17,41 @@ export async function GET(_request: Request, props: { params: Promise<{ voucherI
         userId: true,
         voucherNumber: true,
         voucherUrl: true,
+        reservation: {
+          select: {
+            userId: true,
+            listing: {
+              select: {
+                userId: true,
+              },
+            },
+          },
+        },
       },
     });
     const allowed = voucher && (
       currentUser.role === UserRole.ADMIN
       || voucher.userId === currentUser.id
+      || voucher.reservation?.userId === currentUser.id
+      || voucher.reservation?.listing?.userId === currentUser.id
     );
     if (!allowed || !voucher.voucherUrl) return createErrorResponse("Voucher not found", 404);
 
-    const signedUrl = await createPrivateDocumentDownloadUrl(voucher.voucherUrl, `${voucher.voucherNumber}.pdf`);
-    const response = Response.redirect(signedUrl, 302);
-    response.headers.set("Cache-Control", "private, no-store");
-    response.headers.set("Referrer-Policy", "no-referrer");
-    return response;
+    if (voucher.voucherUrl.startsWith("http://") || voucher.voucherUrl.startsWith("https://")) {
+      return Response.redirect(voucher.voucherUrl, 302);
+    }
+
+    const buffer = await readPrivateDocument(voucher.voucherUrl);
+    const filename = `${safeDownloadName(voucher.voucherNumber)}.pdf`;
+
+    return new Response(new Uint8Array(buffer), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `inline; filename="${filename}"`,
+        "Cache-Control": "private, no-cache, no-store, must-revalidate",
+      },
+    });
   } catch (error) {
     return handleRouteError(error, "GET private voucher");
   }
