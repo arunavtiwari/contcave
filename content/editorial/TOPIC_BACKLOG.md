@@ -15,7 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 75 | Comedy & Stand-Up Content Studios: What Changes for a Live-Feel Set | comedy content studio india | content-creation | creators |
 | 76 | Multi-Camera Setup for Interview & Panel Podcasts | multi camera podcast studio india | studio-guides | creators, hosts |
 | 77 | Accessible Studios: What Hosts Should Offer for Differently-Abled Creators | accessible studio for creators india | host-guides | hosts |
 | 78 | Content House & Co-Living Studios: India's New Creator Hub Model | content house for creators india | creator-economy | creators |
@@ -120,3 +119,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-11-20 | 72 | studio-for-creator-collab-shoot-india |
 | 2026-11-23 | 73 | unboxing-video-studio-india |
 | 2026-11-25 | 74 | studio-for-creators-tier-2-cities-india |
+| 2026-11-27 | 75 | comedy-content-studio-rental-india |
